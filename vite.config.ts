@@ -14,8 +14,8 @@ export default defineConfig(({ mode, command }) => {
       lib: {
         entry: resolve(__dirname, 'src/index.ts'),
         name: 'DonationWidget',
-        formats: ['es', 'umd'],
-        fileName: (format) => `donation-widget.${format}.js`
+        formats: ['umd'],
+        fileName: () => 'donation-widget.js'
       },
       rollupOptions: {
         input: {
