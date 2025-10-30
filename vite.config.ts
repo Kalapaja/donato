@@ -6,6 +6,10 @@ export default defineConfig(({ mode, command }) => {
   const isServe = command === 'serve';
 
   return {
+    // Define global constants to inline environment variables
+    define: {
+      'process.env.NODE_ENV': JSON.stringify(mode),
+    },
     build: {
       lib: {
         entry: resolve(__dirname, 'src/index.ts'),
