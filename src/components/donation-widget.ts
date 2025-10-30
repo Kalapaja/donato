@@ -228,6 +228,25 @@ export class DonationWidget extends LitElement {
       color: var(--color-foreground);
       word-break: break-all;
     }
+
+    .footer {
+      margin-top: 1.5rem;
+      padding-top: 1rem;
+      border-top: 1px solid var(--color-border);
+      text-align: center;
+    }
+
+    .support-link {
+      color: var(--color-muted-foreground);
+      text-decoration: none;
+      font-size: 0.875rem;
+      transition: color 0.2s ease;
+    }
+
+    .support-link:hover {
+      color: var(--color-foreground);
+      text-decoration: underline;
+    }
   `;
 
   override async connectedCallback() {
@@ -521,6 +540,12 @@ export class DonationWidget extends LitElement {
           @quote-updated=${this.handleQuoteUpdate}
           @donate=${this.handleDonate}
         ></donation-form>
+
+        <div class="footer">
+          <a href="mailto:support@donations.kalatori.org" class="support-link">
+            Contact developers
+          </a>
+        </div>
       </div>
 
       <toast-container></toast-container>
