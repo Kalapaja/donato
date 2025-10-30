@@ -28,9 +28,6 @@ npm-debug.log*
 # typescript
 *.tsbuildinfo
 
-# deno
-deno.lock
-
 tmp
 .kiro
 .vite
