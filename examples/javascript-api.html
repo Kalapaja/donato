@@ -170,7 +170,7 @@
       <donation-widget 
         id="myWidget"
         recipient="0x742d35Cc6634C0532925a3b844Bc454e4438f44e"
-        project-id="YOUR_WALLETCONNECT_PROJECT_ID">
+        reown-project-id="YOUR_REOWN_PROJECT_ID">
       </donation-widget>
     </div>
 
@@ -192,17 +192,6 @@
           <option value="auto">Auto</option>
           <option value="light">Light</option>
           <option value="dark">Dark</option>
-        </select>
-      </div>
-
-      <div class="control-group">
-        <label>Default Token</label>
-        <select id="tokenSelect">
-          <option value="">None</option>
-          <option value="ETH">ETH</option>
-          <option value="USDC">USDC</option>
-          <option value="USDT">USDT</option>
-          <option value="DAI">DAI</option>
         </select>
       </div>
 
@@ -300,7 +289,6 @@
     function applyChanges() {
       const recipient = document.getElementById('recipientInput').value;
       const theme = document.getElementById('themeSelect').value;
-      const token = document.getElementById('tokenSelect').value;
 
       if (recipient) {
         widget.setAttribute('recipient', recipient);
@@ -309,13 +297,6 @@
 
       widget.setAttribute('theme', theme);
       logEvent('config-changed', { theme }, 'info');
-
-      if (token) {
-        widget.setAttribute('default-token', token);
-        logEvent('config-changed', { defaultToken: token }, 'info');
-      } else {
-        widget.removeAttribute('default-token');
-      }
     }
 
     // Log initial load

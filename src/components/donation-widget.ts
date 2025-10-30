@@ -18,13 +18,11 @@ import type { ToastContainer } from './toast-container.ts';
  * @element donation-widget
  * 
  * @attr {string} recipient - Recipient wallet address (required)
- * @attr {string} project-id - WalletConnect project ID (required)
- * @attr {number} recipient-chain - Chain ID where recipient will receive tokens (default: 42161 - Arbitrum)
- * @attr {string} recipient-token - Token address that recipient will receive (default: USDC on recipient chain)
+ * @attr {string} reown-project-id - Reown project ID (required)
+ * @attr {number} recipient-chain-id - Chain ID where recipient will receive tokens (default: 42161 - Arbitrum)
+ * @attr {string} recipient-token-address - Token address that recipient will receive (default: USDC on recipient chain)
  * @attr {string} theme - Theme mode: 'light', 'dark', 'auto', or 'custom' (default: 'auto'). 'custom' mode hides theme toggle and uses CSS variables from parent.
- * @attr {string} default-token - Default token symbol (e.g., 'ETH')
- * @attr {number} default-chain - Default chain ID (e.g., 1 for Ethereum)
- * @attr {string} api-key - LiFi API key (optional)
+ * @attr {string} lifi-api-key - LiFi API key (optional)
  * 
  * @fires donation-completed - Fired when donation succeeds
  * @fires donation-failed - Fired when donation fails
@@ -33,12 +31,10 @@ import type { ToastContainer } from './toast-container.ts';
  * ```html
  * <donation-widget 
  *   recipient="0x742d35Cc6634C0532925a3b844Bc454e4438f44e"
- *   project-id="YOUR_PROJECT_ID"
- *   recipient-chain="42161"
- *   recipient-token="0xaf88d065e77c8cC2239327C5EDb3A432268e5831"
- *   theme="dark"
- *   default-token="ETH"
- *   default-chain="1">
+ *   reown-project-id="YOUR_REOWN_PROJECT_ID"
+ *   recipient-chain-id="42161"
+ *   recipient-token-address="0xaf88d065e77c8cC2239327C5EDb3A432268e5831"
+ *   theme="dark">
  * </donation-widget>
  * ```
  */
@@ -49,34 +45,26 @@ export class DonationWidget extends LitElement {
   @property({ type: String })
   accessor recipient: string = '';
 
-  /** WalletConnect project ID (required) */
-  @property({ type: String, attribute: 'project-id' })
-  accessor projectId: string = '';
+  /** Reown project ID (required) */
+  @property({ type: String, attribute: 'reown-project-id' })
+  accessor reownProjectId: string = '';
 
   // Optional properties with defaults
   /** Chain ID where recipient will receive tokens (default: 42161 - Arbitrum) */
-  @property({ type: Number, attribute: 'recipient-chain' })
-  accessor recipientChain: number = 42161;
+  @property({ type: Number, attribute: 'recipient-chain-id' })
+  accessor recipientChainId: number = 42161;
 
   /** Token address that recipient will receive (default: USDC on Arbitrum) */
-  @property({ type: String, attribute: 'recipient-token' })
-  accessor recipientToken: string = '0xaf88d065e77c8cC2239327C5EDb3A432268e5831';
+  @property({ type: String, attribute: 'recipient-token-address' })
+  accessor recipientTokenAddress: string = '0xaf88d065e77c8cC2239327C5EDb3A432268e5831';
 
   /** Theme mode: 'light', 'dark', or 'auto' (default: 'auto') */
   @property({ type: String })
   accessor theme: ThemeMode = 'auto';
 
-  /** Default token symbol (e.g., 'ETH') */
-  @property({ type: String, attribute: 'default-token' })
-  accessor defaultToken: string | undefined = undefined;
-
-  /** Default chain ID (e.g., 1 for Ethereum) */
-  @property({ type: Number, attribute: 'default-chain' })
-  accessor defaultChain: number | undefined = undefined;
-
   /** LiFi API key (optional) */
-  @property({ type: String, attribute: 'api-key' })
-  accessor apiKey: string | undefined = undefined;
+  @property({ type: String, attribute: 'lifi-api-key' })
+  accessor lifiApiKey: string | undefined = undefined;
 
   // Internal state
   @state()
@@ -129,7 +117,7 @@ export class DonationWidget extends LitElement {
     this.themeService = new ThemeService();
     this.lifiService = new LiFiService({
       walletService: this.walletService,
-      apiKey: this.apiKey,
+      apiKey: this.lifiApiKey,
     });
     this.chainService = new ChainService(this.lifiService);
   }
@@ -282,7 +270,7 @@ export class DonationWidget extends LitElement {
       this.cleanupFunctions.push(unsubscribeTheme);
 
       // Initialize wallet service
-      this.walletService.init(this.projectId);
+      this.walletService.init(this.reownProjectId);
 
       // Initialize LiFi service
       this.lifiService.init();
@@ -292,14 +280,6 @@ export class DonationWidget extends LitElement {
 
       // Load available tokens
       await this.loadTokens();
-
-      // Set default token if provided
-      if (this.defaultToken && this.defaultChain) {
-        const token = await this.lifiService.getToken(this.defaultChain, this.defaultToken);
-        if (token) {
-          this.selectedToken = token;
-        }
-      }
 
       // Initialize toast container
       await this.updateComplete;
@@ -358,12 +338,12 @@ export class DonationWidget extends LitElement {
       }
     }
 
-    // Handle projectId changes
-    if (changedProperties.has('projectId')) {
-      if (this.isInitialized && this.projectId) {
+    // Handle reownProjectId changes
+    if (changedProperties.has('reownProjectId')) {
+      if (this.isInitialized && this.reownProjectId) {
         // Re-initialize wallet service with new project ID
         try {
-          this.walletService.init(this.projectId);
+          this.walletService.init(this.reownProjectId);
         } catch (err) {
           console.error('Failed to re-initialize wallet service:', err);
           this.error = 'Failed to update Reown configuration';
@@ -376,25 +356,13 @@ export class DonationWidget extends LitElement {
       this.themeService.setThemeMode(this.theme);
     }
 
-    // Handle API key changes
-    if (changedProperties.has('apiKey')) {
+    // Handle LiFi API key changes
+    if (changedProperties.has('lifiApiKey')) {
       this.lifiService = new LiFiService({
         walletService: this.walletService,
-        apiKey: this.apiKey,
+        apiKey: this.lifiApiKey,
       });
       this.lifiService.init();
-    }
-
-    // Handle default token/chain changes
-    if ((changedProperties.has('defaultToken') || changedProperties.has('defaultChain')) 
-        && this.isInitialized && this.defaultToken && this.defaultChain) {
-      this.lifiService.getToken(this.defaultChain, this.defaultToken).then(token => {
-        if (token) {
-          this.selectedToken = token;
-        }
-      }).catch(err => {
-        console.error('Failed to load default token:', err);
-      });
     }
   }
 
@@ -417,8 +385,8 @@ export class DonationWidget extends LitElement {
       return 'Invalid recipient address format. Must be a valid Ethereum address (0x...).';
     }
 
-    if (!this.projectId) {
-      return 'WalletConnect project ID is required. Add project-id="..." attribute. Get one at https://cloud.walletconnect.com';
+    if (!this.reownProjectId) {
+      return 'Reown project ID is required. Add reown-project-id="..." attribute. Get one at https://reown.com';
     }
 
     return null;
@@ -528,8 +496,8 @@ export class DonationWidget extends LitElement {
 
         <donation-form
           .recipient=${this.recipient}
-          .recipientChain=${this.recipientChain}
-          .recipientToken=${this.recipientToken}
+          .recipientChainId=${this.recipientChainId}
+          .recipientTokenAddress=${this.recipientTokenAddress}
           .walletService=${this.walletService}
           .lifiService=${this.lifiService}
           .chainService=${this.chainService}
@@ -573,16 +541,6 @@ export class DonationWidget extends LitElement {
    */
   public setTheme(theme: ThemeMode): void {
     this.theme = theme;
-  }
-
-  /**
-   * Set the default token programmatically
-   * @param symbol - Token symbol
-   * @param chainId - Chain ID
-   */
-  public setDefaultToken(symbol: string, chainId: number): void {
-    this.defaultToken = symbol;
-    this.defaultChain = chainId;
   }
 
   /**

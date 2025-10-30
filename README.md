@@ -32,10 +32,10 @@ Download the latest release from [GitHub Releases](https://github.com/Kalapaja/d
   <!-- Your donation widget -->
   <donation-widget 
     recipient="0x742d35Cc6634C0532925a3b844Bc454e4438f44e"
-    recipient-chain="42161"
-    recipient-token="0xaf88d065e77c8cC2239327C5EDb3A432268e5831"
-    project-id="YOUR_WALLETCONNECT_PROJECT_ID"
-    api-key="YOUR_LIFI_API_KEY">
+    recipient-chain-id="42161"
+    recipient-token-address="0xaf88d065e77c8cC2239327C5EDb3A432268e5831"
+    reown-project-id="YOUR_REOWN_PROJECT_ID"
+    lifi-api-key="YOUR_LIFI_API_KEY">
   </donation-widget>
 
   <!-- Load the widget script from GitHub releases -->
@@ -69,15 +69,15 @@ The minimal setup requires these attributes:
 ```html
 <donation-widget 
   recipient="0x742d35Cc6634C0532925a3b844Bc454e4438f44e"
-  recipient-chain="42161"
-  recipient-token="0xaf88d065e77c8cC2239327C5EDb3A432268e5831"
-  project-id="YOUR_WALLETCONNECT_PROJECT_ID"
-  api-key="YOUR_LIFI_API_KEY">
+  recipient-chain-id="42161"
+  recipient-token-address="0xaf88d065e77c8cC2239327C5EDb3A432268e5831"
+  reown-project-id="YOUR_REOWN_PROJECT_ID"
+  lifi-api-key="YOUR_LIFI_API_KEY">
 </donation-widget>
 ```
 
 **Important:** 
-- Get your free WalletConnect Project ID at [https://reown.com](https://reown.com)
+- Get your free Reown Project ID at [https://reown.com](https://reown.com)
 - Get your LiFi API key at [https://li.fi](https://li.fi)
 
 ### With All Options
@@ -85,13 +85,11 @@ The minimal setup requires these attributes:
 ```html
 <donation-widget 
   recipient="0x742d35Cc6634C0532925a3b844Bc454e4438f44e"
-  recipient-chain="42161"
-  recipient-token="0xaf88d065e77c8cC2239327C5EDb3A432268e5831"
-  project-id="YOUR_WALLETCONNECT_PROJECT_ID"
-  api-key="YOUR_LIFI_API_KEY"
-  theme="dark"
-  default-token="ETH"
-  default-chain="1">
+  recipient-chain-id="42161"
+  recipient-token-address="0xaf88d065e77c8cC2239327C5EDb3A432268e5831"
+  reown-project-id="YOUR_REOWN_PROJECT_ID"
+  lifi-api-key="YOUR_LIFI_API_KEY"
+  theme="dark">
 </donation-widget>
 ```
 
@@ -102,18 +100,16 @@ The minimal setup requires these attributes:
 | Attribute | Type | Description |
 |-----------|------|-------------|
 | `recipient` | `string` | Ethereum address that will receive donations (must start with 0x) |
-| `recipient-chain` | `number` | Chain ID where you want to receive donations (e.g., 42161 = Arbitrum) |
-| `recipient-token` | `string` | Token address you want to receive (e.g., USDC on Arbitrum: 0xaf88d065e77c8cC2239327C5EDb3A432268e5831) |
-| `project-id` | `string` | Your WalletConnect/Reown project ID ([Get one here](https://cloud.walletconnect.com)) |
-| `api-key` | `string` | Your LiFi API key ([Get one here](https://li.fi)) |
+| `recipient-chain-id` | `number` | Chain ID where you want to receive donations (e.g., 42161 = Arbitrum) |
+| `recipient-token-address` | `string` | Token address you want to receive (e.g., USDC on Arbitrum: 0xaf88d065e77c8cC2239327C5EDb3A432268e5831) |
+| `reown-project-id` | `string` | Your Reown project ID ([Get one here](https://reown.com)) |
+| `lifi-api-key` | `string` | Your LiFi API key ([Get one here](https://li.fi)) |
 
 ### Optional Attributes
 
 | Attribute | Type | Default | Description |
 |-----------|------|---------|-------------|
 | `theme` | `string` | `auto` | Theme mode: `light`, `dark`, `auto`, or `custom` |
-| `default-token` | `string` | - | Default token symbol to pre-select (e.g., `ETH`, `USDC`) |
-| `default-chain` | `number` | - | Default chain ID for the default token (e.g., `1` for Ethereum) |
 
 ### Supported Chain IDs
 
@@ -133,24 +129,10 @@ The minimal setup requires these attributes:
 ```html
 <donation-widget 
   recipient="0x742d35Cc6634C0532925a3b844Bc454e4438f44e"
-  recipient-chain="56"
-  recipient-token="0x55d398326f99059fF775485246999027B3197955"
-  project-id="YOUR_PROJECT_ID"
-  api-key="YOUR_API_KEY">
-</donation-widget>
-```
-
-#### Pre-select ETH on Ethereum
-
-```html
-<donation-widget 
-  recipient="0x742d35Cc6634C0532925a3b844Bc454e4438f44e"
-  recipient-chain="42161"
-  recipient-token="0xaf88d065e77c8cC2239327C5EDb3A432268e5831"
-  project-id="YOUR_PROJECT_ID"
-  api-key="YOUR_API_KEY"
-  default-token="ETH"
-  default-chain="1">
+  recipient-chain-id="56"
+  recipient-token-address="0x55d398326f99059fF775485246999027B3197955"
+  reown-project-id="YOUR_REOWN_PROJECT_ID"
+  lifi-api-key="YOUR_LIFI_API_KEY">
 </donation-widget>
 ```
 
@@ -167,10 +149,10 @@ Automatically matches the user's system preference (light/dark mode):
 ```html
 <donation-widget 
   recipient="0x742d35Cc6634C0532925a3b844Bc454e4438f44e"
-  recipient-chain="42161"
-  recipient-token="0xaf88d065e77c8cC2239327C5EDb3A432268e5831"
-  project-id="YOUR_PROJECT_ID"
-  api-key="YOUR_API_KEY"
+  recipient-chain-id="42161"
+  recipient-token-address="0xaf88d065e77c8cC2239327C5EDb3A432268e5831"
+  reown-project-id="YOUR_REOWN_PROJECT_ID"
+  lifi-api-key="YOUR_LIFI_API_KEY"
   theme="auto">
 </donation-widget>
 ```
@@ -180,10 +162,10 @@ Automatically matches the user's system preference (light/dark mode):
 ```html
 <donation-widget 
   recipient="0x742d35Cc6634C0532925a3b844Bc454e4438f44e"
-  recipient-chain="42161"
-  recipient-token="0xaf88d065e77c8cC2239327C5EDb3A432268e5831"
-  project-id="YOUR_PROJECT_ID"
-  api-key="YOUR_API_KEY"
+  recipient-chain-id="42161"
+  recipient-token-address="0xaf88d065e77c8cC2239327C5EDb3A432268e5831"
+  reown-project-id="YOUR_REOWN_PROJECT_ID"
+  lifi-api-key="YOUR_LIFI_API_KEY"
   theme="light">
 </donation-widget>
 ```
@@ -193,10 +175,10 @@ Automatically matches the user's system preference (light/dark mode):
 ```html
 <donation-widget 
   recipient="0x742d35Cc6634C0532925a3b844Bc454e4438f44e"
-  recipient-chain="42161"
-  recipient-token="0xaf88d065e77c8cC2239327C5EDb3A432268e5831"
-  project-id="YOUR_PROJECT_ID"
-  api-key="YOUR_API_KEY"
+  recipient-chain-id="42161"
+  recipient-token-address="0xaf88d065e77c8cC2239327C5EDb3A432268e5831"
+  reown-project-id="YOUR_REOWN_PROJECT_ID"
+  lifi-api-key="YOUR_LIFI_API_KEY"
   theme="dark">
 </donation-widget>
 ```
@@ -224,10 +206,10 @@ Set `theme="custom"` and use CSS variables to create your own color scheme. **No
 ```html
 <donation-widget 
   recipient="0x742d35Cc6634C0532925a3b844Bc454e4438f44e"
-  recipient-chain="42161"
-  recipient-token="0xaf88d065e77c8cC2239327C5EDb3A432268e5831"
-  project-id="YOUR_PROJECT_ID"
-  api-key="YOUR_API_KEY"
+  recipient-chain-id="42161"
+  recipient-token-address="0xaf88d065e77c8cC2239327C5EDb3A432268e5831"
+  reown-project-id="YOUR_REOWN_PROJECT_ID"
+  lifi-api-key="YOUR_LIFI_API_KEY"
   theme="custom"
   style="
     --color-background: oklch(15% 0.05 280);
@@ -248,10 +230,10 @@ Set `theme="custom"` and use CSS variables to create your own color scheme. **No
 ```html
 <donation-widget 
   recipient="0x742d35Cc6634C0532925a3b844Bc454e4438f44e"
-  recipient-chain="42161"
-  recipient-token="0xaf88d065e77c8cC2239327C5EDb3A432268e5831"
-  project-id="YOUR_PROJECT_ID"
-  api-key="YOUR_API_KEY"
+  recipient-chain-id="42161"
+  recipient-token-address="0xaf88d065e77c8cC2239327C5EDb3A432268e5831"
+  reown-project-id="YOUR_REOWN_PROJECT_ID"
+  lifi-api-key="YOUR_LIFI_API_KEY"
   theme="custom"
   style="
     --color-background: oklch(18% 0.08 230);
@@ -272,10 +254,10 @@ Set `theme="custom"` and use CSS variables to create your own color scheme. **No
 ```html
 <donation-widget 
   recipient="0x742d35Cc6634C0532925a3b844Bc454e4438f44e"
-  recipient-chain="42161"
-  recipient-token="0xaf88d065e77c8cC2239327C5EDb3A432268e5831"
-  project-id="YOUR_PROJECT_ID"
-  api-key="YOUR_API_KEY"
+  recipient-chain-id="42161"
+  recipient-token-address="0xaf88d065e77c8cC2239327C5EDb3A432268e5831"
+  reown-project-id="YOUR_REOWN_PROJECT_ID"
+  lifi-api-key="YOUR_LIFI_API_KEY"
   theme="custom"
   style="
     --color-background: oklch(98% 0.02 150);
@@ -296,10 +278,10 @@ Set `theme="custom"` and use CSS variables to create your own color scheme. **No
 ```html
 <donation-widget 
   recipient="0x742d35Cc6634C0532925a3b844Bc454e4438f44e"
-  recipient-chain="42161"
-  recipient-token="0xaf88d065e77c8cC2239327C5EDb3A432268e5831"
-  project-id="YOUR_PROJECT_ID"
-  api-key="YOUR_API_KEY"
+  recipient-chain-id="42161"
+  recipient-token-address="0xaf88d065e77c8cC2239327C5EDb3A432268e5831"
+  reown-project-id="YOUR_REOWN_PROJECT_ID"
+  lifi-api-key="YOUR_LIFI_API_KEY"
   theme="custom"
   style="
     --color-background: oklch(100% 0 0);
@@ -346,10 +328,10 @@ const widget = document.querySelector('donation-widget');
 <donation-widget 
   id="myWidget"
   recipient="0x742d35Cc6634C0532925a3b844Bc454e4438f44e"
-  recipient-chain="42161"
-  recipient-token="0xaf88d065e77c8cC2239327C5EDb3A432268e5831"
-  project-id="YOUR_PROJECT_ID"
-  api-key="YOUR_API_KEY">
+  recipient-chain-id="42161"
+  recipient-token-address="0xaf88d065e77c8cC2239327C5EDb3A432268e5831"
+  reown-project-id="YOUR_REOWN_PROJECT_ID"
+  lifi-api-key="YOUR_LIFI_API_KEY">
 </donation-widget>
 
 <script>
@@ -411,10 +393,10 @@ const widget = document.querySelector('donation-widget');
   <donation-widget 
     id="donationWidget"
     recipient="0x742d35Cc6634C0532925a3b844Bc454e4438f44e"
-    recipient-chain="42161"
-    recipient-token="0xaf88d065e77c8cC2239327C5EDb3A432268e5831"
-    project-id="YOUR_PROJECT_ID"
-    api-key="YOUR_API_KEY">
+    recipient-chain-id="42161"
+    recipient-token-address="0xaf88d065e77c8cC2239327C5EDb3A432268e5831"
+    reown-project-id="YOUR_REOWN_PROJECT_ID"
+    lifi-api-key="YOUR_LIFI_API_KEY">
   </donation-widget>
 
   <div id="eventLog"></div>
@@ -503,15 +485,6 @@ const widget = document.querySelector('donation-widget');
 widget.setTheme('dark');
 ```
 
-#### `setDefaultToken(symbol: string, chainId: number)`
-
-Set the default token and chain:
-
-```javascript
-const widget = document.querySelector('donation-widget');
-widget.setDefaultToken('USDC', 1); // USDC on Ethereum
-```
-
 #### `getState()`
 
 Get the current widget state:
@@ -555,11 +528,8 @@ widget.setAttribute('recipient', '0x1234567890123456789012345678901234567890');
 widget.setAttribute('theme', 'dark');
 
 // Change default token
-widget.setAttribute('default-token', 'USDC');
-widget.setAttribute('default-chain', '1');
 
 // Remove attribute
-widget.removeAttribute('default-token');
 ```
 
 ### Complete Control Example
@@ -598,10 +568,10 @@ widget.removeAttribute('default-token');
   <donation-widget 
     id="widget"
     recipient="0x742d35Cc6634C0532925a3b844Bc454e4438f44e"
-    recipient-chain="42161"
-    recipient-token="0xaf88d065e77c8cC2239327C5EDb3A432268e5831"
-    project-id="YOUR_PROJECT_ID"
-    api-key="YOUR_API_KEY">
+    recipient-chain-id="42161"
+    recipient-token-address="0xaf88d065e77c8cC2239327C5EDb3A432268e5831"
+    reown-project-id="YOUR_REOWN_PROJECT_ID"
+    lifi-api-key="YOUR_LIFI_API_KEY">
   </donation-widget>
 
   <script type="module" src="https://your-cdn.com/donation-widget.es.js"></script>
@@ -670,10 +640,10 @@ function DonationPage() {
       <donation-widget
         ref={widgetRef}
         recipient="0x742d35Cc6634C0532925a3b844Bc454e4438f44e"
-        recipient-chain="42161"
-        recipient-token="0xaf88d065e77c8cC2239327C5EDb3A432268e5831"
-        project-id="YOUR_PROJECT_ID"
-        api-key="YOUR_API_KEY"
+        recipient-chain-id="42161"
+        recipient-token-address="0xaf88d065e77c8cC2239327C5EDb3A432268e5831"
+        reown-project-id="YOUR_REOWN_PROJECT_ID"
+        lifi-api-key="YOUR_LIFI_API_KEY"
         theme="dark"
       />
     </div>
@@ -746,10 +716,10 @@ onUnmounted(() => {
 <donation-widget
   bind:this={widgetElement}
   recipient="0x742d35Cc6634C0532925a3b844Bc454e4438f44e"
-  recipient-chain="42161"
-  recipient-token="0xaf88d065e77c8cC2239327C5EDb3A432268e5831"
-  project-id="YOUR_PROJECT_ID"
-  api-key="YOUR_API_KEY"
+  recipient-chain-id="42161"
+  recipient-token-address="0xaf88d065e77c8cC2239327C5EDb3A432268e5831"
+  reown-project-id="YOUR_REOWN_PROJECT_ID"
+  lifi-api-key="YOUR_LIFI_API_KEY"
   theme="dark"
 />
 ```
@@ -787,10 +757,10 @@ export default function DonationPage() {
       <donation-widget
         ref={widgetRef}
         recipient="0x742d35Cc6634C0532925a3b844Bc454e4438f44e"
-        recipient-chain="42161"
-        recipient-token="0xaf88d065e77c8cC2239327C5EDb3A432268e5831"
-        project-id="YOUR_PROJECT_ID"
-        api-key="YOUR_API_KEY"
+        recipient-chain-id="42161"
+        recipient-token-address="0xaf88d065e77c8cC2239327C5EDb3A432268e5831"
+        reown-project-id="YOUR_REOWN_PROJECT_ID"
+        lifi-api-key="YOUR_LIFI_API_KEY"
         theme="dark"
       />
     </div>
@@ -809,10 +779,10 @@ Add to your theme or use a custom HTML block:
 <!-- Add widget anywhere in your content -->
 <donation-widget 
   recipient="0x742d35Cc6634C0532925a3b844Bc454e4438f44e"
-  recipient-chain="42161"
-  recipient-token="0xaf88d065e77c8cC2239327C5EDb3A432268e5831"
-  project-id="YOUR_PROJECT_ID"
-  api-key="YOUR_API_KEY"
+  recipient-chain-id="42161"
+  recipient-token-address="0xaf88d065e77c8cC2239327C5EDb3A432268e5831"
+  reown-project-id="YOUR_REOWN_PROJECT_ID"
+  lifi-api-key="YOUR_LIFI_API_KEY"
   theme="auto">
 </donation-widget>
 ```
@@ -881,13 +851,11 @@ The main widget component.
 **Attributes:**
 
 - `recipient` (required) - Recipient wallet address
-- `recipient-chain` (required) - Chain ID for receiving
-- `recipient-token` (required) - Token address to receive
-- `project-id` (required) - WalletConnect project ID
-- `api-key` (required) - LiFi API key
+- `recipient-chain-id` (required) - Chain ID for receiving
+- `recipient-token-address` (required) - Token address to receive
+- `reown-project-id` (required) - Reown project ID
+- `lifi-api-key` (required) - LiFi API key
 - `theme` - Theme mode (default: 'auto')
-- `default-token` - Default token symbol
-- `default-chain` - Default chain ID
 
 **Events:**
 
@@ -902,7 +870,6 @@ The main widget component.
 
 - `setRecipient(address: string)` - Change recipient
 - `setTheme(theme: ThemeMode)` - Change theme
-- `setDefaultToken(symbol: string, chainId: number)` - Set default token
 - `getState()` - Get current state
 - `reset()` - Reset widget
 
@@ -940,3 +907,4 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 ---
 
 Made with ❤️
+

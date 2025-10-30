@@ -15,10 +15,10 @@ export class DonationForm extends LitElement {
   accessor recipient!: string;
 
   @property({ type: Number })
-  accessor recipientChain: number = 42161;
+  accessor recipientChainId: number = 42161;
 
   @property({ type: String })
-  accessor recipientToken: string = '0xaf88d065e77c8cC2239327C5EDb3A432268e5831';
+  accessor recipientTokenAddress: string = '0xaf88d065e77c8cC2239327C5EDb3A432268e5831';
 
   @property({ type: Object })
   accessor walletService!: WalletService;
@@ -86,8 +86,8 @@ export class DonationForm extends LitElement {
   private async loadRecipientTokenInfo() {
     try {
       const tokenInfo = await this.lifiService.getToken(
-        this.recipientChain,
-        this.recipientToken
+        this.recipientChainId,
+        this.recipientTokenAddress
       );
       this.recipientTokenInfo = tokenInfo || null;
     } catch (error) {
@@ -162,15 +162,15 @@ export class DonationForm extends LitElement {
         tokenDecimals: this.selectedToken.decimals,
         recipientToken: this.recipientTokenInfo.symbol,
         recipientTokenDecimals,
-        recipientChain: this.recipientChain,
+        recipientChain: this.recipientChainId,
       });
 
       const quoteParams: QuoteParams = {
         fromChain: this.selectedToken.chainId,
         fromToken: this.selectedToken.address,
         fromAddress: account.address,
-        toChain: this.recipientChain,
-        toToken: this.recipientToken,
+        toChain: this.recipientChainId,
+        toToken: this.recipientTokenAddress,
         toAmount: toAmountInSmallestUnit,
         toAddress: this.recipient,
       };
@@ -339,7 +339,7 @@ export class DonationForm extends LitElement {
 
   private get recipientLabel(): string {
     const tokenSymbol = this.recipientTokenInfo?.symbol || 'tokens';
-    const chainName = this.chainService.getChainName(this.recipientChain);
+    const chainName = this.chainService.getChainName(this.recipientChainId);
     return `Recipient receives (${tokenSymbol} on ${chainName})`;
   }
 
@@ -386,7 +386,7 @@ export class DonationForm extends LitElement {
     super.updated(changedProperties);
 
     // Reload recipient token info when recipient chain or token changes
-    if (changedProperties.has('recipientChain') || changedProperties.has('recipientToken')) {
+    if (changedProperties.has('recipientChainId') || changedProperties.has('recipientTokenAddress')) {
       await this.loadRecipientTokenInfo();
       // Recalculate quote with new recipient token
       if (this.recipientAmount && this.selectedToken) {
