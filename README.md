@@ -39,7 +39,7 @@ Download the latest release from [GitHub Releases](https://github.com/Kalapaja/d
   </donation-widget>
 
   <!-- Load the widget script from GitHub releases -->
-  <script type="module" src="https://github.com/Kalapaja/donato/releases/download/v1.0.0/donation-widget.es.js"></script>
+  <script src="https://github.com/Kalapaja/donato/releases/download/v1.0.0/donation-widget.js"></script>
 </body>
 </html>
 ```
@@ -401,7 +401,7 @@ const widget = document.querySelector('donation-widget');
 
   <div id="eventLog"></div>
 
-  <script type="module" src="https://your-cdn.com/donation-widget.es.js"></script>
+  <script src="https://your-cdn.com/donation-widget.js"></script>
   
   <script>
     const widget = document.getElementById('donationWidget');
@@ -574,7 +574,7 @@ widget.setAttribute('theme', 'dark');
     lifi-api-key="YOUR_LIFI_API_KEY">
   </donation-widget>
 
-  <script type="module" src="https://your-cdn.com/donation-widget.es.js"></script>
+  <script src="https://your-cdn.com/donation-widget.js"></script>
   
   <script>
     const widget = document.getElementById('widget');
@@ -774,7 +774,7 @@ Add to your theme or use a custom HTML block:
 
 ```html
 <!-- Add to header.php or in a custom HTML block -->
-<script type="module" src="https://your-cdn.com/donation-widget.es.js"></script>
+<script src="https://your-cdn.com/donation-widget.js"></script>
 
 <!-- Add widget anywhere in your content -->
 <donation-widget 
