@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Donation Widget - Development</title>
+  <style>
+    body {
+      margin: 0;
+      padding: 20px;
+      font-family: system-ui, -apple-system, sans-serif;
+      background: oklch(98% 0 0);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .container {
+      max-width: 600px;
+      width: 100%;
+    }
+    h1 {
+      color: oklch(17% 0 0);
+      text-align: center;
+      margin-bottom: 2rem;
+      font-weight: 600;
+    }
+    @media (prefers-color-scheme: dark) {
+      body {
+        background: oklch(10% 0 0);
+      }
+      h1 {
+        color: oklch(99% 0 0);
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Donation Widget Development</h1>
+    
+    <!-- The donation widget will be rendered here -->
+    <donation-widget 
+      recipient="0x47ed7aebc3fd99156f455352f8edf820823a0d05"
+      recipient-chain="56"
+      recipient-token="0x55d398326f99059fF775485246999027B3197955"
+      project-id="%VITE_PROJECT_ID%"
+      api-key="%VITE_LIFI_API_KEY%"
+      default-token="ETH"
+      default-chain="1"
+      theme="auto">
+    </donation-widget>
+  </div>
+
+  <script type="module" src="/src/index.ts"></script>
+</body>
+</html>
