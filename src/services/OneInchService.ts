@@ -1,13 +1,5 @@
-import { 
-  FusionSDK, 
-  NetworkEnum, 
-  OrderStatus, 
-  PrivateKeyProviderConnector,
-  type QuoteParams as OneInchQuoteParams,
-  type OrderInfo,
-  type Web3Like
-} from '@1inch/fusion-sdk';
 import type { WalletService } from './WalletService.ts';
+import { ethers } from 'ethers';
 
 export interface OneInchConfig {
   apiKey?: string;
@@ -33,7 +25,14 @@ export interface Route {
   fromAmount: string;
   toAmount: string;
   steps: RouteStep[];
-  orderInfo?: OrderInfo;
+  tx?: {
+    from: string;
+    to: string;
+    data: string;
+    value: string;
+    gas?: string;
+    gasPrice?: string;
+  };
 }
 
 export interface Token {
@@ -81,34 +80,18 @@ interface OneInchChain {
   };
 }
 
-// Chain ID mapping between standard and 1inch NetworkEnum
-const CHAIN_TO_NETWORK: Record<number, NetworkEnum> = {
-  1: NetworkEnum.ETHEREUM,
-  56: NetworkEnum.BINANCE,
-  137: NetworkEnum.POLYGON,
-  42161: NetworkEnum.ARBITRUM,
-  10: NetworkEnum.OPTIMISM,
-  8453: NetworkEnum.BASE,
-};
-
-const NETWORK_TO_CHAIN: Record<NetworkEnum, number> = {
-  [NetworkEnum.ETHEREUM]: 1,
-  [NetworkEnum.BINANCE]: 56,
-  [NetworkEnum.POLYGON]: 137,
-  [NetworkEnum.ARBITRUM]: 42161,
-  [NetworkEnum.OPTIMISM]: 10,
-  [NetworkEnum.BASE]: 8453,
-};
+// Supported chain IDs for 1inch API
+const SUPPORTED_CHAINS = [1, 56, 137, 42161, 10, 8453];
 
 export class OneInchService {
   private walletService: WalletService;
   private apiKey?: string;
-  private sdkInstances: Map<NetworkEnum, FusionSDK> = new Map();
   private chainsCache: CacheEntry<OneInchChain[]> | null = null;
   private tokensCache: Map<string, CacheEntry<Token[]>> = new Map();
   private readonly CACHE_TTL = 5 * 60 * 1000; // 5 minutes
   private readonly MAX_RETRIES = 3;
   private readonly RETRY_DELAY = 1000; // 1 second
+  private readonly API_BASE_URL = 'https://api.1inch.dev';
 
   constructor(config: OneInchConfig) {
     this.walletService = config.walletService;
@@ -116,69 +99,42 @@ export class OneInchService {
   }
 
   /**
-   * Initialize 1inch SDK
+   * Initialize 1inch service
    */
   init(): void {
     try {
       console.log('1inch Fusion+ service initialized');
     } catch (error) {
-      console.error('Failed to initialize 1inch SDK:', error);
+      console.error('Failed to initialize 1inch service:', error);
       throw new Error('Failed to initialize cross-chain service');
     }
   }
 
   /**
-   * Get or create SDK instance for a specific chain
+   * Make API request to 1inch with authentication
    */
-  private async getSDK(chainId: number): Promise<FusionSDK> {
-    const network = CHAIN_TO_NETWORK[chainId];
-    if (!network) {
-      throw new Error(`Unsupported chain ID: ${chainId}`);
-    }
-
-    // Return cached instance if exists
-    if (this.sdkInstances.has(network)) {
-      return this.sdkInstances.get(network)!;
-    }
-
-    // Create wallet provider connector
-    const walletClient = this.walletService.getWalletClient();
-    if (!walletClient) {
-      throw new Error('Wallet not connected');
-    }
-
-    // Get account address
-    const account = walletClient.account;
-    if (!account) {
-      throw new Error('No account available');
-    }
-
-    // Create a Web3Like provider for 1inch SDK
-    const web3Provider: Web3Like = {
-      eth: {
-        call: async (transactionConfig: any): Promise<string> => {
-          return await walletClient.call({
-            to: transactionConfig.to as `0x${string}`,
-            data: transactionConfig.data as `0x${string}`,
-          }) as string;
-        }
-      },
-      extend: () => {}
+  private async apiRequest(endpoint: string, options: RequestInit = {}): Promise<any> {
+    const headers: Record<string, string> = {
+      'Accept': 'application/json',
+      ...options.headers as Record<string, string>,
     };
 
-    // Note: PrivateKeyProviderConnector requires a private key, which we don't have
-    // in browser wallet context. For now, we'll use a simplified approach.
-    // In production, you might need to implement a custom connector.
-    
-    const sdk = new FusionSDK({
-      url: 'https://api.1inch.dev/fusion',
-      network,
-      blockchainProvider: web3Provider as any,
-      authKey: this.apiKey,
+    if (this.apiKey) {
+      headers['Authorization'] = `Bearer ${this.apiKey}`;
+    }
+
+    const response = await fetch(`${this.API_BASE_URL}${endpoint}`, {
+      ...options,
+      headers,
     });
 
-    this.sdkInstances.set(network, sdk);
-    return sdk;
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error('1inch API error:', errorText);
+      throw new Error(`1inch API error: ${response.statusText}`);
+    }
+
+    return await response.json();
   }
 
   /**
@@ -189,12 +145,12 @@ export class OneInchService {
 
     return await this.retryOperation(async () => {
       try {
-        // For cross-chain swaps, we need to handle differently
+        // For cross-chain swaps, use 1inch Fusion+ API
         if (params.fromChain !== params.toChain) {
-          return await this.getCrossChainQuote(params);
+          throw new Error('Cross-chain swaps are not yet fully implemented. Please use same-chain swaps.');
         }
 
-        // Same-chain swap
+        // Same-chain swap using 1inch Swap API
         return await this.getSameChainQuote(params);
       } catch (error: unknown) {
         console.error('Failed to get quote:', error);
@@ -207,91 +163,57 @@ export class OneInchService {
           throw new Error('Insufficient liquidity for this swap.');
         }
         
-        throw new Error('Failed to calculate quote. Please try again.');
+        throw error;
       }
     });
   }
 
   /**
-   * Get quote for cross-chain swap
+   * Get quote for same-chain swap using 1inch Swap API
    */
-  private async getCrossChainQuote(params: QuoteParams): Promise<Route> {
-    // Get SDK for source chain
-    const sdk = await this.getSDK(params.fromChain);
-
-    const quoteParams: Partial<OneInchQuoteParams> = {
-      fromTokenAddress: params.fromToken,
-      toTokenAddress: params.toToken,
-      amount: params.fromAmount || params.toAmount || '0',
-      walletAddress: params.fromAddress,
-    };
-
-    const quote = await sdk.getQuote(quoteParams as OneInchQuoteParams);
+  private async getSameChainQuote(params: QuoteParams): Promise<Route> {
+    const chainId = params.fromChain;
     
-    if (!quote) {
-      throw new Error('No quote available for this swap');
+    if (!SUPPORTED_CHAINS.includes(chainId)) {
+      throw new Error(`Chain ${chainId} is not supported by 1inch`);
     }
+
+    // Build query parameters for swap quote
+    const queryParams = new URLSearchParams({
+      src: params.fromToken,
+      dst: params.toToken,
+      amount: params.fromAmount || params.toAmount || '0',
+      from: params.fromAddress,
+      slippage: '1', // 1% slippage tolerance
+      disableEstimate: 'false',
+      allowPartialFill: 'false',
+    });
+
+    // Get quote from 1inch API
+    const quoteData = await this.apiRequest(
+      `/swap/v6.0/${chainId}/quote?${queryParams.toString()}`
+    );
 
     // Get token information
     const fromToken = await this.getTokenInfo(params.fromChain, params.fromToken);
     const toToken = await this.getTokenInfo(params.toChain, params.toToken);
 
-    // Create route object compatible with our interface
+    // Create route object
     const route: Route = {
       fromChainId: params.fromChain,
       toChainId: params.toChain,
       fromToken,
       toToken,
-      fromAmount: params.fromAmount || '0',
-      toAmount: quote.presets?.[quote.recommendedPreset || 0]?.auctionEndAmount || '0',
-      steps: [{
-        id: '1',
-        type: 'cross-chain-swap',
-        tool: '1inch-fusion-plus',
-        estimate: {
-          gasCosts: []
-        }
-      }],
-    };
-
-    return route;
-  }
-
-  /**
-   * Get quote for same-chain swap
-   */
-  private async getSameChainQuote(params: QuoteParams): Promise<Route> {
-    const sdk = await this.getSDK(params.fromChain);
-
-    const quoteParams: Partial<OneInchQuoteParams> = {
-      fromTokenAddress: params.fromToken,
-      toTokenAddress: params.toToken,
-      amount: params.fromAmount || params.toAmount || '0',
-      walletAddress: params.fromAddress,
-    };
-
-    const quote = await sdk.getQuote(quoteParams as OneInchQuoteParams);
-    
-    if (!quote) {
-      throw new Error('No quote available for this swap');
-    }
-
-    const fromToken = await this.getTokenInfo(params.fromChain, params.fromToken);
-    const toToken = await this.getTokenInfo(params.fromChain, params.toToken);
-
-    const route: Route = {
-      fromChainId: params.fromChain,
-      toChainId: params.toChain,
-      fromToken,
-      toToken,
-      fromAmount: params.fromAmount || '0',
-      toAmount: quote.presets?.[quote.recommendedPreset || 0]?.auctionEndAmount || '0',
+      fromAmount: quoteData.fromAmount || params.fromAmount || '0',
+      toAmount: quoteData.toAmount || '0',
       steps: [{
         id: '1',
         type: 'swap',
-        tool: '1inch-fusion',
+        tool: '1inch',
         estimate: {
-          gasCosts: []
+          gasCosts: quoteData.gas ? [{
+            amountUSD: (parseFloat(quoteData.gas) * parseFloat(quoteData.gasPrice || '0') / 1e18).toFixed(2)
+          }] : []
         }
       }],
     };
@@ -332,24 +254,57 @@ export class OneInchService {
     });
 
     try {
-      const sdk = await this.getSDK(route.fromChainId);
+      const chainId = route.fromChainId;
       
-      // Create order parameters
-      const orderParams: Partial<OneInchQuoteParams> = {
-        fromTokenAddress: route.fromToken.address,
-        toTokenAddress: route.toToken.address,
+      // Build query parameters for swap execution
+      const queryParams = new URLSearchParams({
+        src: route.fromToken.address,
+        dst: route.toToken.address,
         amount: route.fromAmount,
-        walletAddress: walletClient.account?.address || '',
-      };
+        from: walletClient.account?.address || '',
+        slippage: '1',
+        disableEstimate: 'false',
+        allowPartialFill: 'false',
+      });
 
-      // Create and submit order
-      const preparedOrder = await sdk.createOrder(orderParams as OneInchQuoteParams);
-      const orderInfo = await sdk.submitOrder(preparedOrder.order, preparedOrder.quoteId);
+      // Get swap transaction data from 1inch API
+      const swapData = await this.apiRequest(
+        `/swap/v6.0/${chainId}/swap?${queryParams.toString()}`
+      );
+
+      if (!swapData || !swapData.tx) {
+        throw new Error('Failed to get swap transaction data');
+      }
+
+      // Check if token approval is needed
+      if (route.fromToken.address.toLowerCase() !== '0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee') {
+        await this.handleTokenApproval(
+          route.fromToken.address,
+          swapData.tx.to,
+          route.fromAmount,
+          chainId
+        );
+      }
+
+      // Execute the swap transaction
+      const txHash = await walletClient.sendTransaction({
+        to: swapData.tx.to as `0x${string}`,
+        data: swapData.tx.data as `0x${string}`,
+        value: BigInt(swapData.tx.value || '0'),
+        gas: swapData.tx.gas ? BigInt(swapData.tx.gas) : undefined,
+      });
+
+      console.log('Transaction sent:', txHash);
+
+      // Wait for transaction confirmation
+      const receipt = await walletClient.waitForTransactionReceipt({ hash: txHash });
       
-      console.log('Order submitted:', orderInfo.orderHash);
-
-      // Monitor order status
-      await this.monitorOrderStatus(sdk, orderInfo.orderHash, callbacks);
+      if (receipt.status === 'success') {
+        console.log('Transaction confirmed:', receipt);
+        callbacks?.onRouteUpdate?.(route);
+      } else {
+        throw new Error('Transaction failed');
+      }
 
     } catch (error: unknown) {
       console.error('Failed to execute route:', error);
@@ -367,40 +322,46 @@ export class OneInchService {
   }
 
   /**
-   * Monitor order status until completion
+   * Handle token approval for 1inch router
    */
-  private async monitorOrderStatus(
-    sdk: FusionSDK, 
-    orderHash: string, 
-    callbacks?: RouteCallbacks
+  private async handleTokenApproval(
+    tokenAddress: string,
+    spenderAddress: string,
+    amount: string,
+    chainId: number
   ): Promise<void> {
-    const maxAttempts = 60; // 5 minutes max
-    const pollInterval = 5000; // 5 seconds
-
-    for (let i = 0; i < maxAttempts; i++) {
-      await this.delay(pollInterval);
-
-      const status = await sdk.getOrderStatus(orderHash);
-      
-      console.log('Order status:', status.status);
-
-      if (status.status === OrderStatus.Filled) {
-        console.log('Order filled successfully:', status.fills);
-        return;
-      } else if (status.status === OrderStatus.Cancelled) {
-        throw new Error('Order was cancelled');
-      } else if (status.status === OrderStatus.Expired) {
-        throw new Error('Order expired');
-      }
-
-      // Notify callbacks if provided
-      if (callbacks?.onRouteUpdate) {
-        // Create a minimal route update
-        callbacks.onRouteUpdate({} as Route);
-      }
+    const walletClient = this.walletService.getWalletClient();
+    if (!walletClient) {
+      throw new Error('Wallet not connected');
     }
 
-    throw new Error('Order monitoring timeout');
+    // ERC20 approve ABI
+    const approveAbi = [
+      'function approve(address spender, uint256 amount) returns (bool)',
+      'function allowance(address owner, address spender) view returns (uint256)'
+    ];
+
+    const provider = new ethers.BrowserProvider(window.ethereum);
+    const signer = await provider.getSigner();
+    const tokenContract = new ethers.Contract(tokenAddress, approveAbi, signer);
+
+    // Check current allowance
+    const currentAllowance = await tokenContract.allowance(
+      walletClient.account?.address,
+      spenderAddress
+    );
+
+    // If allowance is sufficient, no need to approve
+    if (currentAllowance >= BigInt(amount)) {
+      console.log('Token approval not needed, sufficient allowance');
+      return;
+    }
+
+    // Request approval
+    console.log('Requesting token approval...');
+    const approveTx = await tokenContract.approve(spenderAddress, amount);
+    await approveTx.wait();
+    console.log('Token approved');
   }
 
   /**
