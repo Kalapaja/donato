@@ -182,21 +182,21 @@ export class OneInchService {
       throw new Error(`Chain ${chainId} is not supported by 1inch`);
     }
 
+    // Validate that we have a fromAmount
+    if (!params.fromAmount) {
+      throw new Error('fromAmount is required for swap quotes');
+    }
+
     // Build query parameters for swap quote
     const queryParams = new URLSearchParams({
       src: params.fromToken,
       dst: params.toToken,
-      amount: params.fromAmount || '0',
+      amount: params.fromAmount,
       from: params.fromAddress,
       slippage: '1', // 1% slippage tolerance
       disableEstimate: 'false',
       allowPartialFill: 'false',
     });
-
-    // Validate that we have a fromAmount
-    if (!params.fromAmount) {
-      throw new Error('fromAmount is required for swap quotes');
-    }
 
     // Get quote from 1inch API
     const quoteData = await this.apiRequest(
@@ -345,7 +345,7 @@ export class OneInchService {
     }
 
     // Check if ethereum provider is available
-    if (typeof window === 'undefined' || !(window as any).ethereum) {
+    if (typeof window === 'undefined' || !window.ethereum) {
       throw new Error('Ethereum provider not available');
     }
 
@@ -355,7 +355,7 @@ export class OneInchService {
       'function allowance(address owner, address spender) view returns (uint256)'
     ];
 
-    const provider = new ethers.BrowserProvider((window as any).ethereum);
+    const provider = new ethers.BrowserProvider(window.ethereum);
     const signer = await provider.getSigner();
     const tokenContract = new ethers.Contract(tokenAddress, approveAbi, signer);
 
