@@ -147,7 +147,11 @@ export class OneInchService {
       try {
         // For cross-chain swaps, use 1inch Fusion+ API
         if (params.fromChain !== params.toChain) {
-          throw new Error('Cross-chain swaps are not yet fully implemented. Please use same-chain swaps.');
+          throw new Error(
+            'Cross-chain swaps are currently not supported. ' +
+            'This feature requires 1inch Fusion+ integration which is planned for a future update. ' +
+            'Please select tokens on the same chain for now.'
+          );
         }
 
         // Same-chain swap using 1inch Swap API
@@ -182,12 +186,17 @@ export class OneInchService {
     const queryParams = new URLSearchParams({
       src: params.fromToken,
       dst: params.toToken,
-      amount: params.fromAmount || params.toAmount || '0',
+      amount: params.fromAmount || '0',
       from: params.fromAddress,
       slippage: '1', // 1% slippage tolerance
       disableEstimate: 'false',
       allowPartialFill: 'false',
     });
+
+    // Validate that we have a fromAmount
+    if (!params.fromAmount) {
+      throw new Error('fromAmount is required for swap quotes');
+    }
 
     // Get quote from 1inch API
     const quoteData = await this.apiRequest(
@@ -335,13 +344,18 @@ export class OneInchService {
       throw new Error('Wallet not connected');
     }
 
+    // Check if ethereum provider is available
+    if (typeof window === 'undefined' || !(window as any).ethereum) {
+      throw new Error('Ethereum provider not available');
+    }
+
     // ERC20 approve ABI
     const approveAbi = [
       'function approve(address spender, uint256 amount) returns (bool)',
       'function allowance(address owner, address spender) view returns (uint256)'
     ];
 
-    const provider = new ethers.BrowserProvider(window.ethereum);
+    const provider = new ethers.BrowserProvider((window as any).ethereum);
     const signer = await provider.getSigner();
     const tokenContract = new ethers.Contract(tokenAddress, approveAbi, signer);
 
@@ -517,7 +531,7 @@ export class OneInchService {
    */
   private async fetchTokensForChain(chainId: number): Promise<Token[]> {
     try {
-      const response = await fetch(`https://api.1inch.dev/token/v1.2/${chainId}`, {
+      const response = await fetch(`${this.API_BASE_URL}/token/v1.2/${chainId}`, {
         headers: this.apiKey ? {
           'Authorization': `Bearer ${this.apiKey}`,
         } : {},

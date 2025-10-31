@@ -9,7 +9,6 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "@1inch/fusion-sdk": "^2.1.1",
     "@reown/appkit": "^1.8.12",
     "@reown/appkit-adapter-ethers": "^1.8.12",
     "ethers": "^6.13.4",

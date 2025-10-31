@@ -35,7 +35,7 @@ Download the latest release from [GitHub Releases](https://github.com/Kalapaja/d
     recipient-chain-id="42161"
     recipient-token-address="0xaf88d065e77c8cC2239327C5EDb3A432268e5831"
     reown-project-id="YOUR_REOWN_PROJECT_ID"
-    oneinch-api-key="YOUR_LIFI_API_KEY">
+    oneinch-api-key="YOUR_ONEINCH_API_KEY">
   </donation-widget>
 
   <!-- Load the widget script from GitHub releases -->
@@ -72,7 +72,7 @@ The minimal setup requires these attributes:
   recipient-chain-id="42161"
   recipient-token-address="0xaf88d065e77c8cC2239327C5EDb3A432268e5831"
   reown-project-id="YOUR_REOWN_PROJECT_ID"
-  oneinch-api-key="YOUR_LIFI_API_KEY">
+  oneinch-api-key="YOUR_ONEINCH_API_KEY">
 </donation-widget>
 ```
 
@@ -88,7 +88,7 @@ The minimal setup requires these attributes:
   recipient-chain-id="42161"
   recipient-token-address="0xaf88d065e77c8cC2239327C5EDb3A432268e5831"
   reown-project-id="YOUR_REOWN_PROJECT_ID"
-  oneinch-api-key="YOUR_LIFI_API_KEY"
+  oneinch-api-key="YOUR_ONEINCH_API_KEY"
   theme="dark">
 </donation-widget>
 ```
@@ -132,7 +132,7 @@ The minimal setup requires these attributes:
   recipient-chain-id="56"
   recipient-token-address="0x55d398326f99059fF775485246999027B3197955"
   reown-project-id="YOUR_REOWN_PROJECT_ID"
-  oneinch-api-key="YOUR_LIFI_API_KEY">
+  oneinch-api-key="YOUR_ONEINCH_API_KEY">
 </donation-widget>
 ```
 
@@ -152,7 +152,7 @@ Automatically matches the user's system preference (light/dark mode):
   recipient-chain-id="42161"
   recipient-token-address="0xaf88d065e77c8cC2239327C5EDb3A432268e5831"
   reown-project-id="YOUR_REOWN_PROJECT_ID"
-  oneinch-api-key="YOUR_LIFI_API_KEY"
+  oneinch-api-key="YOUR_ONEINCH_API_KEY"
   theme="auto">
 </donation-widget>
 ```
@@ -165,7 +165,7 @@ Automatically matches the user's system preference (light/dark mode):
   recipient-chain-id="42161"
   recipient-token-address="0xaf88d065e77c8cC2239327C5EDb3A432268e5831"
   reown-project-id="YOUR_REOWN_PROJECT_ID"
-  oneinch-api-key="YOUR_LIFI_API_KEY"
+  oneinch-api-key="YOUR_ONEINCH_API_KEY"
   theme="light">
 </donation-widget>
 ```
@@ -178,7 +178,7 @@ Automatically matches the user's system preference (light/dark mode):
   recipient-chain-id="42161"
   recipient-token-address="0xaf88d065e77c8cC2239327C5EDb3A432268e5831"
   reown-project-id="YOUR_REOWN_PROJECT_ID"
-  oneinch-api-key="YOUR_LIFI_API_KEY"
+  oneinch-api-key="YOUR_ONEINCH_API_KEY"
   theme="dark">
 </donation-widget>
 ```
@@ -209,7 +209,7 @@ Set `theme="custom"` and use CSS variables to create your own color scheme. **No
   recipient-chain-id="42161"
   recipient-token-address="0xaf88d065e77c8cC2239327C5EDb3A432268e5831"
   reown-project-id="YOUR_REOWN_PROJECT_ID"
-  oneinch-api-key="YOUR_LIFI_API_KEY"
+  oneinch-api-key="YOUR_ONEINCH_API_KEY"
   theme="custom"
   style="
     --color-background: oklch(15% 0.05 280);
@@ -233,7 +233,7 @@ Set `theme="custom"` and use CSS variables to create your own color scheme. **No
   recipient-chain-id="42161"
   recipient-token-address="0xaf88d065e77c8cC2239327C5EDb3A432268e5831"
   reown-project-id="YOUR_REOWN_PROJECT_ID"
-  oneinch-api-key="YOUR_LIFI_API_KEY"
+  oneinch-api-key="YOUR_ONEINCH_API_KEY"
   theme="custom"
   style="
     --color-background: oklch(18% 0.08 230);
@@ -257,7 +257,7 @@ Set `theme="custom"` and use CSS variables to create your own color scheme. **No
   recipient-chain-id="42161"
   recipient-token-address="0xaf88d065e77c8cC2239327C5EDb3A432268e5831"
   reown-project-id="YOUR_REOWN_PROJECT_ID"
-  oneinch-api-key="YOUR_LIFI_API_KEY"
+  oneinch-api-key="YOUR_ONEINCH_API_KEY"
   theme="custom"
   style="
     --color-background: oklch(98% 0.02 150);
@@ -281,7 +281,7 @@ Set `theme="custom"` and use CSS variables to create your own color scheme. **No
   recipient-chain-id="42161"
   recipient-token-address="0xaf88d065e77c8cC2239327C5EDb3A432268e5831"
   reown-project-id="YOUR_REOWN_PROJECT_ID"
-  oneinch-api-key="YOUR_LIFI_API_KEY"
+  oneinch-api-key="YOUR_ONEINCH_API_KEY"
   theme="custom"
   style="
     --color-background: oklch(100% 0 0);
@@ -331,7 +331,7 @@ const widget = document.querySelector('donation-widget');
   recipient-chain-id="42161"
   recipient-token-address="0xaf88d065e77c8cC2239327C5EDb3A432268e5831"
   reown-project-id="YOUR_REOWN_PROJECT_ID"
-  oneinch-api-key="YOUR_LIFI_API_KEY">
+  oneinch-api-key="YOUR_ONEINCH_API_KEY">
 </donation-widget>
 
 <script>
@@ -396,7 +396,7 @@ const widget = document.querySelector('donation-widget');
     recipient-chain-id="42161"
     recipient-token-address="0xaf88d065e77c8cC2239327C5EDb3A432268e5831"
     reown-project-id="YOUR_REOWN_PROJECT_ID"
-    oneinch-api-key="YOUR_LIFI_API_KEY">
+    oneinch-api-key="YOUR_ONEINCH_API_KEY">
   </donation-widget>
 
   <div id="eventLog"></div>
@@ -571,7 +571,7 @@ widget.setAttribute('theme', 'dark');
     recipient-chain-id="42161"
     recipient-token-address="0xaf88d065e77c8cC2239327C5EDb3A432268e5831"
     reown-project-id="YOUR_REOWN_PROJECT_ID"
-    oneinch-api-key="YOUR_LIFI_API_KEY">
+    oneinch-api-key="YOUR_ONEINCH_API_KEY">
   </donation-widget>
 
   <script src="https://your-cdn.com/donation-widget.js"></script>
@@ -643,7 +643,7 @@ function DonationPage() {
         recipient-chain-id="42161"
         recipient-token-address="0xaf88d065e77c8cC2239327C5EDb3A432268e5831"
         reown-project-id="YOUR_REOWN_PROJECT_ID"
-        oneinch-api-key="YOUR_LIFI_API_KEY"
+        oneinch-api-key="YOUR_ONEINCH_API_KEY"
         theme="dark"
       />
     </div>
@@ -719,7 +719,7 @@ onUnmounted(() => {
   recipient-chain-id="42161"
   recipient-token-address="0xaf88d065e77c8cC2239327C5EDb3A432268e5831"
   reown-project-id="YOUR_REOWN_PROJECT_ID"
-  oneinch-api-key="YOUR_LIFI_API_KEY"
+  oneinch-api-key="YOUR_ONEINCH_API_KEY"
   theme="dark"
 />
 ```
@@ -760,7 +760,7 @@ export default function DonationPage() {
         recipient-chain-id="42161"
         recipient-token-address="0xaf88d065e77c8cC2239327C5EDb3A432268e5831"
         reown-project-id="YOUR_REOWN_PROJECT_ID"
-        oneinch-api-key="YOUR_LIFI_API_KEY"
+        oneinch-api-key="YOUR_ONEINCH_API_KEY"
         theme="dark"
       />
     </div>
@@ -782,7 +782,7 @@ Add to your theme or use a custom HTML block:
   recipient-chain-id="42161"
   recipient-token-address="0xaf88d065e77c8cC2239327C5EDb3A432268e5831"
   reown-project-id="YOUR_REOWN_PROJECT_ID"
-  oneinch-api-key="YOUR_LIFI_API_KEY"
+  oneinch-api-key="YOUR_ONEINCH_API_KEY"
   theme="auto">
 </donation-widget>
 ```
