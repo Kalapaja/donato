@@ -1,8 +1,11 @@
+import tseslint from '@typescript-eslint/eslint-plugin';
+import parser from '@typescript-eslint/parser';
+
 export default [
   {
     files: ['**/*.ts'],
     languageOptions: {
-      parser: (await import('@typescript-eslint/parser')).default,
+      parser: parser,
       parserOptions: {
         ecmaVersion: 2020,
         sourceType: 'module',
@@ -10,7 +13,7 @@ export default [
       }
     },
     plugins: {
-      '@typescript-eslint': (await import('@typescript-eslint/eslint-plugin')).default
+      '@typescript-eslint': tseslint
     },
     rules: {
       '@typescript-eslint/no-explicit-any': 'warn',
@@ -19,8 +22,6 @@ export default [
         varsIgnorePattern: '^_'
       }],
       'no-console': ['warn', { allow: ['warn', 'error', 'info', 'log'] }],
-      'semi': ['error', 'always'],
-      'quotes': ['error', 'single', { avoidEscape: true }],
     }
   },
   {
