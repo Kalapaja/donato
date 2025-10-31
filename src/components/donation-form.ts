@@ -1,13 +1,13 @@
 import { LitElement, html, css } from 'lit';
 import { customElement, property, state } from 'lit/decorators.js';
-import type { WalletService, Token } from '../services/WalletService.ts';
-import type { LiFiService, QuoteParams } from '../services/LiFiService.ts';
-import type { ChainService } from '../services/ChainService.ts';
-import type { ToastService } from '../services/ToastService.ts';
+import type { WalletService, Token } from '../services/WalletService';
+import type { LiFiService, QuoteParams } from '../services/LiFiService';
+import type { ChainService } from '../services/ChainService';
+import type { ToastService } from '../services/ToastService';
 import type { Route } from '@lifi/sdk';
-import { ErrorHandler } from '../services/ErrorHandler.ts';
-import './amount-input.ts';
-import './donate-button.ts';
+import { ErrorHandler } from '../services/ErrorHandler';
+import './amount-input';
+import './donate-button';
 
 @customElement('donation-form')
 export class DonationForm extends LitElement {
@@ -56,7 +56,7 @@ export class DonationForm extends LitElement {
   @state()
   private accessor recipientTokenInfo: Token | null = null;
 
-  private quoteDebounceTimer: number | null = null;
+  private quoteDebounceTimer: ReturnType<typeof setTimeout> | null = null;
   private readonly QUOTE_DEBOUNCE_MS = 500;
 
   static override styles = css`

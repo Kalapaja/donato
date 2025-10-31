@@ -1,5 +1,5 @@
 import type { Token } from '@lifi/sdk';
-import type { LiFiService } from './LiFiService.ts';
+import type { LiFiService } from './LiFiService';
 
 export interface Chain {
   id: number;

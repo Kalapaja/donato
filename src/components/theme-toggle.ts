@@ -1,6 +1,6 @@
 import { LitElement, html, css, svg } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
-import type { Theme } from '../services/ThemeService.ts';
+import type { Theme } from '../services/ThemeService';
 
 @customElement('theme-toggle')
 export class ThemeToggle extends LitElement {

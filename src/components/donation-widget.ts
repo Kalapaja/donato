@@ -1,16 +1,16 @@
 import { LitElement, html, css, type PropertyValues } from 'lit';
 import { customElement, property, state } from 'lit/decorators.js';
-import { WalletService, LiFiService, ChainService, ThemeService, toastService } from '../services/index.ts';
-import type { Token } from '../services/WalletService.ts';
+import { WalletService, LiFiService, ChainService, ThemeService, toastService } from '../services/index';
+import type { Token } from '../services/WalletService';
 import type { Route } from '@lifi/sdk';
-import type { Theme, ThemeMode } from '../services/ThemeService.ts';
+import type { Theme, ThemeMode } from '../services/ThemeService';
 
 // Import child components
-import './wallet-section.ts';
-import './donation-form.ts';
-import './theme-toggle.ts';
-import './toast-container.ts';
-import type { ToastContainer } from './toast-container.ts';
+import './wallet-section';
+import './donation-form';
+import './theme-toggle';
+import './toast-container';
+import type { ToastContainer } from './toast-container';
 
 /**
  * Donation Widget - Main component for cryptocurrency donations

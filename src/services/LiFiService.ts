@@ -1,5 +1,5 @@
 import { createConfig, EVM, getQuote, getRoutes, executeRoute, convertQuoteToRoute, type Route, type RoutesRequest, type ChainId, type Token, type LiFiStep, getChains, getTokens } from '@lifi/sdk';
-import type { WalletService } from './WalletService.ts';
+import type { WalletService } from './WalletService';
 
 export interface LiFiConfig {
   apiKey?: string;

@@ -49,13 +49,13 @@ Download the latest release from [GitHub Releases](https://github.com/Kalapaja/d
 ```bash
 # Clone the repository
 git clone https://github.com/Kalapaja/donato.git
-cd donation-widget
+cd donato
 
-# Install dependencies with Deno
-deno install
+# Install dependencies with npm
+npm install
 
 # Build the widget
-deno task build
+npm run build
 ```
 
 The compiled widget will be in the `dist/` directory.
@@ -791,7 +791,8 @@ Add to your theme or use a custom HTML block:
 
 ### Prerequisites
 
-- Deno 1.40+
+- Node.js 18.0.0 or higher
+- npm 9.0.0 or higher
 
 ### Setup
 
@@ -801,26 +802,26 @@ git clone https://github.com/Kalapaja/donato.git
 cd donato
 
 # Install dependencies
-deno install
+npm install
 
 # Start development server
-deno task dev
+npm run dev
 ```
 
 ### Build
 
 ```bash
 # Build for production
-deno task build
+npm run build
 
 # Preview production build
-deno task preview
+npm run preview
 ```
 
 ### Project Structure
 
 ```
-donation-widget/
+donato/
 ├── src/
 │   ├── components/          # Web components
 │   │   ├── donation-widget.ts
@@ -837,7 +838,8 @@ donation-widget/
 │   └── themes.html
 ├── dist/                    # Built files (generated)
 ├── vite.config.ts          # Vite configuration
-└── deno.json               # Deno configuration
+├── tsconfig.json           # TypeScript configuration
+└── package.json            # npm dependencies
 ```
 
 ## 📖 API Reference

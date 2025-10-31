@@ -1,10 +1,10 @@
 import { LitElement, html, css } from 'lit';
 import { customElement, property, state } from 'lit/decorators.js';
 import type { Token } from '@lifi/sdk';
-import type { Chain } from '../services/ChainService.ts';
+import type { Chain } from '../services/ChainService';
 
 // Import child component
-import './token-item.ts';
+import './token-item';
 
 interface TokenGroup {
   chain: Chain;

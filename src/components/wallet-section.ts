@@ -1,8 +1,8 @@
 import { LitElement, html, css } from 'lit';
 import { customElement, property, state } from 'lit/decorators.js';
-import type { WalletService, Token, WalletAccount } from '../services/WalletService.ts';
+import type { WalletService, Token, WalletAccount } from '../services/WalletService';
 import type { Address } from 'viem';
-import './token-selector.ts';
+import './token-selector';
 
 @customElement('wallet-section')
 export class WalletSection extends LitElement {

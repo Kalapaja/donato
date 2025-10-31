@@ -6,17 +6,17 @@
  */
 
 // Import and register all components
-import './components/donation-widget.ts';
-import './components/wallet-section.ts';
-import './components/donation-form.ts';
-import './components/theme-toggle.ts';
-import './components/token-selector.ts';
-import './components/token-list.ts';
-import './components/token-item.ts';
-import './components/amount-input.ts';
-import './components/donate-button.ts';
-import './components/toast-notification.ts';
-import './components/toast-container.ts';
+import './components/donation-widget';
+import './components/wallet-section';
+import './components/donation-form';
+import './components/theme-toggle';
+import './components/token-selector';
+import './components/token-list';
+import './components/token-item';
+import './components/amount-input';
+import './components/donate-button';
+import './components/toast-notification';
+import './components/toast-container';
 
 // Export components for programmatic usage
 export {
@@ -31,7 +31,7 @@ export {
   DonateButton,
   ToastNotification,
   ToastContainer,
-} from './components/index.ts';
+} from './components/index';
 
 // Export services for advanced usage
 export {
@@ -40,11 +40,11 @@ export {
   ChainService,
   ThemeService,
   toastService,
-} from './services/index.ts';
+} from './services/index';
 
 // Export types
-export type { Token } from './services/WalletService.ts';
-export type { Theme, ThemeMode } from './services/ThemeService.ts';
+export type { Token } from './services/WalletService';
+export type { Theme, ThemeMode } from './services/ThemeService';
 
 // Version information
 export const VERSION = '1.0.0';

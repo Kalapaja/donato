@@ -1,6 +1,6 @@
 import { LitElement, html, css } from 'lit';
 import { customElement, property, state } from 'lit/decorators.js';
-import type { Toast, ToastType } from '../services/ToastService.ts';
+import type { Toast, ToastType } from '../services/ToastService';
 
 @customElement('toast-notification')
 export class ToastNotification extends LitElement {

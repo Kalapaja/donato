@@ -150,6 +150,7 @@ export default defineConfig(({ mode, command }) => {
       minifyIdentifiers: isProduction,
       minifySyntax: isProduction,
       minifyWhitespace: isProduction,
+      target: 'es2022',
     },
   };
 });

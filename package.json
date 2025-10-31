@@ -1,0 +1,62 @@
+{
+  "name": "donato",
+  "version": "1.0.0",
+  "description": "A modern, embeddable cryptocurrency donation widget with cross-chain support powered by LiFi",
+  "type": "module",
+  "main": "./dist/donation-widget.js",
+  "types": "./dist/donation-widget.d.ts",
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
+  "scripts": {
+    "dev": "vite --host",
+    "build": "vite build --mode production",
+    "build:dev": "vite build --mode development",
+    "preview": "vite preview",
+    "lint": "eslint src/",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@lifi/sdk": "^3.12.14",
+    "@reown/appkit": "^1.8.12",
+    "@reown/appkit-adapter-ethers": "^1.8.12",
+    "ethers": "^6.13.4",
+    "lit": "^3.3.1",
+    "lit-element": "^4.2.1",
+    "lit-html": "^3.3.1",
+    "viem": "^2.38.5"
+  },
+  "devDependencies": {
+    "@types/node": "^20.10.0",
+    "@typescript-eslint/eslint-plugin": "^6.15.0",
+    "@typescript-eslint/parser": "^6.15.0",
+    "autoprefixer": "^10.4.21",
+    "eslint": "^8.56.0",
+    "postcss": "^8.5.6",
+    "terser": "^5.37.0",
+    "typescript": "^5.3.3",
+    "vite": "^7.1.12"
+  },
+  "keywords": [
+    "donation",
+    "widget",
+    "cryptocurrency",
+    "web3",
+    "cross-chain",
+    "ethereum",
+    "lit",
+    "web-components"
+  ],
+  "author": "Donation Widget Team",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Kalapaja/donato.git"
+  },
+  "engines": {
+    "node": ">=18.0.0",
+    "npm": ">=9.0.0"
+  }
+}
