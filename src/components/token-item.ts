@@ -1,12 +1,12 @@
 import { LitElement, html, css } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
-import type { Token } from '@lifi/sdk';
+import type { OneInchToken } from '../services/OneInchService.ts';
 import type { Chain } from '../services/ChainService.ts';
 
 @customElement('token-item')
 export class TokenItem extends LitElement {
   @property({ type: Object })
-  accessor token!: Token;
+  accessor token!: OneInchToken;
 
   @property({ type: Object })
   accessor chain!: Chain;

@@ -1,7 +1,7 @@
 import { LitElement, html, css } from 'lit';
 import { customElement, property, state } from 'lit/decorators.js';
 import type { Token } from '../services/WalletService.ts';
-import type { Route } from '@lifi/sdk';
+import type { OneInchRoute } from '../services/OneInchService.ts';
 
 @customElement('amount-input')
 export class AmountInput extends LitElement {
@@ -18,7 +18,7 @@ export class AmountInput extends LitElement {
   accessor recipientToken: Token | null = null;
 
   @property({ type: Object })
-  accessor quote: Route | null = null;
+  accessor quote: OneInchRoute | null = null;
 
   @property({ type: Boolean })
   accessor isQuoteLoading: boolean = false;

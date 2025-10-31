@@ -1,6 +1,6 @@
 import { LitElement, html, css } from 'lit';
 import { customElement, property, state } from 'lit/decorators.js';
-import type { Token } from '@lifi/sdk';
+import type { OneInchToken } from '../services/OneInchService.ts';
 import type { Chain } from '../services/ChainService.ts';
 
 // Import child components
@@ -9,10 +9,10 @@ import './token-list.ts';
 @customElement('token-selector')
 export class TokenSelector extends LitElement {
   @property({ type: Array })
-  accessor tokens: Token[] = [];
+  accessor tokens: OneInchToken[] = [];
 
   @property({ type: Object })
-  accessor selectedToken: Token | null = null;
+  accessor selectedToken: OneInchToken | null = null;
 
   @property({ type: Array })
   accessor chains: Chain[] = [];
@@ -180,7 +180,7 @@ export class TokenSelector extends LitElement {
     event.stopPropagation();
   }
 
-  private handleTokenSelect(event: CustomEvent<Token>) {
+  private handleTokenSelect(event: CustomEvent<OneInchToken>) {
     this.selectedToken = event.detail;
     this.isOpen = false;
 
@@ -213,7 +213,7 @@ export class TokenSelector extends LitElement {
     return knownChains[chainId] || `Network ${chainId}`;
   }
 
-  private get filteredTokens(): Token[] {
+  private get filteredTokens(): OneInchToken[] {
     // If no chain is selected, show all tokens
     if (this.currentChainId === null) {
       return this.tokens;

@@ -1,6 +1,6 @@
 import { LitElement, html, css } from 'lit';
 import { customElement, property, state } from 'lit/decorators.js';
-import type { Token } from '@lifi/sdk';
+import type { OneInchToken } from '../services/OneInchService.ts';
 import type { Chain } from '../services/ChainService.ts';
 
 // Import child component
@@ -8,25 +8,25 @@ import './token-item.ts';
 
 interface TokenGroup {
   chain: Chain;
-  tokens: Token[];
+  tokens: OneInchToken[];
 }
 
 @customElement('token-list')
 export class TokenList extends LitElement {
   @property({ type: Array })
-  accessor tokens: Token[] = [];
+  accessor tokens: OneInchToken[] = [];
 
   @property({ type: Array })
   accessor chains: Chain[] = [];
 
   @property({ type: Object })
-  accessor selectedToken: Token | null = null;
+  accessor selectedToken: OneInchToken | null = null;
 
   @state()
   private accessor searchQuery: string = '';
 
   @state()
-  private accessor filteredTokens: Token[] = [];
+  private accessor filteredTokens: OneInchToken[] = [];
 
   @state()
   private accessor focusedIndex: number = -1;
@@ -175,7 +175,7 @@ export class TokenList extends LitElement {
     this.focusedIndex = -1; // Reset focus when search changes
   }
 
-  private handleTokenSelect(event: CustomEvent<Token>) {
+  private handleTokenSelect(event: CustomEvent<OneInchToken>) {
     // Emit token-selected event
     this.dispatchEvent(new CustomEvent('token-selected', {
       detail: event.detail,
@@ -266,7 +266,7 @@ export class TokenList extends LitElement {
   }
 
   private groupTokensByChain(): TokenGroup[] {
-    const grouped = new Map<number, Token[]>();
+    const grouped = new Map<number, OneInchToken[]>();
 
     // Group tokens by chain
     for (const token of this.filteredTokens) {

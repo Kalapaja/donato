@@ -1,5 +1,5 @@
-import type { Token } from '@lifi/sdk';
-import type { LiFiService } from './LiFiService.ts';
+import type { OneInchToken } from './OneInchService.ts';
+import type { OneInchService } from './OneInchService.ts';
 
 export interface Chain {
   id: number;
@@ -17,9 +17,9 @@ export interface Chain {
 }
 
 export class ChainService {
-  private lifiService: LiFiService;
+  private oneInchService: OneInchService;
   private chains: Chain[] = [];
-  private tokens: Token[] = [];
+  private tokens: OneInchToken[] = [];
   private initialized = false;
 
   // Supported networks configuration
@@ -98,8 +98,8 @@ export class ChainService {
     },
   ];
 
-  constructor(lifiService: LiFiService) {
-    this.lifiService = lifiService;
+  constructor(oneInchService: OneInchService) {
+    this.oneInchService = oneInchService;
   }
 
   /**
@@ -111,26 +111,26 @@ export class ChainService {
     }
 
     try {
-      // Fetch chains from LiFi
-      const lifiChains = await this.lifiService.getChains();
+      // Fetch chains from 1inch
+      const oneInchChains = await this.oneInchService.getChains();
       
       // Merge with our supported chains configuration
       this.chains = this.SUPPORTED_CHAINS.map(supportedChain => {
-        const lifiChain = lifiChains.find((c) => c.id === supportedChain.id);
+        const oneInchChain = oneInchChains.find((c) => c.id === supportedChain.id);
         
         return {
           ...supportedChain,
-          logoURI: lifiChain?.logoURI,
+          logoURI: oneInchChain?.logoURI,
           nativeToken: {
             ...supportedChain.nativeToken,
-            logoURI: lifiChain?.nativeToken?.logoURI,
+            logoURI: oneInchChain?.nativeToken?.logoURI,
           },
         };
       });
 
       // Fetch tokens for all supported chains
       const chainIds = this.chains.map(chain => chain.id);
-      this.tokens = await this.lifiService.getTokens(chainIds);
+      this.tokens = await this.oneInchService.getTokens(chainIds);
 
       this.initialized = true;
     } catch (error) {
@@ -165,21 +165,21 @@ export class ChainService {
   /**
    * Get all tokens
    */
-  getAllTokens(): Token[] {
+  getAllTokens(): OneInchToken[] {
     return this.tokens;
   }
 
   /**
    * Get tokens for a specific chain
    */
-  getTokens(chainId: number): Token[] {
+  getTokens(chainId: number): OneInchToken[] {
     return this.tokens.filter(token => token.chainId === chainId);
   }
 
   /**
    * Get token by address and chain
    */
-  getToken(chainId: number, address: string): Token | undefined {
+  getToken(chainId: number, address: string): OneInchToken | undefined {
     return this.tokens.find(
       token => 
         token.chainId === chainId && 
@@ -190,7 +190,7 @@ export class ChainService {
   /**
    * Search tokens by query (symbol, name, or address)
    */
-  searchTokens(query: string): Token[] {
+  searchTokens(query: string): OneInchToken[] {
     if (!query || query.trim() === '') {
       return this.tokens;
     }
@@ -209,15 +209,15 @@ export class ChainService {
   /**
    * Filter tokens by chain IDs
    */
-  filterTokensByChains(chainIds: number[]): Token[] {
+  filterTokensByChains(chainIds: number[]): OneInchToken[] {
     return this.tokens.filter(token => chainIds.includes(token.chainId));
   }
 
   /**
    * Get tokens grouped by chain
    */
-  getTokensGroupedByChain(): Map<number, Token[]> {
-    const grouped = new Map<number, Token[]>();
+  getTokensGroupedByChain(): Map<number, OneInchToken[]> {
+    const grouped = new Map<number, OneInchToken[]>();
 
     for (const token of this.tokens) {
       const chainTokens = grouped.get(token.chainId) || [];
@@ -231,7 +231,7 @@ export class ChainService {
   /**
    * Get popular tokens (top tokens by usage/liquidity)
    */
-  getPopularTokens(limit: number = 10): Token[] {
+  getPopularTokens(limit: number = 10): OneInchToken[] {
     // Define popular token addresses for each chain
     const popularTokens = [
       // Ethereum
@@ -265,7 +265,7 @@ export class ChainService {
       { chainId: 8453, address: '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913' }, // USDC
     ];
 
-    const popular: Token[] = [];
+    const popular: OneInchToken[] = [];
 
     for (const { chainId, address } of popularTokens) {
       const token = this.getToken(chainId, address);
@@ -284,7 +284,7 @@ export class ChainService {
   /**
    * Get native token for a chain
    */
-  getNativeToken(chainId: number): Token | undefined {
+  getNativeToken(chainId: number): OneInchToken | undefined {
     const chain = this.getChain(chainId);
     if (!chain) {
       return undefined;
@@ -315,12 +315,12 @@ export class ChainService {
   }
 
   /**
-   * Refresh tokens from LiFi API
+   * Refresh tokens from 1inch API
    */
   async refreshTokens(): Promise<void> {
     try {
       const chainIds = this.chains.map(chain => chain.id);
-      this.tokens = await this.lifiService.getTokens(chainIds);
+      this.tokens = await this.oneInchService.getTokens(chainIds);
     } catch (error) {
       console.error('Failed to refresh tokens:', error);
       throw new Error('Failed to refresh token list');

@@ -129,7 +129,7 @@ export default defineConfig(({ mode, command }) => {
     },
     // Optimize dependencies
     optimizeDeps: {
-      include: ['lit', '@lifi/sdk', 'viem'],
+      include: ['lit', '@1inch/cross-chain-sdk', 'viem'],
       exclude: [],
     },
     // Development server configuration
