@@ -129,7 +129,7 @@ export default defineConfig(({ mode, command }) => {
     },
     // Optimize dependencies
     optimizeDeps: {
-      include: ['lit', '@1inch/fusion-sdk', 'viem'],
+      include: ['lit', 'viem', 'ethers'],
       exclude: [],
     },
     // Development server configuration
