@@ -1,10 +1,14 @@
 {
   "tasks": {
-    "dev": "vite --host",
+    "dev": "sh -c 'deno task dev:build & deno task dev:vite & deno task dev:www; wait'",
+    "dev:build": "vite build --mode development --watch",
+    "dev:vite": "vite --host",
+    "dev:www": "deno task --unstable --quiet --config=./www/deno.json www:dev",
     "build": "vite build --mode production",
     "build:dev": "vite build --mode development",
     "preview": "vite preview",
-    "lint": "deno lint src/"
+    "lint": "deno lint src/",
+    "www": "deno task --unstable --quiet --config=./www/deno.json dev"
   },
   "imports": {
     "@lifi/sdk": "npm:@lifi/sdk@3.12.14",

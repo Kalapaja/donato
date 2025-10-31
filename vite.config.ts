@@ -1,11 +1,47 @@
-import { defineConfig } from 'vite';
+import { defineConfig, Plugin } from 'vite';
 import { resolve } from 'node:path';
+import { readFileSync, existsSync } from 'node:fs';
+
+// Plugin to serve donation-widget.js from dist in dev mode
+function devWidgetPlugin(): Plugin {
+  return {
+    name: 'dev-widget-plugin',
+    configureServer(server) {
+      server.middlewares.use((req, res, next) => {
+        if (req.url === '/donation-widget.js') {
+          try {
+            const distPath = resolve(__dirname, 'dist/donation-widget.js');
+            if (existsSync(distPath)) {
+              const content = readFileSync(distPath, 'utf-8');
+              res.setHeader('Content-Type', 'application/javascript');
+              res.setHeader('Access-Control-Allow-Origin', '*');
+              res.setHeader('Cache-Control', 'no-cache');
+              res.end(content);
+              return;
+            }
+            // If file doesn't exist, return 404
+            res.statusCode = 404;
+            res.end('File not found. Run "deno task build:dev" first or wait for watch build.');
+            return;
+          } catch (err) {
+            console.error('Error serving widget:', err);
+            res.statusCode = 500;
+            res.end('Error serving widget file');
+            return;
+          }
+        }
+        next();
+      });
+    },
+  };
+}
 
 export default defineConfig(({ mode, command }) => {
   const isProduction = mode === 'production';
   const isServe = command === 'serve';
 
   return {
+    plugins: isServe ? [devWidgetPlugin()] : [],
     // Define global constants to inline environment variables
     define: {
       'process.env.NODE_ENV': JSON.stringify(mode),

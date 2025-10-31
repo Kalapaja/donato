@@ -93,7 +93,7 @@ export class WalletService {
         },
         themeMode: 'dark',
         themeVariables: {
-          '--w3m-accent': 'rgb(59, 130, 246)',
+          '--w3m-accent': 'oklch(60% 0.19 250)',
         }
       });
 
