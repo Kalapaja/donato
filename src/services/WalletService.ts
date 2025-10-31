@@ -443,7 +443,7 @@ export class WalletService {
   }
 
   /**
-   * Get ethers signer (for LiFi SDK and other integrations)
+   * Get ethers signer (for 1inch SDK and other integrations)
    */
   getSigner(): unknown {
     if (!this.appKit) {

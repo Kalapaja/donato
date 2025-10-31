@@ -4,8 +4,8 @@ export const RECIPIENT_WALLET = "0x742d35Cc6634C0532925a3b844Bc454e4438f44e" as 
 // Project ID from WalletConnect
 export const projectId = import.meta.env.VITE_PROJECT_ID;
 
-// LiFi API Key (optional but recommended for higher rate limits)
-export const lifiApiKey = import.meta.env.VITE_LIFI_API_KEY;
+// 1inch API Key (optional but recommended for higher rate limits)
+export const oneInchApiKey = import.meta.env.VITE_ONEINCH_API_KEY;
 
 // Define supported network chain IDs
 export const supportedChainIds = [

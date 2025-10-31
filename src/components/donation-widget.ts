@@ -1,8 +1,8 @@
 import { LitElement, html, css, type PropertyValues } from 'lit';
 import { customElement, property, state } from 'lit/decorators.js';
-import { WalletService, LiFiService, ChainService, ThemeService, toastService } from '../services/index.ts';
+import { WalletService, OneInchService, ChainService, ThemeService, toastService } from '../services/index.ts';
 import type { Token } from '../services/WalletService.ts';
-import type { Route } from '@lifi/sdk';
+import type { Route } from '../services/OneInchService.ts';
 import type { Theme, ThemeMode } from '../services/ThemeService.ts';
 
 // Import child components
@@ -22,7 +22,7 @@ import type { ToastContainer } from './toast-container.ts';
  * @attr {number} recipient-chain-id - Chain ID where recipient will receive tokens (default: 42161 - Arbitrum)
  * @attr {string} recipient-token-address - Token address that recipient will receive (default: USDC on recipient chain)
  * @attr {string} theme - Theme mode: 'light', 'dark', 'auto', or 'custom' (default: 'auto'). 'custom' mode hides theme toggle and uses CSS variables from parent.
- * @attr {string} lifi-api-key - LiFi API key (optional)
+ * @attr {string} oneinch-api-key - 1inch API key (optional)
  * 
  * @fires donation-completed - Fired when donation succeeds
  * @fires donation-failed - Fired when donation fails
@@ -62,9 +62,9 @@ export class DonationWidget extends LitElement {
   @property({ type: String })
   accessor theme: ThemeMode = 'auto';
 
-  /** LiFi API key (optional) */
-  @property({ type: String, attribute: 'lifi-api-key' })
-  accessor lifiApiKey: string | undefined = undefined;
+  /** 1inch API key (optional) */
+  @property({ type: String, attribute: 'oneinch-api-key' })
+  accessor oneInchApiKey: string | undefined = undefined;
 
   // Internal state
   @state()
@@ -102,7 +102,7 @@ export class DonationWidget extends LitElement {
 
   // Services
   private walletService: WalletService;
-  private lifiService: LiFiService;
+  private oneInchService: OneInchService;
   private chainService: ChainService;
   private themeService: ThemeService;
 
@@ -115,11 +115,11 @@ export class DonationWidget extends LitElement {
     // Initialize services
     this.walletService = new WalletService();
     this.themeService = new ThemeService();
-    this.lifiService = new LiFiService({
+    this.oneInchService = new OneInchService({
       walletService: this.walletService,
-      apiKey: this.lifiApiKey,
+      apiKey: this.oneInchApiKey,
     });
-    this.chainService = new ChainService(this.lifiService);
+    this.chainService = new ChainService(this.oneInchService);
   }
 
   static override styles = css`
@@ -272,8 +272,8 @@ export class DonationWidget extends LitElement {
       // Initialize wallet service
       this.walletService.init(this.reownProjectId);
 
-      // Initialize LiFi service
-      this.lifiService.init();
+      // Initialize 1inch service
+      this.oneInchService.init();
 
       // Initialize chain service
       await this.chainService.init();
@@ -310,7 +310,7 @@ export class DonationWidget extends LitElement {
     try {
       // Load tokens for supported chains
       const supportedChainIds = [1, 42161, 137, 56, 10, 8453]; // Ethereum, Arbitrum, Polygon, BSC, Optimism, Base
-      this.availableTokens = await this.lifiService.getTokens(supportedChainIds);
+      this.availableTokens = await this.oneInchService.getTokens(supportedChainIds);
     } catch (error) {
       console.error('Failed to load tokens:', error);
     } finally {
@@ -356,13 +356,13 @@ export class DonationWidget extends LitElement {
       this.themeService.setThemeMode(this.theme);
     }
 
-    // Handle LiFi API key changes
-    if (changedProperties.has('lifiApiKey')) {
-      this.lifiService = new LiFiService({
+    // Handle 1inch API key changes
+    if (changedProperties.has('oneInchApiKey')) {
+      this.oneInchService = new OneInchService({
         walletService: this.walletService,
-        apiKey: this.lifiApiKey,
+        apiKey: this.oneInchApiKey,
       });
-      this.lifiService.init();
+      this.oneInchService.init();
     }
   }
 
@@ -419,7 +419,7 @@ export class DonationWidget extends LitElement {
     try {
       const route = event.detail;
       
-      await this.lifiService.executeRoute(route, {
+      await this.oneInchService.executeRoute(route, {
         onRouteUpdate: (updatedRoute: Route) => {
           console.log('Route updated:', updatedRoute);
         },
@@ -499,7 +499,7 @@ export class DonationWidget extends LitElement {
           .recipientChainId=${this.recipientChainId}
           .recipientTokenAddress=${this.recipientTokenAddress}
           .walletService=${this.walletService}
-          .lifiService=${this.lifiService}
+          .oneInchService=${this.oneInchService}
           .chainService=${this.chainService}
           .toastService=${toastService}
           .selectedToken=${this.selectedToken}

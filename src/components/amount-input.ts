@@ -1,7 +1,7 @@
 import { LitElement, html, css } from 'lit';
 import { customElement, property, state } from 'lit/decorators.js';
 import type { Token } from '../services/WalletService.ts';
-import type { Route } from '@lifi/sdk';
+import type { Route } from '../services/OneInchService.ts';
 
 @customElement('amount-input')
 export class AmountInput extends LitElement {

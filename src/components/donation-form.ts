@@ -1,10 +1,9 @@
 import { LitElement, html, css } from 'lit';
 import { customElement, property, state } from 'lit/decorators.js';
 import type { WalletService, Token } from '../services/WalletService.ts';
-import type { LiFiService, QuoteParams } from '../services/LiFiService.ts';
+import type { OneInchService, QuoteParams, Route } from '../services/OneInchService.ts';
 import type { ChainService } from '../services/ChainService.ts';
 import type { ToastService } from '../services/ToastService.ts';
-import type { Route } from '@lifi/sdk';
 import { ErrorHandler } from '../services/ErrorHandler.ts';
 import './amount-input.ts';
 import './donate-button.ts';
@@ -24,7 +23,7 @@ export class DonationForm extends LitElement {
   accessor walletService!: WalletService;
 
   @property({ type: Object })
-  accessor lifiService!: LiFiService;
+  accessor oneInchService!: OneInchService;
 
   @property({ type: Object })
   accessor chainService!: ChainService;
@@ -85,7 +84,7 @@ export class DonationForm extends LitElement {
 
   private async loadRecipientTokenInfo() {
     try {
-      const tokenInfo = await this.lifiService.getToken(
+      const tokenInfo = await this.oneInchService.getToken(
         this.recipientChainId,
         this.recipientTokenAddress
       );
@@ -175,7 +174,7 @@ export class DonationForm extends LitElement {
         toAddress: this.recipient,
       };
 
-      const quote = await this.lifiService.getQuote(quoteParams);
+      const quote = await this.oneInchService.getQuote(quoteParams);
       this.quote = quote;
 
       console.log('Quote received:', {
@@ -247,7 +246,7 @@ export class DonationForm extends LitElement {
       const route = this.quote;
 
       // Execute route with callbacks
-      await this.lifiService.executeRoute(route, {
+      await this.oneInchService.executeRoute(route, {
         onRouteUpdate: (updatedRoute: Route) => {
           // Emit route update event
           this.dispatchEvent(new CustomEvent('route-update', {
