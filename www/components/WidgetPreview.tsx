@@ -85,9 +85,11 @@ export function WidgetPreview({ config }: WidgetPreviewProps) {
         }
 
         // Apply custom theme styles if theme is custom
+        const styleId = "donation-widget-custom-theme";
+        const existingStyle = document.getElementById(styleId) as HTMLStyleElement;
+
         if (config.theme === "custom" && config.themeCustom) {
-          const styleId = "donation-widget-custom-theme";
-          let style = document.getElementById(styleId) as HTMLStyleElement;
+          let style = existingStyle;
 
           if (!style) {
             style = document.createElement("style");
@@ -108,6 +110,9 @@ export function WidgetPreview({ config }: WidgetPreviewProps) {
               --radius: ${config.themeCustom.radius};
             }
           `;
+        } else if (existingStyle) {
+          // Remove custom theme styles when not using custom theme
+          existingStyle.remove();
         }
 
         containerRef.current.appendChild(widget);

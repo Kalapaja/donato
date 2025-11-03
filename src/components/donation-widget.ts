@@ -133,6 +133,7 @@ export class DonationWidget extends LitElement {
   static override styles = css`
     :host {
       display: block;
+      min-width: 320px;
       font-family:
         system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
         "Helvetica Neue", Arial, sans-serif;
