@@ -1,18 +1,24 @@
 # Donation Widget Landing Page
 
-This is a Next.js landing page for configuring and generating embed code for the Donation Widget.
+This is a Next.js landing page for configuring and generating embed code for the
+Donation Widget.
 
 ## Features
 
 The landing page provides a step-by-step configuration wizard:
 
-1. **Recipient Address** - Enter the Ethereum address that will receive donations, with optional WalletConnect verification
-2. **Currency & Chain** - Select blockchain network and token, with optional Etherscan Multichain Portfolio integration
+1. **Recipient Address** - Enter the Ethereum address that will receive
+   donations, with optional WalletConnect verification
+2. **Currency & Chain** - Select blockchain network and token, with optional
+   Etherscan Multichain Portfolio integration
 3. **LiFi API Key** - Optional API key registration for cross-chain swaps
-4. **ReOwn Project ID** - Optional Project ID for wallet connections (falls back to browser extensions if omitted)
-5. **Theme Configuration** - Choose from preset themes (auto, light, dark) or create a custom theme with color wizard
+4. **ReOwn Project ID** - Optional Project ID for wallet connections (falls back
+   to browser extensions if omitted)
+5. **Theme Configuration** - Choose from preset themes (auto, light, dark) or
+   create a custom theme with color wizard
 
 After configuration, the page shows:
+
 - Live preview of the configured widget
 - Generated embed code ready to copy
 
@@ -30,7 +36,8 @@ pnpm dev
 bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the landing page.
+Open [http://localhost:3000](http://localhost:3000) with your browser to see the
+landing page.
 
 ## Project Structure
 
@@ -65,7 +72,8 @@ www/
 
 ## Widget Integration
 
-The landing page expects the donation widget script to be available at `/donation-widget.js`. Make sure to:
+The landing page expects the donation widget script to be available at
+`/donation-widget.js`. Make sure to:
 
 1. Build the widget from the root `src/` directory
 2. Copy the built widget to `www/public/donation-widget.js`
@@ -75,11 +83,16 @@ The landing page expects the donation widget script to be available at `/donatio
 
 To learn more about Next.js, take a look at the following resources:
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
+- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js
+  features and API.
 - [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
 
 ## Deploy on Vercel
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+The easiest way to deploy your Next.js app is to use the
+[Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme)
+from the creators of Next.js.
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Check out our
+[Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying)
+for more details.

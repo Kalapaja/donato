@@ -11,7 +11,8 @@
     "www": "deno task --unstable --quiet --config=./www/deno.json dev"
   },
   "imports": {
-    "@lifi/sdk": "npm:@lifi/sdk@3.12.14",
+    "@1inch/cross-chain-sdk": "npm:@1inch/cross-chain-sdk@1.0.0",
+    "@1inch/fusion-sdk": "npm:@1inch/fusion-sdk@2.0.0",
     "@reown/appkit": "npm:@reown/appkit@1.8.12",
     "@reown/appkit-adapter-ethers": "npm:@reown/appkit-adapter-ethers@1.8.12",
     "@std/testing": "jsr:@std/testing@1.0.0",

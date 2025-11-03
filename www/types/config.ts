@@ -17,4 +17,3 @@ export interface WidgetConfig {
     radius: string;
   };
 }
-

@@ -1,5 +1,19 @@
-import { createConfig, EVM, getQuote, getRoutes, executeRoute, convertQuoteToRoute, type Route, type RoutesRequest, type ChainId, type Token, type LiFiStep, getChains, getTokens } from '@lifi/sdk';
-import type { WalletService } from './WalletService.ts';
+import {
+  type ChainId,
+  convertQuoteToRoute,
+  createConfig,
+  EVM,
+  executeRoute,
+  getChains,
+  getQuote,
+  getRoutes,
+  getTokens,
+  type LiFiStep,
+  type Route,
+  type RoutesRequest,
+  type Token,
+} from "@lifi/sdk";
+import type { WalletService } from "./WalletService.ts";
 
 export interface LiFiConfig {
   apiKey?: string;
@@ -62,14 +76,14 @@ export class LiFiService {
     try {
       createConfig({
         apiKey: this.apiKey,
-        integrator: 'donation-widget',
+        integrator: "donation-widget",
         providers: [
           EVM({
             getWalletClient: () => {
               return new Promise((resolve, reject) => {
                 const client = this.walletService.getWalletClient();
                 if (!client) {
-                  reject(new Error('Wallet client not available'));
+                  reject(new Error("Wallet client not available"));
                 } else {
                   resolve(client);
                 }
@@ -79,7 +93,9 @@ export class LiFiService {
               await this.walletService.switchChain(chainId);
               const client = this.walletService.getWalletClient();
               if (!client) {
-                throw new Error('Wallet client not available after chain switch');
+                throw new Error(
+                  "Wallet client not available after chain switch",
+                );
               }
               return client;
             },
@@ -87,8 +103,8 @@ export class LiFiService {
         ],
       });
     } catch (error) {
-      console.error('Failed to initialize LiFi SDK:', error);
-      throw new Error('Failed to initialize cross-chain service');
+      console.error("Failed to initialize LiFi SDK:", error);
+      throw new Error("Failed to initialize cross-chain service");
     }
   }
 
@@ -96,7 +112,7 @@ export class LiFiService {
    * Get quote for token swap with retry logic
    */
   async getQuote(params: QuoteParams): Promise<Route> {
-    console.log('Getting quote with params:', params);
+    console.log("Getting quote with params:", params);
 
     return await this.retryOperation(async () => {
       try {
@@ -126,13 +142,13 @@ export class LiFiService {
             fromAmount: params.fromAmount,
           });
         } else {
-          throw new Error('Either fromAmount or toAmount must be provided');
+          throw new Error("Either fromAmount or toAmount must be provided");
         }
-        
-        console.log('LiFi quote response:', quote);
+
+        console.log("LiFi quote response:", quote);
 
         if (!quote) {
-          throw new Error('No route found for this swap');
+          throw new Error("No route found for this swap");
         }
 
         // Convert LiFiStep to Route
@@ -140,26 +156,31 @@ export class LiFiService {
 
         // Validate route has required fields
         if (!route.fromAmount) {
-          console.warn('Route missing fromAmount:', route);
+          console.warn("Route missing fromAmount:", route);
         }
 
         if (!route.steps || route.steps.length === 0) {
-          console.warn('Route missing steps:', route);
+          console.warn("Route missing steps:", route);
         }
 
         return route;
       } catch (error: unknown) {
-        console.error('Failed to get quote:', error);
-        
-        if (error instanceof Error && error.message?.includes('No route found')) {
-          throw new Error('No route found. Try a different token or amount.');
+        console.error("Failed to get quote:", error);
+
+        if (
+          error instanceof Error && error.message?.includes("No route found")
+        ) {
+          throw new Error("No route found. Try a different token or amount.");
         }
-        
-        if (error instanceof Error && error.message?.includes('Insufficient liquidity')) {
-          throw new Error('Insufficient liquidity for this swap.');
+
+        if (
+          error instanceof Error &&
+          error.message?.includes("Insufficient liquidity")
+        ) {
+          throw new Error("Insufficient liquidity for this swap.");
         }
-        
-        throw new Error('Failed to calculate quote. Please try again.');
+
+        throw new Error("Failed to calculate quote. Please try again.");
       }
     });
   }
@@ -169,7 +190,7 @@ export class LiFiService {
    */
   async getRoutes(params: QuoteParams): Promise<Route[]> {
     if (!params.fromAmount) {
-      throw new Error('fromAmount is required for getRoutes');
+      throw new Error("fromAmount is required for getRoutes");
     }
 
     const routeOptions: RoutesRequest = {
@@ -183,20 +204,22 @@ export class LiFiService {
     return await this.retryOperation(async () => {
       try {
         const result = await getRoutes(routeOptions);
-        
+
         if (!result || !result.routes || result.routes.length === 0) {
-          throw new Error('No routes found for this swap');
+          throw new Error("No routes found for this swap");
         }
 
         return result.routes;
       } catch (error: unknown) {
-        console.error('Failed to get routes:', error);
-        
-        if (error instanceof Error && error.message?.includes('No routes found')) {
-          throw new Error('No routes found. Try a different token or amount.');
+        console.error("Failed to get routes:", error);
+
+        if (
+          error instanceof Error && error.message?.includes("No routes found")
+        ) {
+          throw new Error("No routes found. Try a different token or amount.");
         }
-        
-        throw new Error('Failed to find routes. Please try again.');
+
+        throw new Error("Failed to find routes. Please try again.");
       }
     });
   }
@@ -208,16 +231,16 @@ export class LiFiService {
     // Validate wallet is connected
     const walletClient = this.walletService.getWalletClient();
     if (!walletClient) {
-      throw new Error('Wallet not connected');
+      throw new Error("Wallet not connected");
     }
 
     // Validate route has steps
     if (!route.steps || route.steps.length === 0) {
-      throw new Error('Invalid route: no steps found');
+      throw new Error("Invalid route: no steps found");
     }
 
-    console.log('Executing route with steps:', route.steps.length);
-    console.log('Route details:', {
+    console.log("Executing route with steps:", route.steps.length);
+    console.log("Route details:", {
       fromChain: route.fromChainId,
       toChain: route.toChainId,
       fromToken: route.fromToken?.symbol,
@@ -229,27 +252,34 @@ export class LiFiService {
     try {
       await executeRoute(route, {
         updateRouteHook: (updatedRoute: Route) => {
-          console.log('Route updated:', updatedRoute);
+          console.log("Route updated:", updatedRoute);
           callbacks?.onRouteUpdate?.(updatedRoute);
         },
         infiniteApproval: false, // Use exact approval amounts for security
       });
     } catch (error: unknown) {
-      console.error('Failed to execute route:', error);
-      
-      if (error instanceof Error && error.message?.includes('User rejected')) {
-        throw new Error('Transaction was rejected by user');
+      console.error("Failed to execute route:", error);
+
+      if (error instanceof Error && error.message?.includes("User rejected")) {
+        throw new Error("Transaction was rejected by user");
       }
-      
-      if (error instanceof Error && error.message?.includes('Insufficient funds')) {
-        throw new Error('Insufficient balance to complete transaction');
+
+      if (
+        error instanceof Error && error.message?.includes("Insufficient funds")
+      ) {
+        throw new Error("Insufficient balance to complete transaction");
       }
-      
-      if (error instanceof Error && error.message?.includes('Gas estimation failed')) {
-        throw new Error('Transaction would fail. Please check your balance and try again.');
+
+      if (
+        error instanceof Error &&
+        error.message?.includes("Gas estimation failed")
+      ) {
+        throw new Error(
+          "Transaction would fail. Please check your balance and try again.",
+        );
       }
-      
-      throw new Error('Transaction failed. Please try again.');
+
+      throw new Error("Transaction failed. Please try again.");
     }
   }
 
@@ -258,14 +288,17 @@ export class LiFiService {
    */
   async getChains(): Promise<LiFiChain[]> {
     // Check cache
-    if (this.chainsCache && Date.now() - this.chainsCache.timestamp < this.CACHE_TTL) {
+    if (
+      this.chainsCache &&
+      Date.now() - this.chainsCache.timestamp < this.CACHE_TTL
+    ) {
       return this.chainsCache.data;
     }
 
     return await this.retryOperation(async () => {
       try {
         const chains = await getChains();
-        
+
         // Update cache
         this.chainsCache = {
           data: chains,
@@ -274,14 +307,14 @@ export class LiFiService {
 
         return chains;
       } catch (error) {
-        console.error('Failed to fetch chains:', error);
-        
+        console.error("Failed to fetch chains:", error);
+
         // Return cached data if available, even if expired
         if (this.chainsCache) {
           return this.chainsCache.data;
         }
-        
-        throw new Error('Failed to load supported networks');
+
+        throw new Error("Failed to load supported networks");
       }
     });
   }
@@ -290,8 +323,8 @@ export class LiFiService {
    * Get tokens for specific chains with caching
    */
   async getTokens(chainIds: number[]): Promise<Token[]> {
-    const cacheKey = chainIds.sort().join(',');
-    
+    const cacheKey = chainIds.sort().join(",");
+
     // Check cache
     const cached = this.tokensCache.get(cacheKey);
     if (cached && Date.now() - cached.timestamp < this.CACHE_TTL) {
@@ -321,15 +354,15 @@ export class LiFiService {
 
         return allTokens;
       } catch (error) {
-        console.error('Failed to fetch tokens:', error);
-        
+        console.error("Failed to fetch tokens:", error);
+
         // Return cached data if available, even if expired
         const cached = this.tokensCache.get(cacheKey);
         if (cached) {
           return cached.data;
         }
-        
-        throw new Error('Failed to load available tokens');
+
+        throw new Error("Failed to load available tokens");
       }
     });
   }
@@ -337,14 +370,19 @@ export class LiFiService {
   /**
    * Get token by address and chain
    */
-  async getToken(chainId: number, tokenAddress: string): Promise<Token | undefined> {
+  async getToken(
+    chainId: number,
+    tokenAddress: string,
+  ): Promise<Token | undefined> {
     try {
       const tokens = await this.getTokens([chainId]);
       return tokens.find(
-        token => token.address.toLowerCase() === tokenAddress.toLowerCase() && token.chainId === chainId
+        (token) =>
+          token.address.toLowerCase() === tokenAddress.toLowerCase() &&
+          token.chainId === chainId,
       );
     } catch (error) {
-      console.error('Failed to get token:', error);
+      console.error("Failed to get token:", error);
       return undefined;
     }
   }
@@ -362,7 +400,7 @@ export class LiFiService {
    */
   private async retryOperation<T>(
     operation: () => Promise<T>,
-    retries: number = this.MAX_RETRIES
+    retries: number = this.MAX_RETRIES,
   ): Promise<T> {
     let lastError: Error | null = null;
 
@@ -371,13 +409,13 @@ export class LiFiService {
         return await operation();
       } catch (error: unknown) {
         lastError = error as Error;
-        
+
         // Don't retry user rejections or validation errors
         if (
           error instanceof Error && (
-            error.message?.includes('rejected') ||
-            error.message?.includes('No route found') ||
-            error.message?.includes('Insufficient')
+            error.message?.includes("rejected") ||
+            error.message?.includes("No route found") ||
+            error.message?.includes("Insufficient")
           )
         ) {
           throw error;
@@ -390,14 +428,14 @@ export class LiFiService {
       }
     }
 
-    throw lastError || new Error('Operation failed after retries');
+    throw lastError || new Error("Operation failed after retries");
   }
 
   /**
    * Delay helper
    */
   private delay(ms: number): Promise<void> {
-    return new Promise(resolve => setTimeout(resolve, ms));
+    return new Promise((resolve) => setTimeout(resolve, ms));
   }
 
   /**
@@ -405,7 +443,8 @@ export class LiFiService {
    */
   isRouteValid(route: Route): boolean {
     // Routes are typically valid for 30 seconds
-    const routeAge = Date.now() - (route as unknown as { timestamp: number }).timestamp;
+    const routeAge = Date.now() -
+      (route as unknown as { timestamp: number }).timestamp;
     return routeAge < 30000;
   }
 
@@ -418,7 +457,7 @@ export class LiFiService {
     for (const step of route.steps) {
       if (step.estimate?.gasCosts) {
         for (const gasCost of step.estimate.gasCosts) {
-          totalGasCostUSD += parseFloat(gasCost.amountUSD || '0');
+          totalGasCostUSD += parseFloat(gasCost.amountUSD || "0");
         }
       }
     }

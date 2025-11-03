@@ -1,306 +1,313 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>JavaScript API Example</title>
-  <style>
-    body {
-      font-family: system-ui, -apple-system, sans-serif;
-      max-width: 800px;
-      margin: 50px auto;
-      padding: 20px;
-      background: oklch(98% 0 0);
-    }
-    h1 {
-      color: oklch(17% 0 0);
-      margin-bottom: 10px;
-      font-weight: 600;
-    }
-    p {
-      color: oklch(52% 0 0);
-      margin-bottom: 30px;
-    }
-    .grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 20px;
-      margin-bottom: 30px;
-    }
-    .container {
-      background: oklch(100% 0 0);
-      padding: 30px;
-      border-radius: 8px;
-      box-shadow: 0 1px 3px 0 oklch(0% 0 0 / 0.1), 0 1px 2px -1px oklch(0% 0 0 / 0.1);
-    }
-    .controls {
-      background: oklch(100% 0 0);
-      padding: 20px;
-      border-radius: 8px;
-      box-shadow: 0 1px 3px 0 oklch(0% 0 0 / 0.1), 0 1px 2px -1px oklch(0% 0 0 / 0.1);
-    }
-    .controls h2 {
-      margin: 0 0 15px 0;
-      font-size: 18px;
-      font-weight: 600;
-      color: oklch(17% 0 0);
-    }
-    .control-group {
-      margin-bottom: 15px;
-    }
-    .control-group label {
-      display: block;
-      margin-bottom: 5px;
-      font-size: 14px;
-      color: oklch(42% 0 0);
-      font-weight: 500;
-    }
-    button {
-      width: 100%;
-      padding: 10px;
-      background: oklch(17% 0 0);
-      color: oklch(100% 0 0);
-      border: none;
-      border-radius: 6px;
-      cursor: pointer;
-      font-size: 14px;
-      font-weight: 500;
-      transition: background 0.2s;
-    }
-    button:hover {
-      background: oklch(32% 0 0);
-    }
-    button:active {
-      background: oklch(42% 0 0);
-    }
-    input, select {
-      width: 100%;
-      padding: 8px 12px;
-      border: 1px solid oklch(91% 0 0);
-      border-radius: 6px;
-      font-size: 14px;
-      box-sizing: border-box;
-      background: oklch(100% 0 0);
-      color: oklch(17% 0 0);
-    }
-    input:focus, select:focus {
-      outline: none;
-      border-color: oklch(17% 0 0);
-    }
-    .log {
-      background: oklch(17% 0 0);
-      color: oklch(91% 0 0);
-      padding: 15px;
-      border-radius: 6px;
-      font-family: 'Courier New', monospace;
-      font-size: 12px;
-      max-height: 200px;
-      overflow-y: auto;
-      margin-top: 20px;
-    }
-    .log-entry {
-      margin-bottom: 8px;
-      padding: 4px 0;
-      border-bottom: 1px solid oklch(21% 0 0);
-    }
-    .log-entry:last-child {
-      border-bottom: none;
-    }
-    .log-time {
-      color: oklch(68% 0 0);
-      margin-right: 8px;
-    }
-    .log-event {
-      color: oklch(85% 0 0);
-      font-weight: bold;
-    }
-    .log-success {
-      color: oklch(70% 0.18 145);
-    }
-    .log-error {
-      color: oklch(63% 0.24 27);
-    }
-    @media (prefers-color-scheme: dark) {
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JavaScript API Example</title>
+    <style>
       body {
-        background: oklch(10% 0 0);
+        font-family: system-ui, -apple-system, sans-serif;
+        max-width: 800px;
+        margin: 50px auto;
+        padding: 20px;
+        background: oklch(98% 0 0);
       }
       h1 {
-        color: oklch(99% 0 0);
+        color: oklch(17% 0 0);
+        margin-bottom: 10px;
+        font-weight: 600;
       }
       p {
-        color: oklch(68% 0 0);
+        color: oklch(52% 0 0);
+        margin-bottom: 30px;
       }
-      .container, .controls {
-        background: oklch(17% 0 0);
+      .grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 20px;
+        margin-bottom: 30px;
+      }
+      .container {
+        background: oklch(100% 0 0);
+        padding: 30px;
+        border-radius: 8px;
+        box-shadow:
+          0 1px 3px 0 oklch(0% 0 0 / 0.1),
+          0 1px 2px -1px oklch(0% 0 0 / 0.1);
+      }
+      .controls {
+        background: oklch(100% 0 0);
+        padding: 20px;
+        border-radius: 8px;
+        box-shadow:
+          0 1px 3px 0 oklch(0% 0 0 / 0.1),
+          0 1px 2px -1px oklch(0% 0 0 / 0.1);
       }
       .controls h2 {
-        color: oklch(99% 0 0);
-      }
-      .control-group label {
-        color: oklch(68% 0 0);
-      }
-      button {
-        background: oklch(99% 0 0);
+        margin: 0 0 15px 0;
+        font-size: 18px;
+        font-weight: 600;
         color: oklch(17% 0 0);
       }
+      .control-group {
+        margin-bottom: 15px;
+      }
+      .control-group label {
+        display: block;
+        margin-bottom: 5px;
+        font-size: 14px;
+        color: oklch(42% 0 0);
+        font-weight: 500;
+      }
+      button {
+        width: 100%;
+        padding: 10px;
+        background: oklch(17% 0 0);
+        color: oklch(100% 0 0);
+        border: none;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 14px;
+        font-weight: 500;
+        transition: background 0.2s;
+      }
       button:hover {
-        background: oklch(91% 0 0);
+        background: oklch(32% 0 0);
+      }
+      button:active {
+        background: oklch(42% 0 0);
       }
       input, select {
-        background: oklch(21% 0 0);
-        border-color: oklch(32% 0 0);
-        color: oklch(99% 0 0);
+        width: 100%;
+        padding: 8px 12px;
+        border: 1px solid oklch(91% 0 0);
+        border-radius: 6px;
+        font-size: 14px;
+        box-sizing: border-box;
+        background: oklch(100% 0 0);
+        color: oklch(17% 0 0);
       }
       input:focus, select:focus {
-        border-color: oklch(99% 0 0);
+        outline: none;
+        border-color: oklch(17% 0 0);
       }
       .log {
-        background: oklch(12% 0 0);
+        background: oklch(17% 0 0);
+        color: oklch(91% 0 0);
+        padding: 15px;
+        border-radius: 6px;
+        font-family: "Courier New", monospace;
+        font-size: 12px;
+        max-height: 200px;
+        overflow-y: auto;
+        margin-top: 20px;
       }
-    }
-  </style>
-</head>
-<body>
-  <h1>JavaScript API Example</h1>
-  <p>Control the widget programmatically and listen to events.</p>
-  
-  <div class="grid">
-    <div class="container">
-      <!-- Donation Widget -->
-      <donation-widget 
-        id="myWidget"
-        recipient="0x742d35Cc6634C0532925a3b844Bc454e4438f44e"
-        reown-project-id="YOUR_REOWN_PROJECT_ID">
-      </donation-widget>
-    </div>
+      .log-entry {
+        margin-bottom: 8px;
+        padding: 4px 0;
+        border-bottom: 1px solid oklch(21% 0 0);
+      }
+      .log-entry:last-child {
+        border-bottom: none;
+      }
+      .log-time {
+        color: oklch(68% 0 0);
+        margin-right: 8px;
+      }
+      .log-event {
+        color: oklch(85% 0 0);
+        font-weight: bold;
+      }
+      .log-success {
+        color: oklch(70% 0.18 145);
+      }
+      .log-error {
+        color: oklch(63% 0.24 27);
+      }
+      @media (prefers-color-scheme: dark) {
+        body {
+          background: oklch(10% 0 0);
+        }
+        h1 {
+          color: oklch(99% 0 0);
+        }
+        p {
+          color: oklch(68% 0 0);
+        }
+        .container, .controls {
+          background: oklch(17% 0 0);
+        }
+        .controls h2 {
+          color: oklch(99% 0 0);
+        }
+        .control-group label {
+          color: oklch(68% 0 0);
+        }
+        button {
+          background: oklch(99% 0 0);
+          color: oklch(17% 0 0);
+        }
+        button:hover {
+          background: oklch(91% 0 0);
+        }
+        input, select {
+          background: oklch(21% 0 0);
+          border-color: oklch(32% 0 0);
+          color: oklch(99% 0 0);
+        }
+        input:focus, select:focus {
+          border-color: oklch(99% 0 0);
+        }
+        .log {
+          background: oklch(12% 0 0);
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <h1>JavaScript API Example</h1>
+    <p>Control the widget programmatically and listen to events.</p>
 
-    <div class="controls">
-      <h2>Controls</h2>
-      
-      <div class="control-group">
-        <label>Recipient Address</label>
-        <input 
-          type="text" 
-          id="recipientInput" 
-          value="0x742d35Cc6634C0532925a3b844Bc454e4438f44e"
-          placeholder="0x...">
+    <div class="grid">
+      <div class="container">
+        <!-- Donation Widget -->
+        <donation-widget
+          id="myWidget"
+          recipient="0x742d35Cc6634C0532925a3b844Bc454e4438f44e"
+          reown-project-id="YOUR_REOWN_PROJECT_ID"
+        >
+        </donation-widget>
       </div>
 
-      <div class="control-group">
-        <label>Theme</label>
-        <select id="themeSelect">
-          <option value="auto">Auto</option>
-          <option value="light">Light</option>
-          <option value="dark">Dark</option>
-        </select>
-      </div>
+      <div class="controls">
+        <h2>Controls</h2>
 
-      <div class="control-group">
-        <button onclick="applyChanges()">Apply Changes</button>
-      </div>
+        <div class="control-group">
+          <label>Recipient Address</label>
+          <input
+            type="text"
+            id="recipientInput"
+            value="0x742d35Cc6634C0532925a3b844Bc454e4438f44e"
+            placeholder="0x..."
+          >
+        </div>
 
-      <div class="log" id="eventLog">
-        <div class="log-entry">
-          <span class="log-time">--:--:--</span>
-          <span class="log-event">Waiting for events...</span>
+        <div class="control-group">
+          <label>Theme</label>
+          <select id="themeSelect">
+            <option value="auto">Auto</option>
+            <option value="light">Light</option>
+            <option value="dark">Dark</option>
+          </select>
+        </div>
+
+        <div class="control-group">
+          <button onclick="applyChanges()">Apply Changes</button>
+        </div>
+
+        <div class="log" id="eventLog">
+          <div class="log-entry">
+            <span class="log-time">--:--:--</span>
+            <span class="log-event">Waiting for events...</span>
+          </div>
         </div>
       </div>
     </div>
-  </div>
 
-  <!-- Load widget script -->
-  <script src="../dist/donation-widget.js"></script>
-  
-  <script>
-    // Get widget reference
-    const widget = document.getElementById('myWidget');
-    const eventLog = document.getElementById('eventLog');
+    <!-- Load widget script -->
+    <script src="../dist/donation-widget.js"></script>
 
-    // Helper to log events
-    function logEvent(eventName, detail, type = 'info') {
-      const time = new Date().toLocaleTimeString();
-      const entry = document.createElement('div');
-      entry.className = 'log-entry';
-      
-      let detailStr = '';
-      if (detail) {
-        if (typeof detail === 'object') {
-          detailStr = ': ' + JSON.stringify(detail, null, 2);
-        } else {
-          detailStr = ': ' + detail;
+    <script>
+      // Get widget reference
+      const widget = document.getElementById("myWidget");
+      const eventLog = document.getElementById("eventLog");
+
+      // Helper to log events
+      function logEvent(eventName, detail, type = "info") {
+        const time = new Date().toLocaleTimeString();
+        const entry = document.createElement("div");
+        entry.className = "log-entry";
+
+        let detailStr = "";
+        if (detail) {
+          if (typeof detail === "object") {
+            detailStr = ": " + JSON.stringify(detail, null, 2);
+          } else {
+            detailStr = ": " + detail;
+          }
         }
-      }
-      
-      entry.innerHTML = `
+
+        entry.innerHTML = `
         <span class="log-time">${time}</span>
         <span class="log-event log-${type}">${eventName}</span>
         ${detailStr}
       `;
-      
-      eventLog.insertBefore(entry, eventLog.firstChild);
-      
-      // Keep only last 20 entries
-      while (eventLog.children.length > 20) {
-        eventLog.removeChild(eventLog.lastChild);
-      }
-    }
 
-    // Listen to all widget events
-    widget.addEventListener('donation-initiated', (e) => {
-      logEvent('donation-initiated', {
-        amount: e.detail.amount,
-        token: e.detail.token?.symbol
-      }, 'info');
-    });
+        eventLog.insertBefore(entry, eventLog.firstChild);
 
-    widget.addEventListener('donation-completed', (e) => {
-      logEvent('donation-completed', {
-        txHash: e.detail.txHash?.substring(0, 10) + '...',
-        amount: e.detail.amount,
-        token: e.detail.token?.symbol
-      }, 'success');
-    });
-
-    widget.addEventListener('donation-failed', (e) => {
-      logEvent('donation-failed', {
-        error: e.detail.error,
-        code: e.detail.code
-      }, 'error');
-    });
-
-    widget.addEventListener('wallet-connected', (e) => {
-      logEvent('wallet-connected', {
-        address: e.detail.address?.substring(0, 10) + '...',
-        chainId: e.detail.chainId
-      }, 'success');
-    });
-
-    widget.addEventListener('wallet-disconnected', () => {
-      logEvent('wallet-disconnected', null, 'info');
-    });
-
-    widget.addEventListener('network-switched', (e) => {
-      logEvent('network-switched', {
-        chainId: e.detail.chainId
-      }, 'info');
-    });
-
-    // Apply changes from controls
-    function applyChanges() {
-      const recipient = document.getElementById('recipientInput').value;
-      const theme = document.getElementById('themeSelect').value;
-
-      if (recipient) {
-        widget.setAttribute('recipient', recipient);
-        logEvent('config-changed', { recipient }, 'info');
+        // Keep only last 20 entries
+        while (eventLog.children.length > 20) {
+          eventLog.removeChild(eventLog.lastChild);
+        }
       }
 
-      widget.setAttribute('theme', theme);
-      logEvent('config-changed', { theme }, 'info');
-    }
+      // Listen to all widget events
+      widget.addEventListener("donation-initiated", (e) => {
+        logEvent("donation-initiated", {
+          amount: e.detail.amount,
+          token: e.detail.token?.symbol,
+        }, "info");
+      });
 
-    // Log initial load
-    logEvent('widget-loaded', null, 'success');
-  </script>
-</body>
+      widget.addEventListener("donation-completed", (e) => {
+        logEvent("donation-completed", {
+          txHash: e.detail.txHash?.substring(0, 10) + "...",
+          amount: e.detail.amount,
+          token: e.detail.token?.symbol,
+        }, "success");
+      });
+
+      widget.addEventListener("donation-failed", (e) => {
+        logEvent("donation-failed", {
+          error: e.detail.error,
+          code: e.detail.code,
+        }, "error");
+      });
+
+      widget.addEventListener("wallet-connected", (e) => {
+        logEvent("wallet-connected", {
+          address: e.detail.address?.substring(0, 10) + "...",
+          chainId: e.detail.chainId,
+        }, "success");
+      });
+
+      widget.addEventListener("wallet-disconnected", () => {
+        logEvent("wallet-disconnected", null, "info");
+      });
+
+      widget.addEventListener("network-switched", (e) => {
+        logEvent("network-switched", {
+          chainId: e.detail.chainId,
+        }, "info");
+      });
+
+      // Apply changes from controls
+      function applyChanges() {
+        const recipient =
+          document.getElementById("recipientInput").value;
+        const theme = document.getElementById("themeSelect").value;
+
+        if (recipient) {
+          widget.setAttribute("recipient", recipient);
+          logEvent("config-changed", { recipient }, "info");
+        }
+
+        widget.setAttribute("theme", theme);
+        logEvent("config-changed", { theme }, "info");
+      }
+
+      // Log initial load
+      logEvent("widget-loaded", null, "success");
+    </script>
+  </body>
 </html>

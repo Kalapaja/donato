@@ -1,6 +1,6 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
+import { useState } from "react";
 
 interface ThemeCustom {
   background: string;
@@ -21,27 +21,29 @@ interface ThemeSectionProps {
 }
 
 const PRESET_THEMES = [
-  { id: 'auto', name: 'Auto', description: 'Matches system preference' },
-  { id: 'light', name: 'Light', description: 'Light theme' },
-  { id: 'dark', name: 'Dark', description: 'Dark theme' },
+  { id: "auto", name: "Auto", description: "Matches system preference" },
+  { id: "light", name: "Light", description: "Light theme" },
+  { id: "dark", name: "Dark", description: "Dark theme" },
 ];
 
 const CUSTOM_THEME_DEFAULTS: ThemeCustom = {
-  background: 'oklch(100% 0 0)',
-  foreground: 'oklch(14% 0 0)',
-  primary: 'oklch(17% 0 0)',
-  secondary: 'oklch(96% 0 0)',
-  accent: 'oklch(32% 0 0)',
-  border: 'oklch(91% 0 0)',
-  muted: 'oklch(96% 0 0)',
-  mutedForeground: 'oklch(52% 0 0)',
-  radius: '1rem',
+  background: "oklch(100% 0 0)",
+  foreground: "oklch(14% 0 0)",
+  primary: "oklch(17% 0 0)",
+  secondary: "oklch(96% 0 0)",
+  accent: "oklch(32% 0 0)",
+  border: "oklch(91% 0 0)",
+  muted: "oklch(96% 0 0)",
+  mutedForeground: "oklch(52% 0 0)",
+  radius: "1rem",
 };
 
-export function ThemeSection({ theme, themeCustom, onThemeChange }: ThemeSectionProps) {
+export function ThemeSection(
+  { theme, themeCustom, onThemeChange }: ThemeSectionProps,
+) {
   const [showWizard, setShowWizard] = useState(false);
   const [customTheme, setCustomTheme] = useState<ThemeCustom>(
-    themeCustom || CUSTOM_THEME_DEFAULTS
+    themeCustom || CUSTOM_THEME_DEFAULTS,
   );
 
   const handlePresetSelect = (presetId: string) => {
@@ -52,7 +54,7 @@ export function ThemeSection({ theme, themeCustom, onThemeChange }: ThemeSection
   const handleCustomThemeChange = (field: keyof ThemeCustom, value: string) => {
     const updated = { ...customTheme, [field]: value };
     setCustomTheme(updated);
-    onThemeChange('custom', updated);
+    onThemeChange("custom", updated);
   };
 
   const randomizeColors = () => {
@@ -61,32 +63,44 @@ export function ThemeSection({ theme, themeCustom, onThemeChange }: ThemeSection
     const randomLightness = 0.3 + Math.random() * 0.4;
 
     const newTheme: ThemeCustom = {
-      background: `oklch(${90 + Math.random() * 10}% ${randomChroma} ${randomHue})`,
-      foreground: `oklch(${10 + Math.random() * 10}% ${randomChroma} ${randomHue})`,
-      primary: `oklch(${50 + Math.random() * 20}% ${randomChroma + 0.1} ${randomHue})`,
-      secondary: `oklch(${80 + Math.random() * 15}% ${randomChroma} ${randomHue})`,
-      accent: `oklch(${60 + Math.random() * 20}% ${randomChroma + 0.15} ${randomHue})`,
+      background: `oklch(${
+        90 + Math.random() * 10
+      }% ${randomChroma} ${randomHue})`,
+      foreground: `oklch(${
+        10 + Math.random() * 10
+      }% ${randomChroma} ${randomHue})`,
+      primary: `oklch(${50 + Math.random() * 20}% ${
+        randomChroma + 0.1
+      } ${randomHue})`,
+      secondary: `oklch(${
+        80 + Math.random() * 15
+      }% ${randomChroma} ${randomHue})`,
+      accent: `oklch(${60 + Math.random() * 20}% ${
+        randomChroma + 0.15
+      } ${randomHue})`,
       border: `oklch(${75 + Math.random() * 15}% ${randomChroma} ${randomHue})`,
       muted: `oklch(${85 + Math.random() * 10}% ${randomChroma} ${randomHue})`,
-      mutedForeground: `oklch(${40 + Math.random() * 20}% ${randomChroma} ${randomHue})`,
+      mutedForeground: `oklch(${
+        40 + Math.random() * 20
+      }% ${randomChroma} ${randomHue})`,
       radius: `${Math.random() * 1.5}rem`,
     };
 
     setCustomTheme(newTheme);
-    onThemeChange('custom', newTheme);
+    onThemeChange("custom", newTheme);
   };
 
   return (
     <div>
-      <label 
+      <label
         className="block text-sm font-semibold mb-2"
-        style={{ color: 'var(--color-foreground)' }}
+        style={{ color: "var(--color-foreground)" }}
       >
         Theme *
       </label>
-      <p 
+      <p
         className="text-sm mb-4"
-        style={{ color: 'var(--color-muted-foreground)' }}
+        style={{ color: "var(--color-muted-foreground)" }}
       >
         Choose a preset theme or create a custom one
       </p>
@@ -99,28 +113,31 @@ export function ThemeSection({ theme, themeCustom, onThemeChange }: ThemeSection
               onClick={() => handlePresetSelect(preset.id)}
               className="p-3 rounded-lg text-left text-sm transition-colors"
               style={{
-                background: theme === preset.id && theme !== 'custom'
-                  ? 'var(--color-muted)'
-                  : 'var(--color-background)',
-                border: theme === preset.id && theme !== 'custom'
-                  ? '1px solid var(--color-primary)'
-                  : '1px solid var(--color-border)',
-                color: 'var(--color-foreground)',
-                borderRadius: 'calc(var(--radius) - 2px)',
+                background: theme === preset.id && theme !== "custom"
+                  ? "var(--color-muted)"
+                  : "var(--color-background)",
+                border: theme === preset.id && theme !== "custom"
+                  ? "1px solid var(--color-primary)"
+                  : "1px solid var(--color-border)",
+                color: "var(--color-foreground)",
+                borderRadius: "calc(var(--radius) - 2px)",
               }}
               onMouseEnter={(e) => {
-                if (theme !== preset.id || theme === 'custom') {
-                  e.currentTarget.style.background = 'var(--color-muted)';
+                if (theme !== preset.id || theme === "custom") {
+                  e.currentTarget.style.background = "var(--color-muted)";
                 }
               }}
               onMouseLeave={(e) => {
-                if (theme !== preset.id || theme === 'custom') {
-                  e.currentTarget.style.background = 'var(--color-background)';
+                if (theme !== preset.id || theme === "custom") {
+                  e.currentTarget.style.background = "var(--color-background)";
                 }
               }}
             >
               <div className="font-medium mb-1">{preset.name}</div>
-              <div className="text-xs" style={{ color: 'var(--color-muted-foreground)' }}>
+              <div
+                className="text-xs"
+                style={{ color: "var(--color-muted-foreground)" }}
+              >
                 {preset.description}
               </div>
             </button>
@@ -129,9 +146,9 @@ export function ThemeSection({ theme, themeCustom, onThemeChange }: ThemeSection
 
         <div>
           <div className="flex items-center justify-between mb-2">
-            <span 
+            <span
               className="text-xs font-medium"
-              style={{ color: 'var(--color-muted-foreground)' }}
+              style={{ color: "var(--color-muted-foreground)" }}
             >
               Custom Theme
             </span>
@@ -139,35 +156,35 @@ export function ThemeSection({ theme, themeCustom, onThemeChange }: ThemeSection
               onClick={() => setShowWizard(!showWizard)}
               className="px-3 py-1 text-xs rounded-lg transition-colors"
               style={{
-                background: 'var(--color-background)',
-                border: '1px solid var(--color-border)',
-                color: 'var(--color-foreground)',
-                borderRadius: 'calc(var(--radius) - 2px)',
+                background: "var(--color-background)",
+                border: "1px solid var(--color-border)",
+                color: "var(--color-foreground)",
+                borderRadius: "calc(var(--radius) - 2px)",
               }}
               onMouseEnter={(e) => {
-                e.currentTarget.style.background = 'var(--color-muted)';
+                e.currentTarget.style.background = "var(--color-muted)";
               }}
               onMouseLeave={(e) => {
-                e.currentTarget.style.background = 'var(--color-background)';
+                e.currentTarget.style.background = "var(--color-background)";
               }}
             >
-              {showWizard ? 'Hide' : 'Show'} Wizard
+              {showWizard ? "Hide" : "Show"} Wizard
             </button>
           </div>
 
           {showWizard && (
-            <div 
+            <div
               className="p-4 rounded-lg space-y-3"
               style={{
-                background: 'var(--color-muted)',
-                border: '1px solid var(--color-border)',
-                borderRadius: 'calc(var(--radius) - 2px)',
+                background: "var(--color-muted)",
+                border: "1px solid var(--color-border)",
+                borderRadius: "calc(var(--radius) - 2px)",
               }}
             >
               <div className="flex justify-between items-center">
-                <span 
+                <span
                   className="text-xs font-medium"
-                  style={{ color: 'var(--color-foreground)' }}
+                  style={{ color: "var(--color-foreground)" }}
                 >
                   Customize Colors
                 </span>
@@ -175,15 +192,15 @@ export function ThemeSection({ theme, themeCustom, onThemeChange }: ThemeSection
                   onClick={randomizeColors}
                   className="px-2 py-1 text-xs rounded-lg transition-colors"
                   style={{
-                    background: 'var(--color-primary)',
-                    color: 'var(--color-background)',
-                    borderRadius: 'calc(var(--radius) - 2px)',
+                    background: "var(--color-primary)",
+                    color: "var(--color-background)",
+                    borderRadius: "calc(var(--radius) - 2px)",
                   }}
                   onMouseEnter={(e) => {
-                    e.currentTarget.style.background = 'var(--color-accent)';
+                    e.currentTarget.style.background = "var(--color-accent)";
                   }}
                   onMouseLeave={(e) => {
-                    e.currentTarget.style.background = 'var(--color-primary)';
+                    e.currentTarget.style.background = "var(--color-primary)";
                   }}
                 >
                   🎲 Randomize
@@ -193,31 +210,34 @@ export function ThemeSection({ theme, themeCustom, onThemeChange }: ThemeSection
               <div className="grid grid-cols-2 gap-2">
                 {Object.entries(customTheme).map(([key, value]) => (
                   <div key={key}>
-                    <label 
+                    <label
                       className="block text-xs font-medium mb-1 capitalize"
-                      style={{ color: 'var(--color-muted-foreground)' }}
+                      style={{ color: "var(--color-muted-foreground)" }}
                     >
-                      {key.replace(/([A-Z])/g, ' $1').trim()}
+                      {key.replace(/([A-Z])/g, " $1").trim()}
                     </label>
                     <input
                       type="text"
                       value={value}
                       onChange={(e) =>
-                        handleCustomThemeChange(key as keyof ThemeCustom, e.target.value)
-                      }
+                        handleCustomThemeChange(
+                          key as keyof ThemeCustom,
+                          e.target.value,
+                        )}
                       className="w-full px-2 py-1.5 text-xs rounded"
                       style={{
-                        background: 'var(--color-background)',
-                        border: '1px solid var(--color-border)',
-                        color: 'var(--color-foreground)',
-                        borderRadius: 'calc(var(--radius) - 2px)',
+                        background: "var(--color-background)",
+                        border: "1px solid var(--color-border)",
+                        color: "var(--color-foreground)",
+                        borderRadius: "calc(var(--radius) - 2px)",
                       }}
                       onFocus={(e) => {
-                        e.currentTarget.style.outline = '2px solid var(--color-primary)';
-                        e.currentTarget.style.outlineOffset = '2px';
+                        e.currentTarget.style.outline =
+                          "2px solid var(--color-primary)";
+                        e.currentTarget.style.outlineOffset = "2px";
                       }}
                       onBlur={(e) => {
-                        e.currentTarget.style.outline = 'none';
+                        e.currentTarget.style.outline = "none";
                       }}
                     />
                   </div>
@@ -226,19 +246,19 @@ export function ThemeSection({ theme, themeCustom, onThemeChange }: ThemeSection
 
               <button
                 onClick={() => {
-                  onThemeChange('custom', customTheme);
+                  onThemeChange("custom", customTheme);
                 }}
                 className="w-full px-4 py-2 text-sm rounded-lg font-medium transition-colors"
                 style={{
-                  background: 'var(--color-primary)',
-                  color: 'var(--color-background)',
-                  borderRadius: 'calc(var(--radius) - 2px)',
+                  background: "var(--color-primary)",
+                  color: "var(--color-background)",
+                  borderRadius: "calc(var(--radius) - 2px)",
                 }}
                 onMouseEnter={(e) => {
-                  e.currentTarget.style.background = 'var(--color-accent)';
+                  e.currentTarget.style.background = "var(--color-accent)";
                 }}
                 onMouseLeave={(e) => {
-                  e.currentTarget.style.background = 'var(--color-primary)';
+                  e.currentTarget.style.background = "var(--color-primary)";
                 }}
               >
                 Apply Custom Theme

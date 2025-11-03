@@ -1,7 +1,7 @@
-import { LitElement, html, css } from 'lit';
-import { customElement, property } from 'lit/decorators.js';
+import { css, html, LitElement } from "lit";
+import { customElement, property } from "lit/decorators.js";
 
-@customElement('donate-button')
+@customElement("donate-button")
 export class DonateButton extends LitElement {
   @property({ type: Boolean })
   accessor disabled: boolean = false;
@@ -10,7 +10,7 @@ export class DonateButton extends LitElement {
   accessor loading: boolean = false;
 
   @property({ type: String })
-  accessor text: string = 'Donate';
+  accessor text: string = "Donate";
 
   static override styles = css`
     :host {
@@ -65,7 +65,9 @@ export class DonateButton extends LitElement {
     }
 
     @keyframes spin {
-      to { transform: rotate(360deg); }
+      to {
+        transform: rotate(360deg);
+      }
     }
 
     .button-text {
@@ -75,16 +77,18 @@ export class DonateButton extends LitElement {
 
   private handleClick() {
     if (!this.disabled && !this.loading) {
-      this.dispatchEvent(new CustomEvent('donate-click', {
-        bubbles: true,
-        composed: true,
-      }));
+      this.dispatchEvent(
+        new CustomEvent("donate-click", {
+          bubbles: true,
+          composed: true,
+        }),
+      );
     }
   }
 
   private getAriaLabel(): string {
     if (this.loading) {
-      return 'Processing donation, please wait';
+      return "Processing donation, please wait";
     }
     if (this.disabled) {
       return `${this.text} - button disabled`;
@@ -96,15 +100,17 @@ export class DonateButton extends LitElement {
     return html`
       <button
         class="donate-button"
-        @click=${this.handleClick}
-        ?disabled=${this.disabled || this.loading}
-        aria-label=${this.getAriaLabel()}
-        aria-busy=${this.loading ? 'true' : 'false'}
+        @click="${this.handleClick}"
+        ?disabled="${this.disabled || this.loading}"
+        aria-label="${this.getAriaLabel()}"
+        aria-busy="${this.loading ? "true" : "false"}"
         role="button"
       >
-        ${this.loading ? html`
-          <span class="loading-spinner" role="status" aria-label="Loading"></span>
-        ` : ''}
+        ${this.loading
+          ? html`
+            <span class="loading-spinner" role="status" aria-label="Loading"></span>
+          `
+          : ""}
         <span class="button-text">${this.text}</span>
       </button>
     `;
@@ -113,6 +119,6 @@ export class DonateButton extends LitElement {
 
 declare global {
   interface HTMLElementTagNameMap {
-    'donate-button': DonateButton;
+    "donate-button": DonateButton;
   }
 }

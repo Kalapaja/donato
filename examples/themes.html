@@ -1,309 +1,287 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Theme Examples</title>
-  <style>
-    body {
-      font-family: system-ui, -apple-system, sans-serif;
-      margin: 0;
-      padding: 50px 20px;
-      background: oklch(98% 0 0);
-    }
-    h1 {
-      text-align: center;
-      color: oklch(17% 0 0);
-      margin-bottom: 10px;
-      font-weight: 600;
-    }
-    .subtitle {
-      text-align: center;
-      color: oklch(52% 0 0);
-      margin-bottom: 50px;
-    }
-    .grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
-      gap: 30px;
-      max-width: 1200px;
-      margin: 0 auto;
-    }
-    .theme-section {
-      background: oklch(100% 0 0);
-      padding: 30px;
-      border-radius: 8px;
-      box-shadow: 0 1px 3px 0 oklch(0% 0 0 / 0.1), 0 1px 2px -1px oklch(0% 0 0 / 0.1);
-    }
-    .theme-section h2 {
-      margin: 0 0 10px 0;
-      font-size: 20px;
-      font-weight: 600;
-      color: oklch(17% 0 0);
-    }
-    .theme-section p {
-      margin: 0 0 20px 0;
-      color: oklch(52% 0 0);
-      font-size: 14px;
-    }
-    .theme-section.dark-bg {
-      background: oklch(17% 0 0);
-    }
-    .theme-section.dark-bg h2 {
-      color: oklch(99% 0 0);
-    }
-    .theme-section.dark-bg p {
-      color: oklch(68% 0 0);
-    }
-    .badge {
-      display: inline-block;
-      padding: 4px 12px;
-      border-radius: 4px;
-      font-size: 12px;
-      font-weight: 500;
-      margin-bottom: 15px;
-    }
-    .badge.light {
-      background: oklch(96% 0 0);
-      color: oklch(17% 0 0);
-      border: 1px solid oklch(91% 0 0);
-    }
-    .badge.dark {
-      background: oklch(21% 0 0);
-      color: oklch(99% 0 0);
-      border: 1px solid oklch(32% 0 0);
-    }
-    .badge.auto {
-      background: oklch(96% 0 0);
-      color: oklch(17% 0 0);
-      border: 1px solid oklch(91% 0 0);
-    }
-    .badge.custom {
-      background: linear-gradient(135deg, oklch(75% 0.25 320), oklch(70% 0.25 190));
-      color: oklch(99% 0 0);
-      border: 1px solid oklch(75% 0.25 320);
-    }
-    .theme-section.cyberpunk-bg {
-      background: oklch(15% 0.05 280);
-    }
-    .theme-section.cyberpunk-bg h2,
-    .theme-section.cyberpunk-bg p {
-      color: oklch(95% 0.15 320);
-    }
-    .theme-section.ocean-bg {
-      background: linear-gradient(135deg, oklch(20% 0.1 240), oklch(15% 0.08 220));
-    }
-    .theme-section.ocean-bg h2,
-    .theme-section.ocean-bg p {
-      color: oklch(95% 0.1 200);
-    }
-    .theme-section.forest-bg {
-      background: oklch(98% 0.02 150);
-    }
-    .theme-section.forest-bg h2 {
-      color: oklch(25% 0.08 145);
-    }
-    .theme-section.forest-bg p {
-      color: oklch(40% 0.06 150);
-    }
-    .theme-section.sunset-bg {
-      background: linear-gradient(135deg, oklch(25% 0.08 30), oklch(20% 0.1 340));
-    }
-    .theme-section.sunset-bg h2,
-    .theme-section.sunset-bg p {
-      color: oklch(95% 0.08 40);
-    }
-    @media (prefers-color-scheme: dark) {
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Theme Examples</title>
+    <style>
       body {
-        background: oklch(10% 0 0);
+        font-family: system-ui, -apple-system, sans-serif;
+        margin: 0;
+        padding: 50px 20px;
+        background: oklch(98% 0 0);
       }
       h1 {
-        color: oklch(99% 0 0);
+        text-align: center;
+        color: oklch(17% 0 0);
+        margin-bottom: 10px;
+        font-weight: 600;
       }
       .subtitle {
-        color: oklch(68% 0 0);
+        text-align: center;
+        color: oklch(52% 0 0);
+        margin-bottom: 50px;
+      }
+      .grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+        gap: 30px;
+        max-width: 1200px;
+        margin: 0 auto;
       }
       .theme-section {
-        background: oklch(17% 0 0);
+        background: oklch(100% 0 0);
+        padding: 30px;
+        border-radius: 8px;
+        box-shadow:
+          0 1px 3px 0 oklch(0% 0 0 / 0.1),
+          0 1px 2px -1px oklch(0% 0 0 / 0.1);
       }
       .theme-section h2 {
-        color: oklch(99% 0 0);
+        margin: 0 0 10px 0;
+        font-size: 20px;
+        font-weight: 600;
+        color: oklch(17% 0 0);
       }
       .theme-section p {
-        color: oklch(68% 0 0);
+        margin: 0 0 20px 0;
+        color: oklch(52% 0 0);
+        font-size: 14px;
       }
       .theme-section.dark-bg {
-        background: oklch(12% 0 0);
+        background: oklch(17% 0 0);
       }
-    }
-  </style>
-</head>
-<body>
-  <h1>Theme Examples</h1>
-  <p class="subtitle">The donation widget supports light, dark, auto, and custom themes with full color customization.</p>
-  
-  <div class="grid">
-    <!-- Light Theme -->
-    <div class="theme-section">
-      <span class="badge light">Light Theme</span>
-      <h2>Light Theme</h2>
-      <p>Perfect for light-colored websites. Clean and bright interface.</p>
-      
-      <donation-widget 
-        recipient="0x742d35Cc6634C0532925a3b844Bc454e4438f44e"
-        reown-project-id="YOUR_REOWN_PROJECT_ID"
-        theme="light">
-      </donation-widget>
+      .theme-section.dark-bg h2 {
+        color: oklch(99% 0 0);
+      }
+      .theme-section.dark-bg p {
+        color: oklch(68% 0 0);
+      }
+      .badge {
+        display: inline-block;
+        padding: 4px 12px;
+        border-radius: 4px;
+        font-size: 12px;
+        font-weight: 500;
+        margin-bottom: 15px;
+      }
+      .badge.light {
+        background: oklch(96% 0 0);
+        color: oklch(17% 0 0);
+        border: 1px solid oklch(91% 0 0);
+      }
+      .badge.dark {
+        background: oklch(21% 0 0);
+        color: oklch(99% 0 0);
+        border: 1px solid oklch(32% 0 0);
+      }
+      .badge.auto {
+        background: oklch(96% 0 0);
+        color: oklch(17% 0 0);
+        border: 1px solid oklch(91% 0 0);
+      }
+      .badge.custom {
+        background: linear-gradient(
+          135deg,
+          oklch(75% 0.25 320),
+          oklch(70% 0.25 190)
+        );
+        color: oklch(99% 0 0);
+        border: 1px solid oklch(75% 0.25 320);
+      }
+      .theme-section.cyberpunk-bg {
+        background: oklch(15% 0.05 280);
+      }
+      .theme-section.cyberpunk-bg h2,
+      .theme-section.cyberpunk-bg p {
+        color: oklch(95% 0.15 320);
+      }
+      .theme-section.ocean-bg {
+        background: linear-gradient(
+          135deg,
+          oklch(20% 0.1 240),
+          oklch(15% 0.08 220)
+        );
+      }
+      .theme-section.ocean-bg h2,
+      .theme-section.ocean-bg p {
+        color: oklch(95% 0.1 200);
+      }
+      .theme-section.forest-bg {
+        background: oklch(98% 0.02 150);
+      }
+      .theme-section.forest-bg h2 {
+        color: oklch(25% 0.08 145);
+      }
+      .theme-section.forest-bg p {
+        color: oklch(40% 0.06 150);
+      }
+      .theme-section.sunset-bg {
+        background: linear-gradient(
+          135deg,
+          oklch(25% 0.08 30),
+          oklch(20% 0.1 340)
+        );
+      }
+      .theme-section.sunset-bg h2,
+      .theme-section.sunset-bg p {
+        color: oklch(95% 0.08 40);
+      }
+      @media (prefers-color-scheme: dark) {
+        body {
+          background: oklch(10% 0 0);
+        }
+        h1 {
+          color: oklch(99% 0 0);
+        }
+        .subtitle {
+          color: oklch(68% 0 0);
+        }
+        .theme-section {
+          background: oklch(17% 0 0);
+        }
+        .theme-section h2 {
+          color: oklch(99% 0 0);
+        }
+        .theme-section p {
+          color: oklch(68% 0 0);
+        }
+        .theme-section.dark-bg {
+          background: oklch(12% 0 0);
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Theme Examples</h1>
+    <p class="subtitle">
+      The donation widget supports light, dark, auto, and custom themes with
+      full color customization.
+    </p>
+
+    <div class="grid">
+      <!-- Light Theme -->
+      <div class="theme-section">
+        <span class="badge light">Light Theme</span>
+        <h2>Light Theme</h2>
+        <p>Perfect for light-colored websites. Clean and bright interface.</p>
+
+        <donation-widget
+          recipient="0x742d35Cc6634C0532925a3b844Bc454e4438f44e"
+          reown-project-id="YOUR_REOWN_PROJECT_ID"
+          theme="light"
+        >
+        </donation-widget>
+      </div>
+
+      <!-- Dark Theme -->
+      <div class="theme-section dark-bg">
+        <span class="badge dark">Dark Theme</span>
+        <h2>Dark Theme</h2>
+        <p>Ideal for dark-colored websites. Easy on the eyes in low light.</p>
+
+        <donation-widget
+          recipient="0x742d35Cc6634C0532925a3b844Bc454e4438f44e"
+          reown-project-id="YOUR_REOWN_PROJECT_ID"
+          theme="dark"
+        >
+        </donation-widget>
+      </div>
+
+      <!-- Auto Theme -->
+      <div class="theme-section">
+        <span class="badge auto">Auto Theme</span>
+        <h2>Auto Theme (Default)</h2>
+        <p>
+          Automatically matches user's system preference. Best for most use
+          cases.
+        </p>
+
+        <donation-widget
+          recipient="0x742d35Cc6634C0532925a3b844Bc454e4438f44e"
+          reown-project-id="YOUR_REOWN_PROJECT_ID"
+          theme="auto"
+        >
+        </donation-widget>
+      </div>
+
+      <!-- Cyberpunk Theme -->
+      <div class="theme-section cyberpunk-bg">
+        <span class="badge custom">Custom Theme</span>
+        <h2>Cyberpunk Theme</h2>
+        <p>Neon colors and dark background for futuristic websites.</p>
+
+        <donation-widget
+          recipient="0x742d35Cc6634C0532925a3b844Bc454e4438f44e"
+          reown-project-id="YOUR_REOWN_PROJECT_ID"
+          theme="custom"
+          style="--color-background: oklch(15% 0.05 280); --color-foreground: oklch(95% 0.15 320); --color-primary: oklch(75% 0.25 320); --color-secondary: oklch(70% 0.25 190); --color-accent: oklch(80% 0.25 340); --color-border: oklch(45% 0.15 280); --color-muted: oklch(25% 0.08 280); --color-muted-foreground: oklch(65% 0.12 190); --radius: 0.25rem"
+        >
+        </donation-widget>
+      </div>
+
+      <!-- Ocean Theme -->
+      <div class="theme-section ocean-bg">
+        <span class="badge custom">Custom Theme</span>
+        <h2>Ocean Theme</h2>
+        <p>Deep blue tones for calm and professional appearance.</p>
+
+        <donation-widget
+          recipient="0x742d35Cc6634C0532925a3b844Bc454e4438f44e"
+          reown-project-id="YOUR_REOWN_PROJECT_ID"
+          theme="custom"
+          style="--color-background: oklch(18% 0.08 230); --color-foreground: oklch(95% 0.08 200); --color-primary: oklch(65% 0.18 220); --color-secondary: oklch(35% 0.12 230); --color-accent: oklch(75% 0.2 200); --color-border: oklch(35% 0.1 230); --color-muted: oklch(25% 0.08 230); --color-muted-foreground: oklch(70% 0.1 210); --radius: 0.75rem"
+        >
+        </donation-widget>
+      </div>
+
+      <!-- Forest Theme -->
+      <div class="theme-section forest-bg">
+        <span class="badge custom">Custom Theme</span>
+        <h2>Forest Theme</h2>
+        <p>Natural green colors for eco-friendly and organic brands.</p>
+
+        <donation-widget
+          recipient="0x742d35Cc6634C0532925a3b844Bc454e4438f44e"
+          reown-project-id="YOUR_REOWN_PROJECT_ID"
+          theme="custom"
+          style="--color-background: oklch(98% 0.02 150); --color-foreground: oklch(25% 0.08 145); --color-primary: oklch(50% 0.15 145); --color-secondary: oklch(88% 0.05 150); --color-accent: oklch(45% 0.18 140); --color-border: oklch(80% 0.04 150); --color-muted: oklch(93% 0.03 150); --color-muted-foreground: oklch(45% 0.08 145); --radius: 1rem"
+        >
+        </donation-widget>
+      </div>
+
+      <!-- Sunset Theme -->
+      <div class="theme-section sunset-bg">
+        <span class="badge custom">Custom Theme</span>
+        <h2>Sunset Theme</h2>
+        <p>Warm orange and purple gradients for creative projects.</p>
+
+        <donation-widget
+          recipient="0x742d35Cc6634C0532925a3b844Bc454e4438f44e"
+          reown-project-id="YOUR_REOWN_PROJECT_ID"
+          theme="custom"
+          style="--color-background: oklch(22% 0.08 20); --color-foreground: oklch(95% 0.06 40); --color-primary: oklch(70% 0.2 40); --color-secondary: oklch(35% 0.1 340); --color-accent: oklch(75% 0.22 30); --color-border: oklch(40% 0.1 350); --color-muted: oklch(30% 0.08 10); --color-muted-foreground: oklch(70% 0.12 35); --radius: 1.5rem"
+        >
+        </donation-widget>
+      </div>
+
+      <!-- Minimal Monochrome -->
+      <div class="theme-section">
+        <span class="badge custom">Custom Theme</span>
+        <h2>Minimal Monochrome</h2>
+        <p>Clean black and white design for minimalist websites.</p>
+
+        <donation-widget
+          recipient="0x742d35Cc6634C0532925a3b844Bc454e4438f44e"
+          reown-project-id="YOUR_REOWN_PROJECT_ID"
+          theme="custom"
+          style="--color-background: oklch(100% 0 0); --color-foreground: oklch(0% 0 0); --color-primary: oklch(20% 0 0); --color-secondary: oklch(95% 0 0); --color-accent: oklch(40% 0 0); --color-border: oklch(85% 0 0); --color-muted: oklch(97% 0 0); --color-muted-foreground: oklch(50% 0 0); --radius: 0rem"
+        >
+        </donation-widget>
+      </div>
     </div>
 
-    <!-- Dark Theme -->
-    <div class="theme-section dark-bg">
-      <span class="badge dark">Dark Theme</span>
-      <h2>Dark Theme</h2>
-      <p>Ideal for dark-colored websites. Easy on the eyes in low light.</p>
-      
-      <donation-widget 
-        recipient="0x742d35Cc6634C0532925a3b844Bc454e4438f44e"
-        reown-project-id="YOUR_REOWN_PROJECT_ID"
-        theme="dark">
-      </donation-widget>
-    </div>
-
-    <!-- Auto Theme -->
-    <div class="theme-section">
-      <span class="badge auto">Auto Theme</span>
-      <h2>Auto Theme (Default)</h2>
-      <p>Automatically matches user's system preference. Best for most use cases.</p>
-      
-      <donation-widget 
-        recipient="0x742d35Cc6634C0532925a3b844Bc454e4438f44e"
-        reown-project-id="YOUR_REOWN_PROJECT_ID"
-        theme="auto">
-      </donation-widget>
-    </div>
-
-    <!-- Cyberpunk Theme -->
-    <div class="theme-section cyberpunk-bg">
-      <span class="badge custom">Custom Theme</span>
-      <h2>Cyberpunk Theme</h2>
-      <p>Neon colors and dark background for futuristic websites.</p>
-      
-      <donation-widget 
-        recipient="0x742d35Cc6634C0532925a3b844Bc454e4438f44e"
-        reown-project-id="YOUR_REOWN_PROJECT_ID"
-        theme="custom"
-        style="
-          --color-background: oklch(15% 0.05 280);
-          --color-foreground: oklch(95% 0.15 320);
-          --color-primary: oklch(75% 0.25 320);
-          --color-secondary: oklch(70% 0.25 190);
-          --color-accent: oklch(80% 0.25 340);
-          --color-border: oklch(45% 0.15 280);
-          --color-muted: oklch(25% 0.08 280);
-          --color-muted-foreground: oklch(65% 0.12 190);
-          --radius: 0.25rem;
-        ">
-      </donation-widget>
-    </div>
-
-    <!-- Ocean Theme -->
-    <div class="theme-section ocean-bg">
-      <span class="badge custom">Custom Theme</span>
-      <h2>Ocean Theme</h2>
-      <p>Deep blue tones for calm and professional appearance.</p>
-      
-      <donation-widget 
-        recipient="0x742d35Cc6634C0532925a3b844Bc454e4438f44e"
-        reown-project-id="YOUR_REOWN_PROJECT_ID"
-        theme="custom"
-        style="
-          --color-background: oklch(18% 0.08 230);
-          --color-foreground: oklch(95% 0.08 200);
-          --color-primary: oklch(65% 0.18 220);
-          --color-secondary: oklch(35% 0.12 230);
-          --color-accent: oklch(75% 0.2 200);
-          --color-border: oklch(35% 0.1 230);
-          --color-muted: oklch(25% 0.08 230);
-          --color-muted-foreground: oklch(70% 0.1 210);
-          --radius: 0.75rem;
-        ">
-      </donation-widget>
-    </div>
-
-    <!-- Forest Theme -->
-    <div class="theme-section forest-bg">
-      <span class="badge custom">Custom Theme</span>
-      <h2>Forest Theme</h2>
-      <p>Natural green colors for eco-friendly and organic brands.</p>
-      
-      <donation-widget 
-        recipient="0x742d35Cc6634C0532925a3b844Bc454e4438f44e"
-        reown-project-id="YOUR_REOWN_PROJECT_ID"
-        theme="custom"
-        style="
-          --color-background: oklch(98% 0.02 150);
-          --color-foreground: oklch(25% 0.08 145);
-          --color-primary: oklch(50% 0.15 145);
-          --color-secondary: oklch(88% 0.05 150);
-          --color-accent: oklch(45% 0.18 140);
-          --color-border: oklch(80% 0.04 150);
-          --color-muted: oklch(93% 0.03 150);
-          --color-muted-foreground: oklch(45% 0.08 145);
-          --radius: 1rem;
-        ">
-      </donation-widget>
-    </div>
-
-    <!-- Sunset Theme -->
-    <div class="theme-section sunset-bg">
-      <span class="badge custom">Custom Theme</span>
-      <h2>Sunset Theme</h2>
-      <p>Warm orange and purple gradients for creative projects.</p>
-      
-      <donation-widget 
-        recipient="0x742d35Cc6634C0532925a3b844Bc454e4438f44e"
-        reown-project-id="YOUR_REOWN_PROJECT_ID"
-        theme="custom"
-        style="
-          --color-background: oklch(22% 0.08 20);
-          --color-foreground: oklch(95% 0.06 40);
-          --color-primary: oklch(70% 0.2 40);
-          --color-secondary: oklch(35% 0.1 340);
-          --color-accent: oklch(75% 0.22 30);
-          --color-border: oklch(40% 0.1 350);
-          --color-muted: oklch(30% 0.08 10);
-          --color-muted-foreground: oklch(70% 0.12 35);
-          --radius: 1.5rem;
-        ">
-      </donation-widget>
-    </div>
-
-    <!-- Minimal Monochrome -->
-    <div class="theme-section">
-      <span class="badge custom">Custom Theme</span>
-      <h2>Minimal Monochrome</h2>
-      <p>Clean black and white design for minimalist websites.</p>
-      
-      <donation-widget 
-        recipient="0x742d35Cc6634C0532925a3b844Bc454e4438f44e"
-        reown-project-id="YOUR_REOWN_PROJECT_ID"
-        theme="custom"
-        style="
-          --color-background: oklch(100% 0 0);
-          --color-foreground: oklch(0% 0 0);
-          --color-primary: oklch(20% 0 0);
-          --color-secondary: oklch(95% 0 0);
-          --color-accent: oklch(40% 0 0);
-          --color-border: oklch(85% 0 0);
-          --color-muted: oklch(97% 0 0);
-          --color-muted-foreground: oklch(50% 0 0);
-          --radius: 0rem;
-        ">
-      </donation-widget>
-    </div>
-  </div>
-
-  <!-- Load widget script -->
-  <script type="module" src="../src/index.ts"></script>
-</body>
+    <!-- Load widget script -->
+    <script type="module" src="../src/index.ts"></script>
+  </body>
 </html>

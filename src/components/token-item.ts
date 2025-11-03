@@ -1,9 +1,9 @@
-import { LitElement, html, css } from 'lit';
-import { customElement, property } from 'lit/decorators.js';
-import type { Token } from '@lifi/sdk';
-import type { Chain } from '../services/ChainService.ts';
+import { css, html, LitElement } from "lit";
+import { customElement, property } from "lit/decorators.js";
+import type { Token } from "@lifi/sdk";
+import type { Chain } from "../services/ChainService.ts";
 
-@customElement('token-item')
+@customElement("token-item")
 export class TokenItem extends LitElement {
   @property({ type: Object })
   accessor token!: Token;
@@ -120,15 +120,17 @@ export class TokenItem extends LitElement {
 
   private handleClick() {
     // Emit token-clicked event
-    this.dispatchEvent(new CustomEvent('token-clicked', {
-      detail: this.token,
-      bubbles: true,
-      composed: true,
-    }));
+    this.dispatchEvent(
+      new CustomEvent("token-clicked", {
+        detail: this.token,
+        bubbles: true,
+        composed: true,
+      }),
+    );
   }
 
   private handleKeyDown(event: KeyboardEvent) {
-    if (event.key === 'Enter' || event.key === ' ') {
+    if (event.key === "Enter" || event.key === " ") {
       event.preventDefault();
       this.handleClick();
     }
@@ -140,44 +142,46 @@ export class TokenItem extends LitElement {
 
   override render() {
     const classes = [
-      'token-item',
-      this.isSelected ? 'selected' : '',
-      this.isFocused ? 'focused' : '',
-    ].filter(Boolean).join(' ');
+      "token-item",
+      this.isSelected ? "selected" : "",
+      this.isFocused ? "focused" : "",
+    ].filter(Boolean).join(" ");
 
     return html`
       <button
-        class=${classes}
-        @click=${this.handleClick}
-        @keydown=${this.handleKeyDown}
+        class="${classes}"
+        @click="${this.handleClick}"
+        @keydown="${this.handleKeyDown}"
         role="option"
-        aria-selected=${this.isSelected}
+        aria-selected="${this.isSelected}"
         aria-label="Select ${this.token.symbol} on ${this.chain.name}"
-        tabindex=${this.isFocused ? '0' : '-1'}
+        tabindex="${this.isFocused ? "0" : "-1"}"
       >
-        ${this.token.logoURI ? html`
-          <img
-            class="token-logo"
-            src=${this.token.logoURI}
-            alt=${this.token.symbol}
-            @error=${(e: Event) => {
-              const img = e.target as HTMLImageElement;
-              img.style.display = 'none';
-              // Show placeholder instead
-              const placeholder = img.nextElementSibling;
-              if (placeholder) {
-                (placeholder as HTMLElement).style.display = 'flex';
-              }
-            }}
-          />
-          <div class="token-logo-placeholder" style="display: none;">
-            ${this.getTokenInitials()}
-          </div>
-        ` : html`
-          <div class="token-logo-placeholder">
-            ${this.getTokenInitials()}
-          </div>
-        `}
+        ${this.token.logoURI
+          ? html`
+            <img
+              class="token-logo"
+              src="${this.token.logoURI}"
+              alt="${this.token.symbol}"
+              @error="${(e: Event) => {
+                const img = e.target as HTMLImageElement;
+                img.style.display = "none";
+                // Show placeholder instead
+                const placeholder = img.nextElementSibling;
+                if (placeholder) {
+                  (placeholder as HTMLElement).style.display = "flex";
+                }
+              }}"
+            />
+            <div class="token-logo-placeholder" style="display: none;">
+              ${this.getTokenInitials()}
+            </div>
+          `
+          : html`
+            <div class="token-logo-placeholder">
+              ${this.getTokenInitials()}
+            </div>
+          `}
 
         <div class="token-info">
           <div class="token-primary">
@@ -186,20 +190,22 @@ export class TokenItem extends LitElement {
           <div class="token-name">${this.token.name}</div>
         </div>
 
-        ${this.isSelected ? html`
-          <svg
-            class="selected-indicator"
-            fill="currentColor"
-            viewBox="0 0 20 20"
-            aria-hidden="true"
-          >
-            <path
-              fill-rule="evenodd"
-              d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
-              clip-rule="evenodd"
-            />
-          </svg>
-        ` : ''}
+        ${this.isSelected
+          ? html`
+            <svg
+              class="selected-indicator"
+              fill="currentColor"
+              viewBox="0 0 20 20"
+              aria-hidden="true"
+            >
+              <path
+                fill-rule="evenodd"
+                d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                clip-rule="evenodd"
+              />
+            </svg>
+          `
+          : ""}
       </button>
     `;
   }
@@ -207,6 +213,6 @@ export class TokenItem extends LitElement {
 
 declare global {
   interface HTMLElementTagNameMap {
-    'token-item': TokenItem;
+    "token-item": TokenItem;
   }
 }

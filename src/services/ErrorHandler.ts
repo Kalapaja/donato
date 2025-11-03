@@ -1,9 +1,9 @@
 export enum ErrorCategory {
-  Network = 'network',
-  Wallet = 'wallet',
-  Quote = 'quote',
-  Transaction = 'transaction',
-  Unknown = 'unknown',
+  Network = "network",
+  Wallet = "wallet",
+  Quote = "quote",
+  Transaction = "transaction",
+  Unknown = "unknown",
 }
 
 export interface UserFriendlyError {
@@ -23,7 +23,7 @@ export class ErrorHandler {
       return this.handleError(error);
     }
 
-    if (typeof error === 'string') {
+    if (typeof error === "string") {
       return {
         category: ErrorCategory.Unknown,
         message: error,
@@ -33,7 +33,7 @@ export class ErrorHandler {
 
     return {
       category: ErrorCategory.Unknown,
-      message: 'An unexpected error occurred. Please try again.',
+      message: "An unexpected error occurred. Please try again.",
       recoverable: true,
     };
   }
@@ -67,7 +67,7 @@ export class ErrorHandler {
     // Unknown error
     return {
       category: ErrorCategory.Unknown,
-      message: 'An unexpected error occurred. Please try again.',
+      message: "An unexpected error occurred. Please try again.",
       recoverable: true,
       originalError: error,
     };
@@ -78,12 +78,12 @@ export class ErrorHandler {
    */
   private static isWalletError(message: string): boolean {
     return (
-      message.includes('wallet') ||
-      message.includes('rejected') ||
-      message.includes('user denied') ||
-      message.includes('insufficient funds') ||
-      message.includes('insufficient balance') ||
-      message.includes('connect')
+      message.includes("wallet") ||
+      message.includes("rejected") ||
+      message.includes("user denied") ||
+      message.includes("insufficient funds") ||
+      message.includes("insufficient balance") ||
+      message.includes("connect")
     );
   }
 
@@ -92,11 +92,11 @@ export class ErrorHandler {
    */
   private static isQuoteError(message: string): boolean {
     return (
-      message.includes('no route') ||
-      message.includes('quote') ||
-      message.includes('liquidity') ||
-      message.includes('amount too low') ||
-      message.includes('amount too high')
+      message.includes("no route") ||
+      message.includes("quote") ||
+      message.includes("liquidity") ||
+      message.includes("amount too low") ||
+      message.includes("amount too high")
     );
   }
 
@@ -105,11 +105,11 @@ export class ErrorHandler {
    */
   private static isTransactionError(message: string): boolean {
     return (
-      message.includes('transaction') ||
-      message.includes('gas') ||
-      message.includes('nonce') ||
-      message.includes('revert') ||
-      message.includes('execution failed')
+      message.includes("transaction") ||
+      message.includes("gas") ||
+      message.includes("nonce") ||
+      message.includes("revert") ||
+      message.includes("execution failed")
     );
   }
 
@@ -118,11 +118,11 @@ export class ErrorHandler {
    */
   private static isNetworkError(message: string): boolean {
     return (
-      message.includes('network') ||
-      message.includes('timeout') ||
-      message.includes('fetch') ||
-      message.includes('connection') ||
-      message.includes('api')
+      message.includes("network") ||
+      message.includes("timeout") ||
+      message.includes("fetch") ||
+      message.includes("connection") ||
+      message.includes("api")
     );
   }
 
@@ -132,48 +132,51 @@ export class ErrorHandler {
   private static handleWalletError(error: Error): UserFriendlyError {
     const message = error.message.toLowerCase();
 
-    if (message.includes('rejected') || message.includes('user denied')) {
+    if (message.includes("rejected") || message.includes("user denied")) {
       return {
         category: ErrorCategory.Wallet,
-        message: 'Transaction was rejected. Please try again when ready.',
+        message: "Transaction was rejected. Please try again when ready.",
         recoverable: true,
         originalError: error,
       };
     }
 
-    if (message.includes('insufficient funds') || message.includes('insufficient balance')) {
+    if (
+      message.includes("insufficient funds") ||
+      message.includes("insufficient balance")
+    ) {
       return {
         category: ErrorCategory.Wallet,
-        message: 'Insufficient balance to complete this transaction.',
+        message: "Insufficient balance to complete this transaction.",
         recoverable: false,
-        action: 'Add more funds to your wallet or try a smaller amount.',
+        action: "Add more funds to your wallet or try a smaller amount.",
         originalError: error,
       };
     }
 
-    if (message.includes('not connected') || message.includes('connect')) {
+    if (message.includes("not connected") || message.includes("connect")) {
       return {
         category: ErrorCategory.Wallet,
-        message: 'Wallet not connected. Please connect your wallet first.',
+        message: "Wallet not connected. Please connect your wallet first.",
         recoverable: true,
         action: 'Click the "Connect Wallet" button to continue.',
         originalError: error,
       };
     }
 
-    if (message.includes('switch') || message.includes('network')) {
+    if (message.includes("switch") || message.includes("network")) {
       return {
         category: ErrorCategory.Wallet,
-        message: 'Please switch to the correct network in your wallet.',
+        message: "Please switch to the correct network in your wallet.",
         recoverable: true,
-        action: 'Switch networks and try again.',
+        action: "Switch networks and try again.",
         originalError: error,
       };
     }
 
     return {
       category: ErrorCategory.Wallet,
-      message: 'Wallet error occurred. Please check your wallet and try again.',
+      message: "Wallet error occurred. Please check your wallet and try again.",
       recoverable: true,
       originalError: error,
     };
@@ -185,49 +188,49 @@ export class ErrorHandler {
   private static handleQuoteError(error: Error): UserFriendlyError {
     const message = error.message.toLowerCase();
 
-    if (message.includes('no route')) {
+    if (message.includes("no route")) {
       return {
         category: ErrorCategory.Quote,
-        message: 'No route found for this swap.',
+        message: "No route found for this swap.",
         recoverable: true,
-        action: 'Try a different token or amount.',
+        action: "Try a different token or amount.",
         originalError: error,
       };
     }
 
-    if (message.includes('liquidity')) {
+    if (message.includes("liquidity")) {
       return {
         category: ErrorCategory.Quote,
-        message: 'Insufficient liquidity for this swap.',
+        message: "Insufficient liquidity for this swap.",
         recoverable: true,
-        action: 'Try a smaller amount or different token.',
+        action: "Try a smaller amount or different token.",
         originalError: error,
       };
     }
 
-    if (message.includes('amount too low')) {
+    if (message.includes("amount too low")) {
       return {
         category: ErrorCategory.Quote,
-        message: 'Amount is too low for this swap.',
+        message: "Amount is too low for this swap.",
         recoverable: true,
-        action: 'Try a larger amount.',
+        action: "Try a larger amount.",
         originalError: error,
       };
     }
 
-    if (message.includes('amount too high')) {
+    if (message.includes("amount too high")) {
       return {
         category: ErrorCategory.Quote,
-        message: 'Amount is too high for this swap.',
+        message: "Amount is too high for this swap.",
         recoverable: true,
-        action: 'Try a smaller amount.',
+        action: "Try a smaller amount.",
         originalError: error,
       };
     }
 
     return {
       category: ErrorCategory.Quote,
-      message: 'Failed to calculate quote. Please try again.',
+      message: "Failed to calculate quote. Please try again.",
       recoverable: true,
       originalError: error,
     };
@@ -239,49 +242,52 @@ export class ErrorHandler {
   private static handleTransactionError(error: Error): UserFriendlyError {
     const message = error.message.toLowerCase();
 
-    if (message.includes('gas estimation failed') || message.includes('gas required exceeds')) {
+    if (
+      message.includes("gas estimation failed") ||
+      message.includes("gas required exceeds")
+    ) {
       return {
         category: ErrorCategory.Transaction,
-        message: 'Transaction would fail. Please check your balance.',
+        message: "Transaction would fail. Please check your balance.",
         recoverable: true,
-        action: 'Ensure you have enough tokens and gas for this transaction.',
+        action: "Ensure you have enough tokens and gas for this transaction.",
         originalError: error,
       };
     }
 
-    if (message.includes('nonce')) {
+    if (message.includes("nonce")) {
       return {
         category: ErrorCategory.Transaction,
-        message: 'Transaction nonce error.',
+        message: "Transaction nonce error.",
         recoverable: true,
-        action: 'Please wait a moment and try again.',
+        action: "Please wait a moment and try again.",
         originalError: error,
       };
     }
 
-    if (message.includes('revert') || message.includes('execution failed')) {
+    if (message.includes("revert") || message.includes("execution failed")) {
       return {
         category: ErrorCategory.Transaction,
-        message: 'Transaction would fail.',
+        message: "Transaction would fail.",
         recoverable: true,
-        action: 'Check your balance and token allowances, then try again.',
+        action: "Check your balance and token allowances, then try again.",
         originalError: error,
       };
     }
 
-    if (message.includes('timeout') || message.includes('timed out')) {
+    if (message.includes("timeout") || message.includes("timed out")) {
       return {
         category: ErrorCategory.Transaction,
-        message: 'Transaction timed out.',
+        message: "Transaction timed out.",
         recoverable: true,
-        action: 'Please check your wallet and try again.',
+        action: "Please check your wallet and try again.",
         originalError: error,
       };
     }
 
     return {
       category: ErrorCategory.Transaction,
-      message: 'Transaction failed. Please try again.',
+      message: "Transaction failed. Please try again.",
       recoverable: true,
       originalError: error,
     };
@@ -293,31 +299,31 @@ export class ErrorHandler {
   private static handleNetworkError(error: Error): UserFriendlyError {
     const message = error.message.toLowerCase();
 
-    if (message.includes('timeout')) {
+    if (message.includes("timeout")) {
       return {
         category: ErrorCategory.Network,
-        message: 'Request timed out. Please check your connection.',
+        message: "Request timed out. Please check your connection.",
         recoverable: true,
-        action: 'Check your internet connection and try again.',
+        action: "Check your internet connection and try again.",
         originalError: error,
       };
     }
 
-    if (message.includes('fetch') || message.includes('api')) {
+    if (message.includes("fetch") || message.includes("api")) {
       return {
         category: ErrorCategory.Network,
-        message: 'Failed to connect to service.',
+        message: "Failed to connect to service.",
         recoverable: true,
-        action: 'Please try again in a moment.',
+        action: "Please try again in a moment.",
         originalError: error,
       };
     }
 
     return {
       category: ErrorCategory.Network,
-      message: 'Network error occurred. Please check your connection.',
+      message: "Network error occurred. Please check your connection.",
       recoverable: true,
-      action: 'Check your internet connection and try again.',
+      action: "Check your internet connection and try again.",
       originalError: error,
     };
   }
@@ -327,7 +333,7 @@ export class ErrorHandler {
    */
   static format(error: UserFriendlyError): string {
     let formatted = error.message;
-    
+
     if (error.action) {
       formatted += ` ${error.action}`;
     }

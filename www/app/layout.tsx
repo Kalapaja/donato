@@ -14,7 +14,8 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: "Donation Widget - Configuration Wizard",
-  description: "Create a customizable cryptocurrency donation widget for your website",
+  description:
+    "Create a customizable cryptocurrency donation widget for your website",
 };
 
 export default function RootLayout({
