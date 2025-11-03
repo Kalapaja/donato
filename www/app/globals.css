@@ -9,7 +9,7 @@
   --color-border: oklch(91% 0 0);
   --color-muted: oklch(96% 0 0);
   --color-muted-foreground: oklch(52% 0 0);
-  --radius: 1rem;
+  --radius: 0.25rem;
 }
 
 @media (prefers-color-scheme: dark) {
