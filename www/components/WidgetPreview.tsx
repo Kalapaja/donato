@@ -2,26 +2,11 @@
 
 import { useEffect, useRef } from "react";
 import type { WidgetConfig } from "../types/config";
+import { getWidgetScriptUrl } from "../lib/widget-utils";
 
 interface WidgetPreviewProps {
   config: WidgetConfig;
 }
-
-// Use local script in development, production script otherwise
-// In Next.js client components, we check window.location.hostname for development
-const getWidgetScriptUrl = () => {
-  if (typeof window !== "undefined") {
-    // Check if we're running locally
-    if (
-      window.location.hostname === "localhost" ||
-      window.location.hostname === "127.0.0.1"
-    ) {
-      return "http://localhost:3000/donation-widget.js";
-    }
-  }
-  // Fallback to production URL
-  return "https://donato.katsuba.dev/donation-widget.js";
-};
 
 export function WidgetPreview({ config }: WidgetPreviewProps) {
   const containerRef = useRef<HTMLDivElement>(null);

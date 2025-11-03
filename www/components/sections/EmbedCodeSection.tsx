@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { createPortal } from "react-dom";
 import type { WidgetConfig } from "../../types/config";
+import { getWidgetScriptUrl } from "../../lib/widget-utils";
 
 interface EmbedCodeSectionProps {
   config: WidgetConfig;
@@ -19,9 +20,8 @@ export function EmbedCodeSection({ config }: EmbedCodeSectionProps) {
 
     setIsLoading(true);
     try {
-      const response = await fetch(
-        "https://donato.katsuba.dev/donation-widget.js",
-      );
+      const scriptUrl = getWidgetScriptUrl();
+      const response = await fetch(scriptUrl);
       const script = await response.text();
       setWidgetScript(script);
     } catch (error) {
