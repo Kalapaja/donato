@@ -66,20 +66,19 @@ export function WidgetPreview({ config }: WidgetPreviewProps) {
       // Create widget element
       if (containerRef.current) {
         const widget = document.createElement("donation-widget");
-        widget.setAttribute("recipient", config.recipient);
+        
+        // Always set attributes, even if empty - widget will show validation errors
+        widget.setAttribute("recipient", config.recipient || "");
         widget.setAttribute(
           "recipient-chain-id",
-          config.recipientChainId.toString(),
+          config.recipientChainId?.toString() || "42161",
         );
         widget.setAttribute(
           "recipient-token-address",
-          config.recipientTokenAddress,
+          config.recipientTokenAddress || "",
         );
-        widget.setAttribute("theme", config.theme);
-
-        if (config.reownProjectId) {
-          widget.setAttribute("reown-project-id", config.reownProjectId);
-        }
+        widget.setAttribute("theme", config.theme || "auto");
+        widget.setAttribute("reown-project-id", config.reownProjectId || "");
 
         if (config.lifiApiKey) {
           widget.setAttribute("lifi-api-key", config.lifiApiKey);

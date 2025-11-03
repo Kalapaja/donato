@@ -19,14 +19,6 @@ export default function Home() {
     setConfig((prev) => ({ ...prev, ...updates }));
   };
 
-  const isValidConfig = !!(
-    config.recipient &&
-    /^0x[a-fA-F0-9]{40}$/.test(config.recipient) &&
-    config.recipientChainId &&
-    config.recipientTokenAddress &&
-    config.theme
-  );
-
   return (
     <div
       className="min-h-screen"
@@ -86,19 +78,7 @@ export default function Home() {
               >
                 Preview
               </h2>
-              {isValidConfig
-                ? <WidgetPreview config={config as WidgetConfig} />
-                : (
-                  <div
-                    className="flex items-center justify-center min-h-[400px]"
-                    style={{ color: "var(--color-muted-foreground)" }}
-                  >
-                    <div className="text-center">
-                      <p className="mb-2">Fill in the configuration</p>
-                      <p className="text-sm">to see the widget preview</p>
-                    </div>
-                  </div>
-                )}
+              <WidgetPreview config={config as WidgetConfig} />
             </div>
           </div>
         </div>

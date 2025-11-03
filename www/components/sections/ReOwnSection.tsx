@@ -29,7 +29,7 @@ export function ReOwnSection(
           type="text"
           value={reownProjectId}
           onChange={(e) => onProjectIdChange(e.target.value)}
-          placeholder="Enter your ReOwn Project ID (optional)"
+          placeholder="Enter your ReOwn Project ID"
           className="w-full px-4 py-2.5 rounded-lg text-sm"
           style={{
             background: "var(--color-background)",

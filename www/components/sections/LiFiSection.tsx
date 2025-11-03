@@ -27,7 +27,7 @@ export function LiFiSection({ lifiApiKey, onApiKeyChange }: LiFiSectionProps) {
           type="text"
           value={lifiApiKey}
           onChange={(e) => onApiKeyChange(e.target.value)}
-          placeholder="Enter your LiFi API key (optional)"
+          placeholder="Enter your LiFi API key"
           className="w-full px-4 py-2.5 rounded-lg text-sm"
           style={{
             background: "var(--color-background)",

@@ -25,10 +25,10 @@ import type { ToastContainer } from "./toast-container.ts";
  *
  * @attr {string} recipient - Recipient wallet address (required)
  * @attr {string} reown-project-id - Reown project ID (required)
+ * @attr {string} lifi-api-key - LiFi API key (required)
  * @attr {number} recipient-chain-id - Chain ID where recipient will receive tokens (default: 42161 - Arbitrum)
  * @attr {string} recipient-token-address - Token address that recipient will receive (default: USDC on recipient chain)
  * @attr {string} theme - Theme mode: 'light', 'dark', 'auto', or 'custom' (default: 'auto'). 'custom' mode hides theme toggle and uses CSS variables from parent.
- * @attr {string} lifi-api-key - LiFi API key (optional)
  *
  * @fires donation-completed - Fired when donation succeeds
  * @fires donation-failed - Fired when donation fails
@@ -38,6 +38,7 @@ import type { ToastContainer } from "./toast-container.ts";
  * <donation-widget
  *   recipient="0x742d35Cc6634C0532925a3b844Bc454e4438f44e"
  *   reown-project-id="YOUR_REOWN_PROJECT_ID"
+ *   lifi-api-key="YOUR_LIFI_API_KEY"
  *   recipient-chain-id="42161"
  *   recipient-token-address="0xaf88d065e77c8cC2239327C5EDb3A432268e5831"
  *   theme="dark">
@@ -55,6 +56,10 @@ export class DonationWidget extends LitElement {
   @property({ type: String, attribute: "reown-project-id" })
   accessor reownProjectId: string = "";
 
+  /** LiFi API key (required) */
+  @property({ type: String, attribute: "lifi-api-key" })
+  accessor lifiApiKey: string = "";
+
   // Optional properties with defaults
   /** Chain ID where recipient will receive tokens (default: 42161 - Arbitrum) */
   @property({ type: Number, attribute: "recipient-chain-id" })
@@ -68,10 +73,6 @@ export class DonationWidget extends LitElement {
   /** Theme mode: 'light', 'dark', or 'auto' (default: 'auto') */
   @property({ type: String })
   accessor theme: ThemeMode = "auto";
-
-  /** LiFi API key (optional) */
-  @property({ type: String, attribute: "lifi-api-key" })
-  accessor lifiApiKey: string | undefined = undefined;
 
   // Internal state
   @state()
@@ -259,59 +260,61 @@ export class DonationWidget extends LitElement {
       this.cleanup();
     }
 
-    private async initializeWidget() {
-      try {
-        // Validate required attributes
-        const validationError = this.validateRequiredAttributes();
-        if (validationError) {
-          this.error = validationError;
-          return;
-        }
+  private async initializeWidget() {
+    try {
+      // Initialize theme service first (always needed for display)
+      this.themeService.init(this.theme);
+      this.currentTheme = this.themeService.getTheme();
+      this.canToggleTheme = this.themeService.canToggleTheme();
+      this.updateThemeClass(this.currentTheme);
 
-        // Initialize theme service
-        this.themeService.init(this.theme);
-        this.currentTheme = this.themeService.getTheme();
-        this.canToggleTheme = this.themeService.canToggleTheme();
-        this.updateThemeClass(this.currentTheme);
+      // Subscribe to theme changes
+      const unsubscribeTheme = this.themeService.onThemeChanged(
+        (theme: Theme) => {
+          this.currentTheme = theme;
+          this.updateThemeClass(theme);
+        },
+      );
+      this.cleanupFunctions.push(unsubscribeTheme);
 
-        // Subscribe to theme changes
-        const unsubscribeTheme = this.themeService.onThemeChanged(
-          (theme: Theme) => {
-            this.currentTheme = theme;
-            this.updateThemeClass(theme);
-          },
-        );
-        this.cleanupFunctions.push(unsubscribeTheme);
-
-        // Initialize wallet service
-        this.walletService.init(this.reownProjectId);
-
-        // Initialize LiFi service
-        this.lifiService.init();
-
-        // Initialize chain service
-        await this.chainService.init();
-
-        // Load available tokens
-        await this.loadTokens();
-
-        // Initialize toast container
-        await this.updateComplete;
-        const toastContainer = this.shadowRoot?.querySelector(
-          "toast-container",
-        ) as ToastContainer | null;
-        if (toastContainer) {
-          toastContainer.setToastService(toastService);
-        }
-
-        this.isInitialized = true;
-      } catch (error) {
-        console.error("Failed to initialize widget:", error);
-        this.error = error instanceof Error
-          ? error.message
-          : "Failed to initialize widget";
+      // Initialize toast container
+      await this.updateComplete;
+      const toastContainer = this.shadowRoot?.querySelector(
+        "toast-container",
+      ) as ToastContainer | null;
+      if (toastContainer) {
+        toastContainer.setToastService(toastService);
       }
+
+      // Mark as initialized so we can show validation errors
+      this.isInitialized = true;
+
+      // Validate required attributes
+      const validationError = this.validateRequiredAttributes();
+      if (validationError) {
+        this.error = validationError;
+        return;
+      }
+
+      // Initialize wallet service
+      this.walletService.init(this.reownProjectId);
+
+      // Initialize LiFi service
+      this.lifiService.init();
+
+      // Initialize chain service
+      await this.chainService.init();
+
+      // Load available tokens
+      await this.loadTokens();
+    } catch (error) {
+      console.error("Failed to initialize widget:", error);
+      this.error = error instanceof Error
+        ? error.message
+        : "Failed to initialize widget";
+      this.isInitialized = true; // Still mark as initialized to show the error
     }
+  }
 
     private cleanup() {
       // Call all cleanup functions
@@ -407,6 +410,10 @@ export class DonationWidget extends LitElement {
 
       if (!this.reownProjectId) {
         return 'Reown project ID is required. Add reown-project-id="..." attribute. Get one at https://reown.com';
+      }
+
+      if (!this.lifiApiKey) {
+        return 'LiFi API key is required. Add lifi-api-key="..." attribute. Get one at https://li.fi';
       }
 
       return null;
@@ -517,12 +524,16 @@ export class DonationWidget extends LitElement {
             `
             : ""}
 
-          <div class="recipient-info">
-            <div class="recipient-label">Recipient</div>
-            <div class="recipient-address">${this.formatAddress(
-              this.recipient,
-            )}</div>
-          </div>
+          ${this.recipient && this.isValidAddress(this.recipient)
+            ? html`
+              <div class="recipient-info">
+                <div class="recipient-label">Recipient</div>
+                <div class="recipient-address">${this.formatAddress(
+                  this.recipient,
+                )}</div>
+              </div>
+            `
+            : ""}
 
           <wallet-section
             .walletService="${this.walletService}"
