@@ -2,7 +2,6 @@
 
 import { useEffect, useRef } from "react";
 import type { WidgetConfig } from "../types/config";
-import { getWidgetScriptUrl } from "../lib/widget-utils";
 
 interface WidgetPreviewProps {
   config: WidgetConfig;
@@ -10,37 +9,9 @@ interface WidgetPreviewProps {
 
 export function WidgetPreview({ config }: WidgetPreviewProps) {
   const containerRef = useRef<HTMLDivElement>(null);
-  const scriptLoadedRef = useRef(false);
-
   useEffect(() => {
-    // Get script URL dynamically
-    const widgetScriptUrl = getWidgetScriptUrl();
-
-    // Load the donation widget script if not already loaded
-    if (!scriptLoadedRef.current) {
-      const existingScript = document.querySelector(
-        `script[src="${widgetScriptUrl}"]`,
-      );
-
-      if (!existingScript) {
-        const script = document.createElement("script");
-        script.src = widgetScriptUrl;
-        script.async = true;
-        script.onload = () => {
-          scriptLoadedRef.current = true;
-          renderWidget();
-        };
-        script.onerror = () => {
-          console.error("Failed to load donation widget script");
-        };
-        document.head.appendChild(script);
-      } else {
-        scriptLoadedRef.current = true;
-        renderWidget();
-      }
-    } else {
-      renderWidget();
-    }
+    
+    renderWidget();
 
     function renderWidget() {
       // Clear container

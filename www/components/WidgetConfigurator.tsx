@@ -11,10 +11,11 @@ import { EmbedCodeSection } from "./sections/EmbedCodeSection";
 interface WidgetConfiguratorProps {
   config: Partial<WidgetConfig>;
   onConfigChange: (updates: Partial<WidgetConfig>) => void;
+  widgetScript: string;
 }
 
 export function WidgetConfigurator(
-  { config, onConfigChange }: WidgetConfiguratorProps,
+  { config, onConfigChange, widgetScript }: WidgetConfiguratorProps,
 ) {
   const isValidConfig = !!(
     config.recipient &&
@@ -109,7 +110,10 @@ export function WidgetConfigurator(
             borderTop: "1px solid var(--color-border)",
           }}
         >
-          <EmbedCodeSection config={config as WidgetConfig} />
+          <EmbedCodeSection 
+            config={config as WidgetConfig} 
+            widgetScript={widgetScript}
+          />
         </div>
       )}
     </div>

@@ -3,39 +3,15 @@
 import { useState } from "react";
 import { createPortal } from "react-dom";
 import type { WidgetConfig } from "../../types/config";
-import { getWidgetScriptUrl } from "../../lib/widget-utils";
 
 interface EmbedCodeSectionProps {
   config: WidgetConfig;
+  widgetScript: string;
 }
 
-export function EmbedCodeSection({ config }: EmbedCodeSectionProps) {
+export function EmbedCodeSection({ config, widgetScript }: EmbedCodeSectionProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [copied, setCopied] = useState(false);
-  const [widgetScript, setWidgetScript] = useState<string>("");
-  const [isLoading, setIsLoading] = useState(false);
-
-  const fetchScript = async () => {
-    if (widgetScript) return; // Already loaded
-
-    setIsLoading(true);
-    try {
-      const scriptUrl = getWidgetScriptUrl();
-      const response = await fetch(scriptUrl);
-      const script = await response.text();
-      setWidgetScript(script);
-    } catch (error) {
-      console.error("Failed to fetch widget script:", error);
-      setWidgetScript("// Failed to load widget script");
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const handleOpen = () => {
-    setIsOpen(true);
-    fetchScript();
-  };
 
   const generateFullPageCode = (): string => {
     const widgetAttributes: string[] = [
@@ -136,7 +112,7 @@ ${widgetScript}
       {/* Trigger Button */}
       <button
         type="button"
-        onClick={handleOpen}
+        onClick={() => setIsOpen(true)}
         className="w-full px-4 py-2.5 rounded-lg font-medium transition-colors flex items-center justify-center gap-2"
         style={{
           background: "var(--color-primary)",
@@ -232,33 +208,20 @@ ${widgetScript}
 
             {/* Content */}
             <div className="flex-1 overflow-hidden flex flex-col">
-              {isLoading
-                ? (
-                  <div className="flex items-center justify-center p-12">
-                    <p
-                      className="text-sm"
-                      style={{ color: "var(--color-muted-foreground)" }}
-                    >
-                      Loading widget script...
-                    </p>
-                  </div>
-                )
-                : (
-                  <pre
-                    className="flex-1 p-6 overflow-auto"
-                    style={{
-                      background: "oklch(16% 0 0)",
-                      margin: 0,
-                    }}
-                  >
-                  <code
-                    className="text-xs font-mono"
-                    style={{ color: 'oklch(99% 0 0)' }}
-                  >
-                    {embedCode}
-                  </code>
-                  </pre>
-                )}
+              <pre
+                className="flex-1 p-6 overflow-auto"
+                style={{
+                  background: "oklch(16% 0 0)",
+                  margin: 0,
+                }}
+              >
+                <code
+                  className="text-xs font-mono"
+                  style={{ color: "oklch(99% 0 0)" }}
+                >
+                  {embedCode}
+                </code>
+              </pre>
             </div>
 
             {/* Footer */}
@@ -269,19 +232,15 @@ ${widgetScript}
               <button
                 type="button"
                 onClick={handleDownload}
-                disabled={isLoading}
                 className="px-4 py-2 text-sm rounded-lg font-medium transition-colors flex items-center gap-2"
                 style={{
                   background: "var(--color-secondary)",
                   color: "var(--color-foreground)",
                   border: "1px solid var(--color-border)",
                   borderRadius: "calc(var(--radius) - 2px)",
-                  opacity: isLoading ? 0.5 : 1,
                 }}
                 onMouseEnter={(e) => {
-                  if (!isLoading) {
-                    e.currentTarget.style.background = "var(--color-muted)";
-                  }
+                  e.currentTarget.style.background = "var(--color-muted)";
                 }}
                 onMouseLeave={(e) => {
                   e.currentTarget.style.background = "var(--color-secondary)";
@@ -305,18 +264,14 @@ ${widgetScript}
               <button
                 type="button"
                 onClick={handleCopy}
-                disabled={isLoading}
                 className="px-4 py-2 text-sm rounded-lg font-medium transition-colors flex items-center gap-2"
                 style={{
                   background: "var(--color-primary)",
                   color: "var(--color-background)",
                   borderRadius: "calc(var(--radius) - 2px)",
-                  opacity: isLoading ? 0.5 : 1,
                 }}
                 onMouseEnter={(e) => {
-                  if (!isLoading) {
-                    e.currentTarget.style.background = "var(--color-accent)";
-                  }
+                  e.currentTarget.style.background = "var(--color-accent)";
                 }}
                 onMouseLeave={(e) => {
                   e.currentTarget.style.background = "var(--color-primary)";
