@@ -66,7 +66,7 @@ export function WidgetPreview({ config }: WidgetPreviewProps) {
       // Create widget element
       if (containerRef.current) {
         const widget = document.createElement("donation-widget");
-        
+
         // Always set attributes, even if empty - widget will show validation errors
         widget.setAttribute("recipient", config.recipient || "");
         widget.setAttribute(
@@ -84,9 +84,13 @@ export function WidgetPreview({ config }: WidgetPreviewProps) {
           widget.setAttribute("lifi-api-key", config.lifiApiKey);
         }
 
+        widget.setAttribute("style", "max-width: 360px;");
+
         // Apply custom theme styles if theme is custom
         const styleId = "donation-widget-custom-theme";
-        const existingStyle = document.getElementById(styleId) as HTMLStyleElement;
+        const existingStyle = document.getElementById(
+          styleId,
+        ) as HTMLStyleElement;
 
         if (config.theme === "custom" && config.themeCustom) {
           let style = existingStyle;
@@ -130,7 +134,6 @@ export function WidgetPreview({ config }: WidgetPreviewProps) {
           borderRadius: "calc(var(--radius) - 2px)",
         }}
       >
-        
       </div>
     </div>
   );

@@ -133,7 +133,7 @@ export class DonationWidget extends LitElement {
   static override styles = css`
     :host {
       display: block;
-      min-width: 320px;
+      min-width: 360px;
       font-family:
         system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
         "Helvetica Neue", Arial, sans-serif;
@@ -261,61 +261,61 @@ export class DonationWidget extends LitElement {
       this.cleanup();
     }
 
-  private async initializeWidget() {
-    try {
-      // Initialize theme service first (always needed for display)
-      this.themeService.init(this.theme);
-      this.currentTheme = this.themeService.getTheme();
-      this.canToggleTheme = this.themeService.canToggleTheme();
-      this.updateThemeClass(this.currentTheme);
+    private async initializeWidget() {
+      try {
+        // Initialize theme service first (always needed for display)
+        this.themeService.init(this.theme);
+        this.currentTheme = this.themeService.getTheme();
+        this.canToggleTheme = this.themeService.canToggleTheme();
+        this.updateThemeClass(this.currentTheme);
 
-      // Subscribe to theme changes
-      const unsubscribeTheme = this.themeService.onThemeChanged(
-        (theme: Theme) => {
-          this.currentTheme = theme;
-          this.updateThemeClass(theme);
-        },
-      );
-      this.cleanupFunctions.push(unsubscribeTheme);
+        // Subscribe to theme changes
+        const unsubscribeTheme = this.themeService.onThemeChanged(
+          (theme: Theme) => {
+            this.currentTheme = theme;
+            this.updateThemeClass(theme);
+          },
+        );
+        this.cleanupFunctions.push(unsubscribeTheme);
 
-      // Initialize toast container
-      await this.updateComplete;
-      const toastContainer = this.shadowRoot?.querySelector(
-        "toast-container",
-      ) as ToastContainer | null;
-      if (toastContainer) {
-        toastContainer.setToastService(toastService);
+        // Initialize toast container
+        await this.updateComplete;
+        const toastContainer = this.shadowRoot?.querySelector(
+          "toast-container",
+        ) as ToastContainer | null;
+        if (toastContainer) {
+          toastContainer.setToastService(toastService);
+        }
+
+        // Mark as initialized so we can show validation errors
+        this.isInitialized = true;
+
+        // Validate required attributes
+        const validationError = this.validateRequiredAttributes();
+        if (validationError) {
+          this.error = validationError;
+          return;
+        }
+
+        // Initialize wallet service
+        this.walletService.init(this.reownProjectId);
+
+        // Initialize LiFi service
+        this.lifiService.init();
+
+        // Initialize chain service
+        await this.chainService.init();
+
+        // Load available tokens
+        await this.loadTokens();
+      } catch (error) {
+        console.error("Failed to initialize widget:", error);
+        this.error = error instanceof Error
+          ? error.message
+          : "Failed to initialize widget";
+        this.isInitialized = true; // Still mark as initialized to show the error
       }
-
-      // Mark as initialized so we can show validation errors
-      this.isInitialized = true;
-
-      // Validate required attributes
-      const validationError = this.validateRequiredAttributes();
-      if (validationError) {
-        this.error = validationError;
-        return;
-      }
-
-      // Initialize wallet service
-      this.walletService.init(this.reownProjectId);
-
-      // Initialize LiFi service
-      this.lifiService.init();
-
-      // Initialize chain service
-      await this.chainService.init();
-
-      // Load available tokens
-      await this.loadTokens();
-    } catch (error) {
-      console.error("Failed to initialize widget:", error);
-      this.error = error instanceof Error
-        ? error.message
-        : "Failed to initialize widget";
-      this.isInitialized = true; // Still mark as initialized to show the error
     }
-  }
 
     private cleanup() {
       // Call all cleanup functions
@@ -523,9 +523,7 @@ export class DonationWidget extends LitElement {
                 ${this.error}
               </div>
             `
-            : ""}
-
-          ${this.recipient && this.isValidAddress(this.recipient)
+            : ""} ${this.recipient && this.isValidAddress(this.recipient)
             ? html`
               <div class="recipient-info">
                 <div class="recipient-label">Recipient</div>

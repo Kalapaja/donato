@@ -1,6 +1,5 @@
 "use client";
 
-import { useState } from "react";
 import type { WidgetConfig } from "../types/config";
 import { RecipientSection } from "./sections/RecipientSection";
 import { CurrencyChainSection } from "./sections/CurrencyChainSection";
@@ -17,8 +16,6 @@ interface WidgetConfiguratorProps {
 export function WidgetConfigurator(
   { config, onConfigChange }: WidgetConfiguratorProps,
 ) {
-  const [showEmbedCode, setShowEmbedCode] = useState(false);
-
   const isValidConfig = !!(
     config.recipient &&
     /^0x[a-fA-F0-9]{40}$/.test(config.recipient) &&
@@ -112,29 +109,7 @@ export function WidgetConfigurator(
             borderTop: "1px solid var(--color-border)",
           }}
         >
-          <button
-            onClick={() => setShowEmbedCode(!showEmbedCode)}
-            className="w-full px-4 py-2.5 rounded-lg font-medium transition-colors"
-            style={{
-              background: "var(--color-primary)",
-              color: "var(--color-background)",
-              borderRadius: "calc(var(--radius) - 2px)",
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.background = "var(--color-accent)";
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.background = "var(--color-primary)";
-            }}
-          >
-            {showEmbedCode ? "Hide" : "Show"} Embed Code
-          </button>
-
-          {showEmbedCode && (
-            <div className="mt-4">
-              <EmbedCodeSection config={config as WidgetConfig} />
-            </div>
-          )}
+          <EmbedCodeSection config={config as WidgetConfig} />
         </div>
       )}
     </div>

@@ -250,14 +250,14 @@ export function CurrencyChainSection({
                   }}
                   className="flex-1 min-w-[120px] px-4 py-2.5 rounded-lg text-left text-sm transition-colors"
                   style={{
-                    background:
-                      selectedToken?.address === token.address && !useCustomToken
-                        ? "var(--color-muted)"
-                        : "var(--color-background)",
-                    border:
-                      selectedToken?.address === token.address && !useCustomToken
-                        ? "1px solid var(--color-primary)"
-                        : "1px solid var(--color-border)",
+                    background: selectedToken?.address === token.address &&
+                        !useCustomToken
+                      ? "var(--color-muted)"
+                      : "var(--color-background)",
+                    border: selectedToken?.address === token.address &&
+                        !useCustomToken
+                      ? "1px solid var(--color-primary)"
+                      : "1px solid var(--color-border)",
                     color: "var(--color-foreground)",
                     borderRadius: "calc(var(--radius) - 2px)",
                   }}
