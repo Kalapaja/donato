@@ -9,7 +9,9 @@
     "build:dev": "vite build --mode development",
     "preview": "vite preview",
     "lint": "deno lint src/",
-    "www": "deno task --unstable --quiet --config=./www/deno.json dev"
+    "www": "deno task --unstable --quiet --config=./www/deno.json dev",
+    "deploy": "deno install && deno task www:install && deno task build",
+    "www:install": "cd www && deno install"
   },
   "imports": {
     "@1inch/cross-chain-sdk": "npm:@1inch/cross-chain-sdk@1.0.0",

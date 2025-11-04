@@ -40,12 +40,7 @@ export function WidgetConfigurator(
       </div>
 
       <div className="space-y-6">
-        <div>
-          <RecipientSection
-            recipient={config.recipient || ""}
-            onRecipientChange={(recipient) => onConfigChange({ recipient })}
-          />
-        </div>
+      
 
         <div
           style={{
@@ -61,6 +56,13 @@ export function WidgetConfigurator(
                 recipientChainId: chainId,
                 recipientTokenAddress: tokenAddress,
               })}
+          />
+        </div>
+
+        <div>
+          <RecipientSection
+            recipient={config.recipient || ""}
+            onRecipientChange={(recipient) => onConfigChange({ recipient })}
           />
         </div>
 

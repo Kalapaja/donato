@@ -36,7 +36,7 @@ export function RecipientSection(
         className="text-sm mb-4"
         style={{ color: "var(--color-muted-foreground)" }}
       >
-        Enter the Ethereum address that will receive donations
+        Enter an address that will receive donations
       </p>
 
       <div className="space-y-2">
