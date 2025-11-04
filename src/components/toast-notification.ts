@@ -1,8 +1,8 @@
-import { LitElement, html, css } from 'lit';
-import { customElement, property, state } from 'lit/decorators.js';
-import type { Toast, ToastType } from '../services/ToastService.ts';
+import { css, html, LitElement } from "lit";
+import { customElement, property, state } from "lit/decorators.js";
+import type { Toast, ToastType } from "../services/ToastService.ts";
 
-@customElement('toast-notification')
+@customElement("toast-notification")
 export class ToastNotification extends LitElement {
   @property({ type: Object })
   accessor toast!: Toast;
@@ -27,7 +27,9 @@ export class ToastNotification extends LitElement {
       background: var(--color-background);
       border: 1px solid var(--color-border);
       border-radius: calc(var(--radius) - 2px);
-      box-shadow: 0 1px 3px 0 oklch(0% 0 0 / 0.1), 0 1px 2px -1px oklch(0% 0 0 / 0.1);
+      box-shadow:
+        0 1px 3px 0 oklch(0% 0 0 / 0.1),
+        0 1px 2px -1px oklch(0% 0 0 / 0.1);
       min-width: 300px;
       max-width: 400px;
       opacity: 0;
@@ -145,7 +147,7 @@ export class ToastNotification extends LitElement {
 
   override connectedCallback() {
     super.connectedCallback();
-    
+
     // Trigger entrance animation
     requestAnimationFrame(() => {
       this.isVisible = true;
@@ -154,61 +156,63 @@ export class ToastNotification extends LitElement {
 
   private handleClose() {
     this.isExiting = true;
-    
+
     // Wait for exit animation to complete
     setTimeout(() => {
-      this.dispatchEvent(new CustomEvent('toast-close', {
-        detail: { id: this.toast.id },
-        bubbles: true,
-        composed: true,
-      }));
+      this.dispatchEvent(
+        new CustomEvent("toast-close", {
+          detail: { id: this.toast.id },
+          bubbles: true,
+          composed: true,
+        }),
+      );
     }, 300);
   }
 
   private getIcon(type: ToastType): string {
     switch (type) {
-      case 'success':
-        return '✓';
-      case 'error':
-        return '✕';
-      case 'warning':
-        return '⚠';
-      case 'info':
-        return 'ℹ';
+      case "success":
+        return "✓";
+      case "error":
+        return "✕";
+      case "warning":
+        return "⚠";
+      case "info":
+        return "ℹ";
       default:
-        return 'ℹ';
+        return "ℹ";
     }
   }
 
   private getAriaLabel(type: ToastType): string {
     switch (type) {
-      case 'success':
-        return 'Success notification';
-      case 'error':
-        return 'Error notification';
-      case 'warning':
-        return 'Warning notification';
-      case 'info':
-        return 'Information notification';
+      case "success":
+        return "Success notification";
+      case "error":
+        return "Error notification";
+      case "warning":
+        return "Warning notification";
+      case "info":
+        return "Information notification";
       default:
-        return 'Notification';
+        return "Notification";
     }
   }
 
   override render() {
     const classes = [
-      'toast',
+      "toast",
       this.toast.type,
-      this.isVisible && !this.isExiting ? 'visible' : '',
-      this.isExiting ? 'exiting' : '',
-    ].filter(Boolean).join(' ');
+      this.isVisible && !this.isExiting ? "visible" : "",
+      this.isExiting ? "exiting" : "",
+    ].filter(Boolean).join(" ");
 
     return html`
       <div
-        class=${classes}
+        class="${classes}"
         role="alert"
-        aria-live=${this.toast.type === 'error' ? 'assertive' : 'polite'}
-        aria-label=${this.getAriaLabel(this.toast.type)}
+        aria-live="${this.toast.type === "error" ? "assertive" : "polite"}"
+        aria-label="${this.getAriaLabel(this.toast.type)}"
       >
         <div class="toast-icon" aria-hidden="true">
           ${this.getIcon(this.toast.type)}
@@ -218,7 +222,7 @@ export class ToastNotification extends LitElement {
         </div>
         <button
           class="toast-close"
-          @click=${this.handleClose}
+          @click="${this.handleClose}"
           aria-label="Close notification"
           type="button"
         >
@@ -231,6 +235,6 @@ export class ToastNotification extends LitElement {
 
 declare global {
   interface HTMLElementTagNameMap {
-    'toast-notification': ToastNotification;
+    "toast-notification": ToastNotification;
   }
 }

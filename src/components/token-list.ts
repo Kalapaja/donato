@@ -1,17 +1,17 @@
-import { LitElement, html, css } from 'lit';
-import { customElement, property, state } from 'lit/decorators.js';
-import type { Token } from '@lifi/sdk';
-import type { Chain } from '../services/ChainService.ts';
+import { css, html, LitElement } from "lit";
+import { customElement, property, state } from "lit/decorators.js";
+import type { Token } from "@lifi/sdk";
+import type { Chain } from "../services/ChainService.ts";
 
 // Import child component
-import './token-item.ts';
+import "./token-item.ts";
 
 interface TokenGroup {
   chain: Chain;
   tokens: Token[];
 }
 
-@customElement('token-list')
+@customElement("token-list")
 export class TokenList extends LitElement {
   @property({ type: Array })
   accessor tokens: Token[] = [];
@@ -23,7 +23,7 @@ export class TokenList extends LitElement {
   accessor selectedToken: Token | null = null;
 
   @state()
-  private accessor searchQuery: string = '';
+  private accessor searchQuery: string = "";
 
   @state()
   private accessor filteredTokens: Token[] = [];
@@ -147,20 +147,22 @@ export class TokenList extends LitElement {
   override updated(changedProperties: Map<string, unknown>) {
     super.updated(changedProperties);
 
-    if (changedProperties.has('tokens') || changedProperties.has('searchQuery')) {
+    if (
+      changedProperties.has("tokens") || changedProperties.has("searchQuery")
+    ) {
       this.filterTokens();
     }
   }
 
   private filterTokens() {
-    if (!this.searchQuery || this.searchQuery.trim() === '') {
+    if (!this.searchQuery || this.searchQuery.trim() === "") {
       this.filteredTokens = this.tokens;
       return;
     }
 
     const query = this.searchQuery.toLowerCase().trim();
 
-    this.filteredTokens = this.tokens.filter(token => {
+    this.filteredTokens = this.tokens.filter((token) => {
       const symbolMatch = token.symbol.toLowerCase().includes(query);
       const nameMatch = token.name.toLowerCase().includes(query);
       const addressMatch = token.address.toLowerCase().includes(query);
@@ -177,11 +179,13 @@ export class TokenList extends LitElement {
 
   private handleTokenSelect(event: CustomEvent<Token>) {
     // Emit token-selected event
-    this.dispatchEvent(new CustomEvent('token-selected', {
-      detail: event.detail,
-      bubbles: true,
-      composed: true,
-    }));
+    this.dispatchEvent(
+      new CustomEvent("token-selected", {
+        detail: event.detail,
+        bubbles: true,
+        composed: true,
+      }),
+    );
   }
 
   private handleKeyDown(event: KeyboardEvent) {
@@ -192,33 +196,35 @@ export class TokenList extends LitElement {
     }
 
     switch (event.key) {
-      case 'ArrowDown':
+      case "ArrowDown":
         event.preventDefault();
         this.focusedIndex = Math.min(this.focusedIndex + 1, tokenCount - 1);
         this.scrollToFocusedItem();
         break;
 
-      case 'ArrowUp':
+      case "ArrowUp":
         event.preventDefault();
         this.focusedIndex = Math.max(this.focusedIndex - 1, 0);
         this.scrollToFocusedItem();
         break;
 
-      case 'Enter':
+      case "Enter":
         event.preventDefault();
         if (this.focusedIndex >= 0 && this.focusedIndex < tokenCount) {
           const token = this.filteredTokens[this.focusedIndex];
-          this.dispatchEvent(new CustomEvent('token-selected', {
-            detail: token,
-            bubbles: true,
-            composed: true,
-          }));
+          this.dispatchEvent(
+            new CustomEvent("token-selected", {
+              detail: token,
+              bubbles: true,
+              composed: true,
+            }),
+          );
         }
         break;
 
-      case 'Escape':
+      case "Escape":
         event.preventDefault();
-        this.searchQuery = '';
+        this.searchQuery = "";
         this.focusedIndex = -1;
         break;
     }
@@ -228,40 +234,42 @@ export class TokenList extends LitElement {
     // Request update and then scroll
     this.requestUpdate();
     this.updateComplete.then(() => {
-      const tokenGroups = this.shadowRoot?.querySelector('.token-groups');
-      const focusedItem = this.shadowRoot?.querySelector(`token-item[data-index="${this.focusedIndex}"]`);
+      const tokenGroups = this.shadowRoot?.querySelector(".token-groups");
+      const focusedItem = this.shadowRoot?.querySelector(
+        `token-item[data-index="${this.focusedIndex}"]`,
+      );
 
       if (tokenGroups && focusedItem) {
         const itemRect = focusedItem.getBoundingClientRect();
         const containerRect = tokenGroups.getBoundingClientRect();
 
         if (itemRect.bottom > containerRect.bottom) {
-          focusedItem.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+          focusedItem.scrollIntoView({ block: "nearest", behavior: "smooth" });
         } else if (itemRect.top < containerRect.top) {
-          focusedItem.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+          focusedItem.scrollIntoView({ block: "nearest", behavior: "smooth" });
         }
       }
     });
   }
 
   private getChainName(chainId: number): string {
-    const chain = this.chains.find(c => c.id === chainId);
+    const chain = this.chains.find((c) => c.id === chainId);
     if (chain?.name) {
       return chain.name;
     }
-    
+
     // Known chain names as fallback
     const knownChains: Record<number, string> = {
-      1: 'Ethereum',
-      42161: 'Arbitrum',
-      137: 'Polygon',
-      56: 'BNB Chain',
-      10: 'Optimism',
-      8453: 'Base',
-      43114: 'Avalanche',
-      250: 'Fantom',
+      1: "Ethereum",
+      42161: "Arbitrum",
+      137: "Polygon",
+      56: "BNB Chain",
+      10: "Optimism",
+      8453: "Base",
+      43114: "Avalanche",
+      250: "Fantom",
     };
-    
+
     return knownChains[chainId] || `Network ${chainId}`;
   }
 
@@ -282,7 +290,7 @@ export class TokenList extends LitElement {
     for (const chainId of chainOrder) {
       const tokens = grouped.get(chainId);
       if (tokens && tokens.length > 0) {
-        const chain = this.chains.find(c => c.id === chainId);
+        const chain = this.chains.find((c) => c.id === chainId);
         if (chain) {
           groups.push({ chain, tokens });
         } else {
@@ -292,12 +300,12 @@ export class TokenList extends LitElement {
             chain: {
               id: chainId,
               name: chainName,
-              key: `${chainName.toLowerCase().replace(/\s+/g, '-')}`,
-              chainType: 'EVM',
+              key: `${chainName.toLowerCase().replace(/\s+/g, "-")}`,
+              chainType: "EVM",
               nativeToken: {
-                address: '0x0000000000000000000000000000000000000000',
-                symbol: 'ETH',
-                name: 'Ethereum',
+                address: "0x0000000000000000000000000000000000000000",
+                symbol: "ETH",
+                name: "Ethereum",
                 decimals: 18,
               },
             },
@@ -310,7 +318,7 @@ export class TokenList extends LitElement {
     // Add any remaining chains not in the predefined order
     for (const [chainId, tokens] of grouped.entries()) {
       if (!chainOrder.includes(chainId)) {
-        const chain = this.chains.find(c => c.id === chainId);
+        const chain = this.chains.find((c) => c.id === chainId);
         if (chain) {
           groups.push({ chain, tokens });
         }
@@ -330,73 +338,80 @@ export class TokenList extends LitElement {
           class="search-input"
           type="text"
           placeholder="Search tokens..."
-          .value=${this.searchQuery}
-          @input=${this.handleSearchInput}
-          @keydown=${this.handleKeyDown}
+          .value="${this.searchQuery}"
+          @input="${this.handleSearchInput}"
+          @keydown="${this.handleKeyDown}"
           aria-label="Search tokens"
           autofocus
         />
       </div>
 
-      ${this.filteredTokens.length === 0 ? html`
-        <div class="empty-state">
-          <svg
-            class="empty-icon"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-            aria-hidden="true"
-          >
-            <path
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              stroke-width="2"
-              d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-            />
-          </svg>
-          <div>No tokens found</div>
-          ${this.searchQuery ? html`
-            <div style="margin-top: 0.25rem; font-size: 0.75rem;">
-              Try a different search term
-            </div>
-          ` : ''}
-        </div>
-      ` : html`
-        <div class="token-groups" role="listbox">
-          ${tokenGroups.map(group => html`
-            <div class="token-group">
-              <div class="group-header">
-                ${group.chain.name}
-              </div>
-              <div class="group-tokens">
-                ${group.tokens.map(token => {
-                  const currentIndex = tokenIndex++;
-                  const isSelected = this.selectedToken?.address === token.address &&
-                                   this.selectedToken?.chainId === token.chainId;
-                  const isFocused = currentIndex === this.focusedIndex;
+      ${this.filteredTokens.length === 0
+        ? html`
+          <div class="empty-state">
+            <svg
+              class="empty-icon"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+              aria-hidden="true"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+              />
+            </svg>
+            <div>No tokens found</div>
+            ${this.searchQuery
+              ? html`
+                <div style="margin-top: 0.25rem; font-size: 0.75rem;">
+                  Try a different search term
+                </div>
+              `
+              : ""}
+          </div>
+        `
+        : html`
+          <div class="token-groups" role="listbox">
+            ${tokenGroups.map((group) =>
+              html`
+                <div class="token-group">
+                  <div class="group-header">
+                    ${group.chain.name}
+                  </div>
+                  <div class="group-tokens">
+                    ${group.tokens.map((token) => {
+                      const currentIndex = tokenIndex++;
+                      const isSelected =
+                        this.selectedToken?.address === token.address &&
+                        this.selectedToken?.chainId === token.chainId;
+                      const isFocused = currentIndex === this.focusedIndex;
 
-                  return html`
-                    <token-item
-                      .token=${token}
-                      .chain=${group.chain}
-                      .isSelected=${isSelected}
-                      .isFocused=${isFocused}
-                      data-index=${currentIndex}
-                      @token-clicked=${this.handleTokenSelect}
-                    ></token-item>
-                  `;
-                })}
-              </div>
-            </div>
-          `)}
-        </div>
-      `}
+                      return html`
+                        <token-item
+                          .token="${token}"
+                          .chain="${group.chain}"
+                          .isSelected="${isSelected}"
+                          .isFocused="${isFocused}"
+                          data-index="${currentIndex}"
+                          @token-clicked="${this.handleTokenSelect}"
+                        ></token-item>
+                      `;
+                    })}
+                  </div>
+                </div>
+              `
+            )}
+          </div>
+        `}
     `;
   }
 }
 
 declare global {
   interface HTMLElementTagNameMap {
-    'token-list': TokenList;
+    "token-list": TokenList;
   }
 }

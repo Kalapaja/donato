@@ -1,11 +1,11 @@
-import type { Token } from '@lifi/sdk';
-import type { LiFiService } from './LiFiService.ts';
+import type { Token } from "@lifi/sdk";
+import type { LiFiService } from "./LiFiService.ts";
 
 export interface Chain {
   id: number;
   name: string;
   key: string;
-  chainType: 'EVM';
+  chainType: "EVM";
   nativeToken: {
     address: string;
     symbol: string;
@@ -26,73 +26,73 @@ export class ChainService {
   private readonly SUPPORTED_CHAINS = [
     {
       id: 1,
-      name: 'Ethereum',
-      key: 'eth',
-      chainType: 'EVM' as const,
+      name: "Ethereum",
+      key: "eth",
+      chainType: "EVM" as const,
       nativeToken: {
-        address: '0x0000000000000000000000000000000000000000',
-        symbol: 'ETH',
-        name: 'Ethereum',
+        address: "0x0000000000000000000000000000000000000000",
+        symbol: "ETH",
+        name: "Ethereum",
         decimals: 18,
       },
     },
     {
       id: 42161,
-      name: 'Arbitrum',
-      key: 'arb',
-      chainType: 'EVM' as const,
+      name: "Arbitrum",
+      key: "arb",
+      chainType: "EVM" as const,
       nativeToken: {
-        address: '0x0000000000000000000000000000000000000000',
-        symbol: 'ETH',
-        name: 'Ethereum',
+        address: "0x0000000000000000000000000000000000000000",
+        symbol: "ETH",
+        name: "Ethereum",
         decimals: 18,
       },
     },
     {
       id: 137,
-      name: 'Polygon',
-      key: 'pol',
-      chainType: 'EVM' as const,
+      name: "Polygon",
+      key: "pol",
+      chainType: "EVM" as const,
       nativeToken: {
-        address: '0x0000000000000000000000000000000000000000',
-        symbol: 'POL',
-        name: 'Polygon',
+        address: "0x0000000000000000000000000000000000000000",
+        symbol: "POL",
+        name: "Polygon",
         decimals: 18,
       },
     },
     {
       id: 56,
-      name: 'BNB Chain',
-      key: 'bsc',
-      chainType: 'EVM' as const,
+      name: "BNB Chain",
+      key: "bsc",
+      chainType: "EVM" as const,
       nativeToken: {
-        address: '0x0000000000000000000000000000000000000000',
-        symbol: 'BNB',
-        name: 'BNB',
+        address: "0x0000000000000000000000000000000000000000",
+        symbol: "BNB",
+        name: "BNB",
         decimals: 18,
       },
     },
     {
       id: 10,
-      name: 'Optimism',
-      key: 'opt',
-      chainType: 'EVM' as const,
+      name: "Optimism",
+      key: "opt",
+      chainType: "EVM" as const,
       nativeToken: {
-        address: '0x0000000000000000000000000000000000000000',
-        symbol: 'ETH',
-        name: 'Ethereum',
+        address: "0x0000000000000000000000000000000000000000",
+        symbol: "ETH",
+        name: "Ethereum",
         decimals: 18,
       },
     },
     {
       id: 8453,
-      name: 'Base',
-      key: 'base',
-      chainType: 'EVM' as const,
+      name: "Base",
+      key: "base",
+      chainType: "EVM" as const,
       nativeToken: {
-        address: '0x0000000000000000000000000000000000000000',
-        symbol: 'ETH',
-        name: 'Ethereum',
+        address: "0x0000000000000000000000000000000000000000",
+        symbol: "ETH",
+        name: "Ethereum",
         decimals: 18,
       },
     },
@@ -113,11 +113,11 @@ export class ChainService {
     try {
       // Fetch chains from LiFi
       const lifiChains = await this.lifiService.getChains();
-      
+
       // Merge with our supported chains configuration
-      this.chains = this.SUPPORTED_CHAINS.map(supportedChain => {
+      this.chains = this.SUPPORTED_CHAINS.map((supportedChain) => {
         const lifiChain = lifiChains.find((c) => c.id === supportedChain.id);
-        
+
         return {
           ...supportedChain,
           logoURI: lifiChain?.logoURI,
@@ -129,12 +129,12 @@ export class ChainService {
       });
 
       // Fetch tokens for all supported chains
-      const chainIds = this.chains.map(chain => chain.id);
+      const chainIds = this.chains.map((chain) => chain.id);
       this.tokens = await this.lifiService.getTokens(chainIds);
 
       this.initialized = true;
     } catch (error) {
-      console.error('Failed to initialize ChainService:', error);
+      console.error("Failed to initialize ChainService:", error);
       // Use fallback configuration if API fails
       this.chains = this.SUPPORTED_CHAINS;
       this.initialized = true;
@@ -152,14 +152,14 @@ export class ChainService {
    * Get chain by ID
    */
   getChain(chainId: number): Chain | undefined {
-    return this.chains.find(chain => chain.id === chainId);
+    return this.chains.find((chain) => chain.id === chainId);
   }
 
   /**
    * Get chain by key
    */
   getChainByKey(key: string): Chain | undefined {
-    return this.chains.find(chain => chain.key === key);
+    return this.chains.find((chain) => chain.key === key);
   }
 
   /**
@@ -173,7 +173,7 @@ export class ChainService {
    * Get tokens for a specific chain
    */
   getTokens(chainId: number): Token[] {
-    return this.tokens.filter(token => token.chainId === chainId);
+    return this.tokens.filter((token) => token.chainId === chainId);
   }
 
   /**
@@ -181,9 +181,9 @@ export class ChainService {
    */
   getToken(chainId: number, address: string): Token | undefined {
     return this.tokens.find(
-      token => 
-        token.chainId === chainId && 
-        token.address.toLowerCase() === address.toLowerCase()
+      (token) =>
+        token.chainId === chainId &&
+        token.address.toLowerCase() === address.toLowerCase(),
     );
   }
 
@@ -191,13 +191,13 @@ export class ChainService {
    * Search tokens by query (symbol, name, or address)
    */
   searchTokens(query: string): Token[] {
-    if (!query || query.trim() === '') {
+    if (!query || query.trim() === "") {
       return this.tokens;
     }
 
     const lowerQuery = query.toLowerCase().trim();
 
-    return this.tokens.filter(token => {
+    return this.tokens.filter((token) => {
       const symbolMatch = token.symbol.toLowerCase().includes(lowerQuery);
       const nameMatch = token.name.toLowerCase().includes(lowerQuery);
       const addressMatch = token.address.toLowerCase().includes(lowerQuery);
@@ -210,7 +210,7 @@ export class ChainService {
    * Filter tokens by chain IDs
    */
   filterTokensByChains(chainIds: number[]): Token[] {
-    return this.tokens.filter(token => chainIds.includes(token.chainId));
+    return this.tokens.filter((token) => chainIds.includes(token.chainId));
   }
 
   /**
@@ -235,34 +235,34 @@ export class ChainService {
     // Define popular token addresses for each chain
     const popularTokens = [
       // Ethereum
-      { chainId: 1, address: '0x0000000000000000000000000000000000000000' }, // ETH
-      { chainId: 1, address: '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48' }, // USDC
-      { chainId: 1, address: '0xdAC17F958D2ee523a2206206994597C13D831ec7' }, // USDT
-      { chainId: 1, address: '0x2260FAC5E5542a773Aa44fBCfeDf7C193bc2C599' }, // WBTC
-      { chainId: 1, address: '0x6B175474E89094C44Da98b954EedeAC495271d0F' }, // DAI
-      
+      { chainId: 1, address: "0x0000000000000000000000000000000000000000" }, // ETH
+      { chainId: 1, address: "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48" }, // USDC
+      { chainId: 1, address: "0xdAC17F958D2ee523a2206206994597C13D831ec7" }, // USDT
+      { chainId: 1, address: "0x2260FAC5E5542a773Aa44fBCfeDf7C193bc2C599" }, // WBTC
+      { chainId: 1, address: "0x6B175474E89094C44Da98b954EedeAC495271d0F" }, // DAI
+
       // Arbitrum
-      { chainId: 42161, address: '0x0000000000000000000000000000000000000000' }, // ETH
-      { chainId: 42161, address: '0xaf88d065e77c8cC2239327C5EDb3A432268e5831' }, // USDC
-      { chainId: 42161, address: '0xFd086bC7CD5C481DCC9C85ebE478A1C0b69FCbb9' }, // USDT
-      
+      { chainId: 42161, address: "0x0000000000000000000000000000000000000000" }, // ETH
+      { chainId: 42161, address: "0xaf88d065e77c8cC2239327C5EDb3A432268e5831" }, // USDC
+      { chainId: 42161, address: "0xFd086bC7CD5C481DCC9C85ebE478A1C0b69FCbb9" }, // USDT
+
       // Polygon
-      { chainId: 137, address: '0x0000000000000000000000000000000000000000' }, // POL
-      { chainId: 137, address: '0x3c499c542cEF5E3811e1192ce70d8cC03d5c3359' }, // USDC
-      { chainId: 137, address: '0xc2132D05D31c914a87C6611C10748AEb04B58e8F' }, // USDT
-      
+      { chainId: 137, address: "0x0000000000000000000000000000000000000000" }, // POL
+      { chainId: 137, address: "0x3c499c542cEF5E3811e1192ce70d8cC03d5c3359" }, // USDC
+      { chainId: 137, address: "0xc2132D05D31c914a87C6611C10748AEb04B58e8F" }, // USDT
+
       // BSC
-      { chainId: 56, address: '0x0000000000000000000000000000000000000000' }, // BNB
-      { chainId: 56, address: '0x8AC76a51cc950d9822D68b83fE1Ad97B32Cd580d' }, // USDC
-      { chainId: 56, address: '0x55d398326f99059fF775485246999027B3197955' }, // USDT
-      
+      { chainId: 56, address: "0x0000000000000000000000000000000000000000" }, // BNB
+      { chainId: 56, address: "0x8AC76a51cc950d9822D68b83fE1Ad97B32Cd580d" }, // USDC
+      { chainId: 56, address: "0x55d398326f99059fF775485246999027B3197955" }, // USDT
+
       // Optimism
-      { chainId: 10, address: '0x0000000000000000000000000000000000000000' }, // ETH
-      { chainId: 10, address: '0x0b2C639c533813f4Aa9D7837CAf62653d097Ff85' }, // USDC
-      
+      { chainId: 10, address: "0x0000000000000000000000000000000000000000" }, // ETH
+      { chainId: 10, address: "0x0b2C639c533813f4Aa9D7837CAf62653d097Ff85" }, // USDC
+
       // Base
-      { chainId: 8453, address: '0x0000000000000000000000000000000000000000' }, // ETH
-      { chainId: 8453, address: '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913' }, // USDC
+      { chainId: 8453, address: "0x0000000000000000000000000000000000000000" }, // ETH
+      { chainId: 8453, address: "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913" }, // USDC
     ];
 
     const popular: Token[] = [];
@@ -272,7 +272,7 @@ export class ChainService {
       if (token) {
         popular.push(token);
       }
-      
+
       if (popular.length >= limit) {
         break;
       }
@@ -292,10 +292,11 @@ export class ChainService {
 
     // Native tokens typically have address 0x0000... or 0xeeee...
     return this.tokens.find(
-      token =>
+      (token) =>
         token.chainId === chainId &&
-        (token.address === '0x0000000000000000000000000000000000000000' ||
-         token.address.toLowerCase() === '0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee')
+        (token.address === "0x0000000000000000000000000000000000000000" ||
+          token.address.toLowerCase() ===
+            "0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee"),
     );
   }
 
@@ -303,7 +304,7 @@ export class ChainService {
    * Check if a chain is supported
    */
   isChainSupported(chainId: number): boolean {
-    return this.chains.some(chain => chain.id === chainId);
+    return this.chains.some((chain) => chain.id === chainId);
   }
 
   /**
@@ -319,11 +320,11 @@ export class ChainService {
    */
   async refreshTokens(): Promise<void> {
     try {
-      const chainIds = this.chains.map(chain => chain.id);
+      const chainIds = this.chains.map((chain) => chain.id);
       this.tokens = await this.lifiService.getTokens(chainIds);
     } catch (error) {
-      console.error('Failed to refresh tokens:', error);
-      throw new Error('Failed to refresh token list');
+      console.error("Failed to refresh tokens:", error);
+      throw new Error("Failed to refresh token list");
     }
   }
 

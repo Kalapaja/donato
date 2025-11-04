@@ -1,10 +1,10 @@
-import { LitElement, html, css } from 'lit';
-import { customElement, state } from 'lit/decorators.js';
-import { repeat } from 'lit/directives/repeat.js';
-import type { Toast, ToastService } from '../services/ToastService.ts';
-import './toast-notification.ts';
+import { css, html, LitElement } from "lit";
+import { customElement, state } from "lit/decorators.js";
+import { repeat } from "lit/directives/repeat.js";
+import type { Toast, ToastService } from "../services/ToastService.ts";
+import "./toast-notification.ts";
 
-@customElement('toast-container')
+@customElement("toast-container")
 export class ToastContainer extends LitElement {
   @state()
   private accessor toasts: Toast[] = [];
@@ -44,7 +44,7 @@ export class ToastContainer extends LitElement {
 
   setToastService(service: ToastService) {
     this.toastService = service;
-    
+
     // Subscribe to toast changes
     this.unsubscribe = this.toastService.subscribe((toasts) => {
       this.toasts = toasts;
@@ -53,7 +53,7 @@ export class ToastContainer extends LitElement {
 
   override disconnectedCallback() {
     super.disconnectedCallback();
-    
+
     // Unsubscribe from toast service
     if (this.unsubscribe) {
       this.unsubscribe();
@@ -70,12 +70,13 @@ export class ToastContainer extends LitElement {
         ${repeat(
           this.toasts,
           (toast) => toast.id,
-          (toast) => html`
-            <toast-notification
-              .toast=${toast}
-              @toast-close=${this.handleToastClose}
-            ></toast-notification>
-          `
+          (toast) =>
+            html`
+              <toast-notification
+                .toast="${toast}"
+                @toast-close="${this.handleToastClose}"
+              ></toast-notification>
+            `,
         )}
       </div>
     `;
@@ -84,6 +85,6 @@ export class ToastContainer extends LitElement {
 
 declare global {
   interface HTMLElementTagNameMap {
-    'toast-container': ToastContainer;
+    "toast-container": ToastContainer;
   }
 }

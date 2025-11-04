@@ -1,13 +1,19 @@
 {
   "tasks": {
-    "dev": "vite --host",
-    "build": "vite build --mode production",
+    "dev": "sh -c 'deno task dev:build & deno task dev:vite & deno task dev:www; wait'",
+    "dev:build": "vite build --mode development --watch",
+    "dev:vite": "vite --host",
+    "dev:www": "deno task --unstable --quiet --config=./www/deno.json www:dev",
+    "build": "vite build --mode production && deno task build:www",
+    "build:www": "deno task --unstable --quiet --config=./www/deno.json build",
     "build:dev": "vite build --mode development",
     "preview": "vite preview",
-    "lint": "deno lint src/"
+    "lint": "deno lint src/",
+    "www": "deno task --unstable --quiet --config=./www/deno.json dev"
   },
   "imports": {
-    "@lifi/sdk": "npm:@lifi/sdk@3.12.14",
+    "@1inch/cross-chain-sdk": "npm:@1inch/cross-chain-sdk@1.0.0",
+    "@1inch/fusion-sdk": "npm:@1inch/fusion-sdk@2.0.0",
     "@reown/appkit": "npm:@reown/appkit@1.8.12",
     "@reown/appkit-adapter-ethers": "npm:@reown/appkit-adapter-ethers@1.8.12",
     "@std/testing": "jsr:@std/testing@1.0.0",

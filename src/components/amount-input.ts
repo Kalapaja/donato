@@ -1,15 +1,15 @@
-import { LitElement, html, css } from 'lit';
-import { customElement, property, state } from 'lit/decorators.js';
-import type { Token } from '../services/WalletService.ts';
-import type { Route } from '@lifi/sdk';
+import { css, html, LitElement } from "lit";
+import { customElement, property, state } from "lit/decorators.js";
+import type { Token } from "../services/WalletService.ts";
+import type { Route } from "@lifi/sdk";
 
-@customElement('amount-input')
+@customElement("amount-input")
 export class AmountInput extends LitElement {
   @property({ type: String })
-  accessor label: string = 'Amount';
+  accessor label: string = "Amount";
 
   @property({ type: String })
-  accessor value: string = '';
+  accessor value: string = "";
 
   @property({ type: Object })
   accessor selectedToken: Token | null = null;
@@ -117,7 +117,9 @@ export class AmountInput extends LitElement {
     }
 
     @keyframes spin {
-      to { transform: rotate(360deg); }
+      to {
+        transform: rotate(360deg);
+      }
     }
 
     .quote-error {
@@ -167,7 +169,7 @@ export class AmountInput extends LitElement {
     super.updated(changedProperties);
 
     // Calculate user pay amount when quote changes
-    if (changedProperties.has('quote') && this.quote) {
+    if (changedProperties.has("quote") && this.quote) {
       this.calculateUserPayAmount();
     }
   }
@@ -191,7 +193,7 @@ export class AmountInput extends LitElement {
       const amount = Number(fromAmount) / Number(divisor);
       this.userPayAmount = amount.toFixed(6);
     } catch (error) {
-      console.error('Failed to calculate user pay amount:', error);
+      console.error("Failed to calculate user pay amount:", error);
       this.userPayAmount = null;
     }
   }
@@ -201,39 +203,41 @@ export class AmountInput extends LitElement {
     let value = input.value;
 
     // Allow only numbers and decimal point
-    value = value.replace(/[^0-9.]/g, '');
+    value = value.replace(/[^0-9.]/g, "");
 
     // Allow only one decimal point
-    const parts = value.split('.');
+    const parts = value.split(".");
     if (parts.length > 2) {
-      value = parts[0] + '.' + parts.slice(1).join('');
+      value = parts[0] + "." + parts.slice(1).join("");
     }
 
     // Limit decimal places to 6
     if (parts.length === 2 && parts[1].length > 6) {
-      value = parts[0] + '.' + parts[1].slice(0, 6);
+      value = parts[0] + "." + parts[1].slice(0, 6);
     }
 
     // Update input value
     input.value = value;
 
     // Emit change event
-    this.dispatchEvent(new CustomEvent('amount-change', {
-      detail: { value },
-      bubbles: true,
-      composed: true,
-    }));
+    this.dispatchEvent(
+      new CustomEvent("amount-change", {
+        detail: { value },
+        bubbles: true,
+        composed: true,
+      }),
+    );
   }
 
   private getEstimatedGasCost(): string {
-    if (!this.quote) return '0.00';
+    if (!this.quote) return "0.00";
 
     let totalGasCostUSD = 0;
 
     for (const step of this.quote.steps) {
       if (step.estimate?.gasCosts) {
         for (const gasCost of step.estimate.gasCosts) {
-          totalGasCostUSD += parseFloat(gasCost.amountUSD || '0');
+          totalGasCostUSD += parseFloat(gasCost.amountUSD || "0");
         }
       }
     }
@@ -254,57 +258,74 @@ export class AmountInput extends LitElement {
             type="text"
             inputmode="decimal"
             placeholder="0.00"
-            .value=${this.value}
-            @input=${this.handleInput}
-            ?disabled=${this.disabled}
-            aria-label=${this.label}
+            .value="${this.value}"
+            @input="${this.handleInput}"
+            ?disabled="${this.disabled}"
+            aria-label="${this.label}"
             aria-describedby="amount-help"
-            aria-invalid=${this.quoteError ? 'true' : 'false'}
+            aria-invalid="${this.quoteError ? "true" : "false"}"
           />
-          ${this.recipientToken ? html`
-            <span class="input-suffix">${this.recipientToken.symbol}</span>
-          ` : undefined}
+          ${this.recipientToken
+            ? html`
+              <span class="input-suffix">${this.recipientToken.symbol}</span>
+            `
+            : undefined}
         </div>
-        
-        ${this.value && parseFloat(this.value) > 0 ? html`
-          ${this.isQuoteLoading ? html`
-            <div class="quote-display">
-              <div class="quote-loading">
-                <span class="loading-spinner" role="status" aria-label="Loading quote"></span>
-                <span>Calculating quote...</span>
-              </div>
-            </div>
-          ` : this.quoteError ? html`
-            <div class="quote-display">
-              <div class="quote-error" role="alert">
-                ${this.quoteError}
-              </div>
-            </div>
-          ` : this.quote && this.userPayAmount && this.selectedToken ? html`
-            <div class="quote-display" role="region" aria-label="Quote information">
-              <div class="quote-info">
-                <div class="quote-row">
-                  <span class="quote-label">You pay:</span>
-                  <span class="quote-value-highlight">
-                    ${parseFloat(this.userPayAmount).toFixed(6)} ${this.selectedToken.symbol}
-                  </span>
+
+        ${this.value && parseFloat(this.value) > 0
+          ? html`
+            ${this.isQuoteLoading
+              ? html`
+                <div class="quote-display">
+                  <div class="quote-loading">
+                    <span
+                      class="loading-spinner"
+                      role="status"
+                      aria-label="Loading quote"
+                    ></span>
+                    <span>Calculating quote...</span>
+                  </div>
                 </div>
-                <div class="quote-row">
-                  <span class="quote-label">Recipient gets:</span>
-                  <span class="quote-value">${this.value} ${this.recipientToken?.symbol || ''}</span>
+              `
+              : this.quoteError
+              ? html`
+                <div class="quote-display">
+                  <div class="quote-error" role="alert">
+                    ${this.quoteError}
+                  </div>
                 </div>
-                <div class="quote-row">
-                  <span class="quote-label">Est. gas:</span>
-                  <span class="quote-value">$${this.getEstimatedGasCost()}</span>
+              `
+              : this.quote && this.userPayAmount && this.selectedToken
+              ? html`
+                <div class="quote-display" role="region" aria-label="Quote information">
+                  <div class="quote-info">
+                    <div class="quote-row">
+                      <span class="quote-label">You pay:</span>
+                      <span class="quote-value-highlight">
+                        ${parseFloat(this.userPayAmount).toFixed(6)} ${this
+                          .selectedToken.symbol}
+                      </span>
+                    </div>
+                    <div class="quote-row">
+                      <span class="quote-label">Recipient gets:</span>
+                      <span class="quote-value">${this
+                        .value} ${this.recipientToken?.symbol || ""}</span>
+                    </div>
+                    <div class="quote-row">
+                      <span class="quote-label">Est. gas:</span>
+                      <span class="quote-value">$${this
+                        .getEstimatedGasCost()}</span>
+                    </div>
+                  </div>
                 </div>
-              </div>
-            </div>
-          ` : ''}
-        ` : html`
-          <p id="amount-help" class="help-text">
-            Enter the amount the recipient will receive
-          </p>
-        `}
+              `
+              : ""}
+          `
+          : html`
+            <p id="amount-help" class="help-text">
+              Enter the amount the recipient will receive
+            </p>
+          `}
       </div>
     `;
   }
@@ -312,6 +333,6 @@ export class AmountInput extends LitElement {
 
 declare global {
   interface HTMLElementTagNameMap {
-    'amount-input': AmountInput;
+    "amount-input": AmountInput;
   }
 }

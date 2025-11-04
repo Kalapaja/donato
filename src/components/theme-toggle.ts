@@ -1,11 +1,11 @@
-import { LitElement, html, css, svg } from 'lit';
-import { customElement, property } from 'lit/decorators.js';
-import type { Theme } from '../services/ThemeService.ts';
+import { css, html, LitElement, svg } from "lit";
+import { customElement, property } from "lit/decorators.js";
+import type { Theme } from "../services/ThemeService.ts";
 
-@customElement('theme-toggle')
+@customElement("theme-toggle")
 export class ThemeToggle extends LitElement {
   @property({ type: String })
-  accessor theme: Theme = 'light';
+  accessor theme: Theme = "light";
 
   static override styles = css`
     :host {
@@ -71,13 +71,15 @@ export class ThemeToggle extends LitElement {
   `;
 
   private handleToggle() {
-    const newTheme: Theme = this.theme === 'light' ? 'dark' : 'light';
-    
-    this.dispatchEvent(new CustomEvent('theme-changed', {
-      detail: newTheme,
-      bubbles: true,
-      composed: true,
-    }));
+    const newTheme: Theme = this.theme === "light" ? "dark" : "light";
+
+    this.dispatchEvent(
+      new CustomEvent("theme-changed", {
+        detail: newTheme,
+        bubbles: true,
+        composed: true,
+      }),
+    );
   }
 
   private renderSunIcon() {
@@ -123,15 +125,15 @@ export class ThemeToggle extends LitElement {
   }
 
   override render() {
-    const isDark = this.theme === 'dark';
-    const ariaLabel = isDark ? 'Switch to light mode' : 'Switch to dark mode';
+    const isDark = this.theme === "dark";
+    const ariaLabel = isDark ? "Switch to light mode" : "Switch to dark mode";
 
     return html`
       <button
         class="toggle-button"
-        @click=${this.handleToggle}
-        aria-label=${ariaLabel}
-        title=${ariaLabel}
+        @click="${this.handleToggle}"
+        aria-label="${ariaLabel}"
+        title="${ariaLabel}"
         type="button"
       >
         ${isDark ? this.renderSunIcon() : this.renderMoonIcon()}
@@ -142,6 +144,6 @@ export class ThemeToggle extends LitElement {
 
 declare global {
   interface HTMLElementTagNameMap {
-    'theme-toggle': ThemeToggle;
+    "theme-toggle": ThemeToggle;
   }
 }

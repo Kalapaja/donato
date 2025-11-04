@@ -1,4 +1,4 @@
-export type ToastType = 'success' | 'error' | 'info' | 'warning';
+export type ToastType = "success" | "error" | "info" | "warning";
 
 export interface ToastOptions {
   message: string;
@@ -26,7 +26,7 @@ export class ToastService {
   success(message: string, duration?: number): string {
     return this.show({
       message,
-      type: 'success',
+      type: "success",
       duration,
     });
   }
@@ -37,7 +37,7 @@ export class ToastService {
   error(message: string, duration?: number): string {
     return this.show({
       message,
-      type: 'error',
+      type: "error",
       duration,
     });
   }
@@ -48,7 +48,7 @@ export class ToastService {
   info(message: string, duration?: number): string {
     return this.show({
       message,
-      type: 'info',
+      type: "info",
       duration,
     });
   }
@@ -59,7 +59,7 @@ export class ToastService {
   warning(message: string, duration?: number): string {
     return this.show({
       message,
-      type: 'warning',
+      type: "warning",
       duration,
     });
   }
@@ -96,8 +96,8 @@ export class ToastService {
    * Dismiss a toast by ID
    */
   dismiss(id: string): void {
-    const index = this.toasts.findIndex(toast => toast.id === id);
-    
+    const index = this.toasts.findIndex((toast) => toast.id === id);
+
     if (index !== -1) {
       this.toasts.splice(index, 1);
       this.notifyCallbacks();
@@ -124,10 +124,10 @@ export class ToastService {
    */
   subscribe(callback: ToastCallback): () => void {
     this.callbacks.add(callback);
-    
+
     // Immediately call with current toasts
     callback(this.getToasts());
-    
+
     return () => this.callbacks.delete(callback);
   }
 
@@ -136,11 +136,11 @@ export class ToastService {
    */
   private notifyCallbacks(): void {
     const toasts = this.getToasts();
-    this.callbacks.forEach(callback => {
+    this.callbacks.forEach((callback) => {
       try {
         callback(toasts);
       } catch (error) {
-        console.error('Error in toast callback:', error);
+        console.error("Error in toast callback:", error);
       }
     });
   }
@@ -178,15 +178,15 @@ export class ToastService {
    * Get toasts by type
    */
   getToastsByType(type: ToastType): Toast[] {
-    return this.toasts.filter(toast => toast.type === type);
+    return this.toasts.filter((toast) => toast.type === type);
   }
 
   /**
    * Update a toast message
    */
   update(id: string, message: string): void {
-    const toast = this.toasts.find(t => t.id === id);
-    
+    const toast = this.toasts.find((t) => t.id === id);
+
     if (toast) {
       toast.message = message;
       this.notifyCallbacks();
@@ -197,7 +197,7 @@ export class ToastService {
    * Check if a toast exists
    */
   exists(id: string): boolean {
-    return this.toasts.some(toast => toast.id === id);
+    return this.toasts.some((toast) => toast.id === id);
   }
 }
 

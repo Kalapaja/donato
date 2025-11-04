@@ -1,10 +1,14 @@
-import { LitElement, html, css } from 'lit';
-import { customElement, property, state } from 'lit/decorators.js';
-import type { WalletService, Token, WalletAccount } from '../services/WalletService.ts';
-import type { Address } from 'viem';
-import './token-selector.ts';
+import { css, html, LitElement } from "lit";
+import { customElement, property, state } from "lit/decorators.js";
+import type {
+  Token,
+  WalletAccount,
+  WalletService,
+} from "../services/WalletService.ts";
+import type { Address } from "viem";
+import "./token-selector.ts";
 
-@customElement('wallet-section')
+@customElement("wallet-section")
 export class WalletSection extends LitElement {
   @property({ type: Object })
   accessor walletService!: WalletService;
@@ -73,7 +77,7 @@ export class WalletSection extends LitElement {
     }
 
     .wallet-address {
-      font-family: 'Courier New', monospace;
+      font-family: "Courier New", monospace;
       font-size: 0.875rem;
       color: var(--color-foreground);
       font-weight: 500;
@@ -181,7 +185,9 @@ export class WalletSection extends LitElement {
     }
 
     @keyframes spin {
-      to { transform: rotate(360deg); }
+      to {
+        transform: rotate(360deg);
+      }
     }
   `;
 
@@ -200,32 +206,40 @@ export class WalletSection extends LitElement {
     if (!this.walletService) return;
 
     // Listen for account changes
-    const unsubscribeAccount = this.walletService.onAccountChanged((account: WalletAccount) => {
-      this.address = account.address;
-      this.chainId = account.chainId;
-      this.walletConnected = true;
-      this.updateBalance();
-      
-      this.dispatchEvent(new CustomEvent('wallet-connected', {
-        detail: account,
-        bubbles: true,
-        composed: true,
-      }));
-    });
+    const unsubscribeAccount = this.walletService.onAccountChanged(
+      (account: WalletAccount) => {
+        this.address = account.address;
+        this.chainId = account.chainId;
+        this.walletConnected = true;
+        this.updateBalance();
+
+        this.dispatchEvent(
+          new CustomEvent("wallet-connected", {
+            detail: account,
+            bubbles: true,
+            composed: true,
+          }),
+        );
+      },
+    );
 
     // Listen for chain changes
-    const unsubscribeChain = this.walletService.onChainChanged((newChainId: number) => {
-      this.chainId = newChainId;
-      this.updateBalance();
-      
-      this.dispatchEvent(new CustomEvent('network-switched', {
-        detail: { chainId: newChainId },
-        bubbles: true,
-        composed: true,
-      }));
+    const unsubscribeChain = this.walletService.onChainChanged(
+      (newChainId: number) => {
+        this.chainId = newChainId;
+        this.updateBalance();
 
-      this.walletService.closeModal();
-    });
+        this.dispatchEvent(
+          new CustomEvent("network-switched", {
+            detail: { chainId: newChainId },
+            bubbles: true,
+            composed: true,
+          }),
+        );
+
+        this.walletService.closeModal();
+      },
+    );
 
     // Listen for disconnect
     const unsubscribeDisconnect = this.walletService.onDisconnect(() => {
@@ -233,18 +247,24 @@ export class WalletSection extends LitElement {
       this.chainId = null;
       this.walletConnected = false;
       this.balance = null;
-      
-      this.dispatchEvent(new CustomEvent('wallet-disconnected', {
-        bubbles: true,
-        composed: true,
-      }));
+
+      this.dispatchEvent(
+        new CustomEvent("wallet-disconnected", {
+          bubbles: true,
+          composed: true,
+        }),
+      );
     });
 
-    this.cleanupFunctions.push(unsubscribeAccount, unsubscribeChain, unsubscribeDisconnect);
+    this.cleanupFunctions.push(
+      unsubscribeAccount,
+      unsubscribeChain,
+      unsubscribeDisconnect,
+    );
   }
 
   private cleanup() {
-    this.cleanupFunctions.forEach(fn => fn());
+    this.cleanupFunctions.forEach((fn) => fn());
     this.cleanupFunctions = [];
   }
 
@@ -272,11 +292,11 @@ export class WalletSection extends LitElement {
     try {
       const formattedBalance = await this.walletService.getFormattedBalance(
         this.selectedToken,
-        this.address
+        this.address,
       );
       this.balance = formattedBalance;
     } catch (error) {
-      console.error('Failed to fetch balance:', error);
+      console.error("Failed to fetch balance:", error);
       this.balance = null;
     } finally {
       this.isLoadingBalance = false;
@@ -291,16 +311,20 @@ export class WalletSection extends LitElement {
     try {
       // Open AppKit modal instead of programmatic connection
       await this.walletService.openModal();
-
-      
     } catch (error) {
-      console.error('Failed to open wallet modal:', error);
-      
-      this.dispatchEvent(new CustomEvent('wallet-error', {
-        detail: { error: error instanceof Error ? error.message : 'Failed to open wallet connection' },
-        bubbles: true,
-        composed: true,
-      }));
+      console.error("Failed to open wallet modal:", error);
+
+      this.dispatchEvent(
+        new CustomEvent("wallet-error", {
+          detail: {
+            error: error instanceof Error
+              ? error.message
+              : "Failed to open wallet connection",
+          },
+          bubbles: true,
+          composed: true,
+        }),
+      );
     } finally {
       this.isConnecting = false;
     }
@@ -312,7 +336,7 @@ export class WalletSection extends LitElement {
     try {
       await this.walletService.disconnect();
     } catch (error) {
-      console.error('Failed to disconnect wallet:', error);
+      console.error("Failed to disconnect wallet:", error);
     }
   }
 
@@ -326,13 +350,19 @@ export class WalletSection extends LitElement {
     try {
       await this.walletService.switchChain(targetChainId);
     } catch (error) {
-      console.error('Failed to switch network:', error);
-      
-      this.dispatchEvent(new CustomEvent('wallet-error', {
-        detail: { error: error instanceof Error ? error.message : 'Failed to switch network' },
-        bubbles: true,
-        composed: true,
-      }));
+      console.error("Failed to switch network:", error);
+
+      this.dispatchEvent(
+        new CustomEvent("wallet-error", {
+          detail: {
+            error: error instanceof Error
+              ? error.message
+              : "Failed to switch network",
+          },
+          bubbles: true,
+          composed: true,
+        }),
+      );
     }
   }
 
@@ -342,13 +372,19 @@ export class WalletSection extends LitElement {
     try {
       await this.walletService.openNetworkModal();
     } catch (error) {
-      console.error('Failed to open network modal:', error);
-      
-      this.dispatchEvent(new CustomEvent('wallet-error', {
-        detail: { error: error instanceof Error ? error.message : 'Failed to open network selector' },
-        bubbles: true,
-        composed: true,
-      }));
+      console.error("Failed to open network modal:", error);
+
+      this.dispatchEvent(
+        new CustomEvent("wallet-error", {
+          detail: {
+            error: error instanceof Error
+              ? error.message
+              : "Failed to open network selector",
+          },
+          bubbles: true,
+          composed: true,
+        }),
+      );
     }
   }
 
@@ -356,26 +392,26 @@ export class WalletSection extends LitElement {
     super.updated(changedProperties);
 
     // Update balance when selected token changes
-    if (changedProperties.has('selectedToken') && this.walletConnected) {
+    if (changedProperties.has("selectedToken") && this.walletConnected) {
       this.updateBalance();
     }
   }
 
   private get isNetworkMismatch(): boolean {
-    return this.walletConnected && 
-           this.selectedToken !== null && 
-           this.chainId !== null && 
-           this.chainId !== this.selectedToken.chainId;
+    return this.walletConnected &&
+      this.selectedToken !== null &&
+      this.chainId !== null &&
+      this.chainId !== this.selectedToken.chainId;
   }
 
   private getNetworkName(chainId: number): string {
     const networks: Record<number, string> = {
-      1: 'Ethereum',
-      42161: 'Arbitrum',
-      137: 'Polygon',
-      56: 'BSC',
-      10: 'Optimism',
-      8453: 'Base',
+      1: "Ethereum",
+      42161: "Arbitrum",
+      137: "Polygon",
+      56: "BSC",
+      10: "Optimism",
+      8453: "Base",
     };
     return networks[chainId] || `Chain ${chainId}`;
   }
@@ -387,11 +423,13 @@ export class WalletSection extends LitElement {
 
   private handleTokenSelect(event: CustomEvent<Token>) {
     // Propagate the event up to parent
-    this.dispatchEvent(new CustomEvent('token-selected', {
-      detail: event.detail,
-      bubbles: true,
-      composed: true,
-    }));
+    this.dispatchEvent(
+      new CustomEvent("token-selected", {
+        detail: event.detail,
+        bubbles: true,
+        composed: true,
+      }),
+    );
   }
 
   override render() {
@@ -400,14 +438,16 @@ export class WalletSection extends LitElement {
         <div class="wallet-container">
           <button
             class="button"
-            @click=${this.handleConnect}
-            ?disabled=${this.isConnecting}
+            @click="${this.handleConnect}"
+            ?disabled="${this.isConnecting}"
             aria-label="Connect wallet"
           >
-            ${this.isConnecting ? html`
-              <span class="loading-spinner"></span>
-              Connecting...
-            ` : 'Connect Wallet'}
+            ${this.isConnecting
+              ? html`
+                <span class="loading-spinner"></span>
+                Connecting...
+              `
+              : "Connect Wallet"}
           </button>
         </div>
       `;
@@ -418,17 +458,25 @@ export class WalletSection extends LitElement {
         <div class="wallet-connected">
           <div class="wallet-info">
             <div>
-              <div class="wallet-address">${this.formatAddress(this.address!)}</div>
-              ${this.selectedToken && this.balance !== null ? html`
-                <div class="wallet-balance">
-                  Balance: ${this.isLoadingBalance ? '...' : `${parseFloat(this.balance).toFixed(4)} ${this.selectedToken.symbol}`}
-                </div>
-              ` : ''}
+              <div class="wallet-address">${this.formatAddress(
+                this.address!,
+              )}</div>
+              ${this.selectedToken && this.balance !== null
+                ? html`
+                  <div class="wallet-balance">
+                    Balance: ${this.isLoadingBalance
+                      ? "..."
+                      : `${
+                        parseFloat(this.balance).toFixed(4)
+                      } ${this.selectedToken.symbol}`}
+                  </div>
+                `
+                : ""}
             </div>
             <div class="network-info">
-              <button 
-                class="network-badge" 
-                @click=${this.handleOpenNetworkModal}
+              <button
+                class="network-badge"
+                @click="${this.handleOpenNetworkModal}"
                 aria-label="Switch network"
                 title="Click to switch network"
               >
@@ -437,32 +485,36 @@ export class WalletSection extends LitElement {
             </div>
           </div>
 
-          ${this.isNetworkMismatch ? html`
-            <div class="network-mismatch" role="alert">
-              <div>Please switch to ${this.getNetworkName(this.selectedToken!.chainId)}</div>
-              <div class="button-group">
-                <button
-                  class="button button-small"
-                  @click=${this.handleSwitchNetwork}
-                  aria-label="Switch network"
-                >
-                  Switch Network
-                </button>
+          ${this.isNetworkMismatch
+            ? html`
+              <div class="network-mismatch" role="alert">
+                <div>Please switch to ${this.getNetworkName(
+                  this.selectedToken!.chainId,
+                )}</div>
+                <div class="button-group">
+                  <button
+                    class="button button-small"
+                    @click="${this.handleSwitchNetwork}"
+                    aria-label="Switch network"
+                  >
+                    Switch Network
+                  </button>
+                </div>
               </div>
-            </div>
-          ` : ''}
+            `
+            : ""}
 
           <token-selector
-            .tokens=${this.availableTokens}
-            .selectedToken=${this.selectedToken}
-            .isLoading=${this.isLoadingTokens}
-            .currentChainId=${this.chainId}
-            @token-selected=${this.handleTokenSelect}
+            .tokens="${this.availableTokens}"
+            .selectedToken="${this.selectedToken}"
+            .isLoading="${this.isLoadingTokens}"
+            .currentChainId="${this.chainId}"
+            @token-selected="${this.handleTokenSelect}"
           ></token-selector>
 
           <button
             class="button button-secondary button-small"
-            @click=${this.handleDisconnect}
+            @click="${this.handleDisconnect}"
             aria-label="Disconnect wallet"
           >
             Disconnect
@@ -475,6 +527,6 @@ export class WalletSection extends LitElement {
 
 declare global {
   interface HTMLElementTagNameMap {
-    'wallet-section': WalletSection;
+    "wallet-section": WalletSection;
   }
 }

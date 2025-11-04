@@ -1,46 +1,56 @@
 # Donation Widget
 
-A modern, embeddable cryptocurrency donation widget with cross-chain support powered by LiFi. Accept donations in any token on any supported chain, and receive them in your preferred token on your preferred chain.
+A modern, embeddable cryptocurrency donation widget with cross-chain support
+powered by LiFi. Accept donations in any token on any supported chain, and
+receive them in your preferred token on your preferred chain.
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 ## ✨ Features
 
-- 🔗 **Cross-chain support** - Accept donations from Ethereum, Arbitrum, Polygon, BSC, Optimism, Base, and more
+- 🔗 **Cross-chain support** - Accept donations from Ethereum, Arbitrum,
+  Polygon, BSC, Optimism, Base, and more
 - 💱 **Any token to any token** - Automatic conversion via LiFi aggregation
-- 🎨 **Fully customizable themes** - Light, dark, auto, or completely custom color schemes
+- 🎨 **Fully customizable themes** - Light, dark, auto, or completely custom
+  color schemes
 - 📱 **Responsive design** - Works perfectly on mobile and desktop
 - 🔌 **Easy integration** - Simple HTML tag, no complex setup
 - 🎯 **Event-driven API** - Track donations, wallet connections, and errors
-- 🌐 **Web Components** - Built with Lit, works with any framework or vanilla JavaScript
+- 🌐 **Web Components** - Built with Lit, works with any framework or vanilla
+  JavaScript
 - 🔒 **Secure** - Uses WalletConnect/Reown for wallet connections
 
 ## 📦 Installation
 
 ### Option 1: CDN from GitHub Releases (Recommended)
 
-Download the latest release from [GitHub Releases](https://github.com/Kalapaja/donato/releases) and host it on your CDN, or use it directly:
+Download the latest release from
+[GitHub Releases](https://github.com/Kalapaja/donato/releases) and host it on
+your CDN, or use it directly:
 
 ```html
 <!DOCTYPE html>
 <html>
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-</head>
-<body>
-  <!-- Your donation widget -->
-  <donation-widget 
-    recipient="0x742d35Cc6634C0532925a3b844Bc454e4438f44e"
-    recipient-chain-id="42161"
-    recipient-token-address="0xaf88d065e77c8cC2239327C5EDb3A432268e5831"
-    reown-project-id="YOUR_REOWN_PROJECT_ID"
-    lifi-api-key="YOUR_LIFI_API_KEY">
-  </donation-widget>
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  </head>
+  <body>
+    <!-- Your donation widget -->
+    <donation-widget
+      recipient="0x742d35Cc6634C0532925a3b844Bc454e4438f44e"
+      recipient-chain-id="42161"
+      recipient-token-address="0xaf88d065e77c8cC2239327C5EDb3A432268e5831"
+      reown-project-id="YOUR_REOWN_PROJECT_ID"
+      lifi-api-key="YOUR_LIFI_API_KEY"
+    >
+    </donation-widget>
 
-  <!-- Load the widget script from GitHub releases -->
-  <script src="https://github.com/Kalapaja/donato/releases/download/v1.0.0/donation-widget.js"></script>
-</body>
+    <!-- Load the widget script from GitHub releases -->
+    <script
+      src="https://github.com/Kalapaja/donato/releases/download/v1.0.0/donation-widget.js"
+    ></script>
+  </body>
 </html>
 ```
 
@@ -67,29 +77,32 @@ The compiled widget will be in the `dist/` directory.
 The minimal setup requires these attributes:
 
 ```html
-<donation-widget 
+<donation-widget
   recipient="0x742d35Cc6634C0532925a3b844Bc454e4438f44e"
   recipient-chain-id="42161"
   recipient-token-address="0xaf88d065e77c8cC2239327C5EDb3A432268e5831"
   reown-project-id="YOUR_REOWN_PROJECT_ID"
-  lifi-api-key="YOUR_LIFI_API_KEY">
+  lifi-api-key="YOUR_LIFI_API_KEY"
+>
 </donation-widget>
 ```
 
-**Important:** 
+**Important:**
+
 - Get your free Reown Project ID at [https://reown.com](https://reown.com)
 - Get your LiFi API key at [https://li.fi](https://li.fi)
 
 ### With All Options
 
 ```html
-<donation-widget 
+<donation-widget
   recipient="0x742d35Cc6634C0532925a3b844Bc454e4438f44e"
   recipient-chain-id="42161"
   recipient-token-address="0xaf88d065e77c8cC2239327C5EDb3A432268e5831"
   reown-project-id="YOUR_REOWN_PROJECT_ID"
   lifi-api-key="YOUR_LIFI_API_KEY"
-  theme="dark">
+  theme="dark"
+>
 </donation-widget>
 ```
 
@@ -97,48 +110,50 @@ The minimal setup requires these attributes:
 
 ### Required Attributes
 
-| Attribute | Type | Description |
-|-----------|------|-------------|
-| `recipient` | `string` | Ethereum address that will receive donations (must start with 0x) |
-| `recipient-chain-id` | `number` | Chain ID where you want to receive donations (e.g., 42161 = Arbitrum) |
+| Attribute                 | Type     | Description                                                                                            |
+| ------------------------- | -------- | ------------------------------------------------------------------------------------------------------ |
+| `recipient`               | `string` | Ethereum address that will receive donations (must start with 0x)                                      |
+| `recipient-chain-id`      | `number` | Chain ID where you want to receive donations (e.g., 42161 = Arbitrum)                                  |
 | `recipient-token-address` | `string` | Token address you want to receive (e.g., USDC on Arbitrum: 0xaf88d065e77c8cC2239327C5EDb3A432268e5831) |
-| `reown-project-id` | `string` | Your Reown project ID ([Get one here](https://reown.com)) |
-| `lifi-api-key` | `string` | Your LiFi API key ([Get one here](https://li.fi)) |
+| `reown-project-id`        | `string` | Your Reown project ID ([Get one here](https://reown.com))                                              |
+| `lifi-api-key`            | `string` | Your LiFi API key ([Get one here](https://li.fi))                                                      |
 
 ### Optional Attributes
 
-| Attribute | Type | Default | Description |
-|-----------|------|---------|-------------|
-| `theme` | `string` | `auto` | Theme mode: `light`, `dark`, `auto`, or `custom` |
+| Attribute | Type     | Default | Description                                      |
+| --------- | -------- | ------- | ------------------------------------------------ |
+| `theme`   | `string` | `auto`  | Theme mode: `light`, `dark`, `auto`, or `custom` |
 
 ### Supported Chain IDs
 
-| Chain | Chain ID |
-|-------|----------|
-| Ethereum | 1 |
-| Arbitrum | 42161 |
-| Polygon | 137 |
-| BSC (Binance Smart Chain) | 56 |
-| Optimism | 10 |
-| Base | 8453 |
+| Chain                     | Chain ID |
+| ------------------------- | -------- |
+| Ethereum                  | 1        |
+| Arbitrum                  | 42161    |
+| Polygon                   | 137      |
+| BSC (Binance Smart Chain) | 56       |
+| Optimism                  | 10       |
+| Base                      | 8453     |
 
 ### Example Configurations
 
 #### Receive USDT on BSC
 
 ```html
-<donation-widget 
+<donation-widget
   recipient="0x742d35Cc6634C0532925a3b844Bc454e4438f44e"
   recipient-chain-id="56"
   recipient-token-address="0x55d398326f99059fF775485246999027B3197955"
   reown-project-id="YOUR_REOWN_PROJECT_ID"
-  lifi-api-key="YOUR_LIFI_API_KEY">
+  lifi-api-key="YOUR_LIFI_API_KEY"
+>
 </donation-widget>
 ```
 
 ## 🎨 Theming
 
-The widget supports four theme modes and full customization through CSS variables.
+The widget supports four theme modes and full customization through CSS
+variables.
 
 ### Built-in Themes
 
@@ -147,234 +162,204 @@ The widget supports four theme modes and full customization through CSS variable
 Automatically matches the user's system preference (light/dark mode):
 
 ```html
-<donation-widget 
+<donation-widget
   recipient="0x742d35Cc6634C0532925a3b844Bc454e4438f44e"
   recipient-chain-id="42161"
   recipient-token-address="0xaf88d065e77c8cC2239327C5EDb3A432268e5831"
   reown-project-id="YOUR_REOWN_PROJECT_ID"
   lifi-api-key="YOUR_LIFI_API_KEY"
-  theme="auto">
+  theme="auto"
+>
 </donation-widget>
 ```
 
 #### Light Theme
 
 ```html
-<donation-widget 
+<donation-widget
   recipient="0x742d35Cc6634C0532925a3b844Bc454e4438f44e"
   recipient-chain-id="42161"
   recipient-token-address="0xaf88d065e77c8cC2239327C5EDb3A432268e5831"
   reown-project-id="YOUR_REOWN_PROJECT_ID"
   lifi-api-key="YOUR_LIFI_API_KEY"
-  theme="light">
+  theme="light"
+>
 </donation-widget>
 ```
 
 #### Dark Theme
 
 ```html
-<donation-widget 
+<donation-widget
   recipient="0x742d35Cc6634C0532925a3b844Bc454e4438f44e"
   recipient-chain-id="42161"
   recipient-token-address="0xaf88d065e77c8cC2239327C5EDb3A432268e5831"
   reown-project-id="YOUR_REOWN_PROJECT_ID"
   lifi-api-key="YOUR_LIFI_API_KEY"
-  theme="dark">
+  theme="dark"
+>
 </donation-widget>
 ```
 
 ### Custom Themes
 
-Set `theme="custom"` and use CSS variables to create your own color scheme. **Note:** Custom theme mode hides the theme toggle button.
+Set `theme="custom"` and use CSS variables to create your own color scheme.
+**Note:** Custom theme mode hides the theme toggle button.
 
 #### Available CSS Variables
 
-| Variable | Description | Light Default | Dark Default |
-|----------|-------------|---------------|--------------|
-| `--color-background` | Main background color | `oklch(100% 0 0)` | `oklch(16% 0 0)` |
-| `--color-foreground` | Main text color | `oklch(14% 0 0)` | `oklch(99% 0 0)` |
-| `--color-primary` | Primary accent color | `oklch(17% 0 0)` | `oklch(99% 0 0)` |
-| `--color-secondary` | Secondary background | `oklch(96% 0 0)` | `oklch(26% 0 0)` |
-| `--color-accent` | Accent elements | `oklch(32% 0 0)` | `oklch(68% 0 0)` |
-| `--color-border` | Border color | `oklch(91% 0 0)` | `oklch(30% 0 0)` |
-| `--color-muted` | Muted backgrounds | `oklch(96% 0 0)` | `oklch(22% 0 0)` |
-| `--color-muted-foreground` | Muted text | `oklch(52% 0 0)` | `oklch(68% 0 0)` |
-| `--radius` | Border radius | `1rem` | `1rem` |
+| Variable                   | Description           | Light Default     | Dark Default     |
+| -------------------------- | --------------------- | ----------------- | ---------------- |
+| `--color-background`       | Main background color | `oklch(100% 0 0)` | `oklch(16% 0 0)` |
+| `--color-foreground`       | Main text color       | `oklch(14% 0 0)`  | `oklch(99% 0 0)` |
+| `--color-primary`          | Primary accent color  | `oklch(17% 0 0)`  | `oklch(99% 0 0)` |
+| `--color-secondary`        | Secondary background  | `oklch(96% 0 0)`  | `oklch(26% 0 0)` |
+| `--color-accent`           | Accent elements       | `oklch(32% 0 0)`  | `oklch(68% 0 0)` |
+| `--color-border`           | Border color          | `oklch(91% 0 0)`  | `oklch(30% 0 0)` |
+| `--color-muted`            | Muted backgrounds     | `oklch(96% 0 0)`  | `oklch(22% 0 0)` |
+| `--color-muted-foreground` | Muted text            | `oklch(52% 0 0)`  | `oklch(68% 0 0)` |
+| `--radius`                 | Border radius         | `1rem`            | `1rem`           |
 
 #### Example: Cyberpunk Theme
 
 ```html
-<donation-widget 
+<donation-widget
   recipient="0x742d35Cc6634C0532925a3b844Bc454e4438f44e"
   recipient-chain-id="42161"
   recipient-token-address="0xaf88d065e77c8cC2239327C5EDb3A432268e5831"
   reown-project-id="YOUR_REOWN_PROJECT_ID"
   lifi-api-key="YOUR_LIFI_API_KEY"
   theme="custom"
-  style="
-    --color-background: oklch(15% 0.05 280);
-    --color-foreground: oklch(95% 0.15 320);
-    --color-primary: oklch(75% 0.25 320);
-    --color-secondary: oklch(70% 0.25 190);
-    --color-accent: oklch(80% 0.25 340);
-    --color-border: oklch(45% 0.15 280);
-    --color-muted: oklch(25% 0.08 280);
-    --color-muted-foreground: oklch(65% 0.12 190);
-    --radius: 0.25rem;
-  ">
+  style="--color-background: oklch(15% 0.05 280); --color-foreground: oklch(95% 0.15 320); --color-primary: oklch(75% 0.25 320); --color-secondary: oklch(70% 0.25 190); --color-accent: oklch(80% 0.25 340); --color-border: oklch(45% 0.15 280); --color-muted: oklch(25% 0.08 280); --color-muted-foreground: oklch(65% 0.12 190); --radius: 0.25rem"
+>
 </donation-widget>
 ```
 
 #### Example: Ocean Theme
 
 ```html
-<donation-widget 
+<donation-widget
   recipient="0x742d35Cc6634C0532925a3b844Bc454e4438f44e"
   recipient-chain-id="42161"
   recipient-token-address="0xaf88d065e77c8cC2239327C5EDb3A432268e5831"
   reown-project-id="YOUR_REOWN_PROJECT_ID"
   lifi-api-key="YOUR_LIFI_API_KEY"
   theme="custom"
-  style="
-    --color-background: oklch(18% 0.08 230);
-    --color-foreground: oklch(95% 0.08 200);
-    --color-primary: oklch(65% 0.18 220);
-    --color-secondary: oklch(35% 0.12 230);
-    --color-accent: oklch(75% 0.2 200);
-    --color-border: oklch(35% 0.1 230);
-    --color-muted: oklch(25% 0.08 230);
-    --color-muted-foreground: oklch(70% 0.1 210);
-    --radius: 0.75rem;
-  ">
+  style="--color-background: oklch(18% 0.08 230); --color-foreground: oklch(95% 0.08 200); --color-primary: oklch(65% 0.18 220); --color-secondary: oklch(35% 0.12 230); --color-accent: oklch(75% 0.2 200); --color-border: oklch(35% 0.1 230); --color-muted: oklch(25% 0.08 230); --color-muted-foreground: oklch(70% 0.1 210); --radius: 0.75rem"
+>
 </donation-widget>
 ```
 
 #### Example: Forest Theme
 
 ```html
-<donation-widget 
+<donation-widget
   recipient="0x742d35Cc6634C0532925a3b844Bc454e4438f44e"
   recipient-chain-id="42161"
   recipient-token-address="0xaf88d065e77c8cC2239327C5EDb3A432268e5831"
   reown-project-id="YOUR_REOWN_PROJECT_ID"
   lifi-api-key="YOUR_LIFI_API_KEY"
   theme="custom"
-  style="
-    --color-background: oklch(98% 0.02 150);
-    --color-foreground: oklch(25% 0.08 145);
-    --color-primary: oklch(50% 0.15 145);
-    --color-secondary: oklch(88% 0.05 150);
-    --color-accent: oklch(45% 0.18 140);
-    --color-border: oklch(80% 0.04 150);
-    --color-muted: oklch(93% 0.03 150);
-    --color-muted-foreground: oklch(45% 0.08 145);
-    --radius: 1rem;
-  ">
+  style="--color-background: oklch(98% 0.02 150); --color-foreground: oklch(25% 0.08 145); --color-primary: oklch(50% 0.15 145); --color-secondary: oklch(88% 0.05 150); --color-accent: oklch(45% 0.18 140); --color-border: oklch(80% 0.04 150); --color-muted: oklch(93% 0.03 150); --color-muted-foreground: oklch(45% 0.08 145); --radius: 1rem"
+>
 </donation-widget>
 ```
 
 #### Example: Minimal Monochrome
 
 ```html
-<donation-widget 
+<donation-widget
   recipient="0x742d35Cc6634C0532925a3b844Bc454e4438f44e"
   recipient-chain-id="42161"
   recipient-token-address="0xaf88d065e77c8cC2239327C5EDb3A432268e5831"
   reown-project-id="YOUR_REOWN_PROJECT_ID"
   lifi-api-key="YOUR_LIFI_API_KEY"
   theme="custom"
-  style="
-    --color-background: oklch(100% 0 0);
-    --color-foreground: oklch(0% 0 0);
-    --color-primary: oklch(20% 0 0);
-    --color-secondary: oklch(95% 0 0);
-    --color-accent: oklch(40% 0 0);
-    --color-border: oklch(85% 0 0);
-    --color-muted: oklch(97% 0 0);
-    --color-muted-foreground: oklch(50% 0 0);
-    --radius: 0rem;
-  ">
+  style="--color-background: oklch(100% 0 0); --color-foreground: oklch(0% 0 0); --color-primary: oklch(20% 0 0); --color-secondary: oklch(95% 0 0); --color-accent: oklch(40% 0 0); --color-border: oklch(85% 0 0); --color-muted: oklch(97% 0 0); --color-muted-foreground: oklch(50% 0 0); --radius: 0rem"
+>
 </donation-widget>
 ```
 
 ## 📡 JavaScript API & Events
 
-The widget emits custom events that you can listen to for tracking donations, wallet connections, and errors.
+The widget emits custom events that you can listen to for tracking donations,
+wallet connections, and errors.
 
 ### Getting the Widget Reference
 
 ```javascript
 // Get widget element
-const widget = document.getElementById('myWidget');
+const widget = document.getElementById("myWidget");
 
 // Or using querySelector
-const widget = document.querySelector('donation-widget');
+const widget = document.querySelector("donation-widget");
 ```
 
 ### Available Events
 
-| Event Name | Description | Event Detail Properties |
-|------------|-------------|------------------------|
-| `donation-initiated` | Fired when user initiates a donation | `{ amount, token }` |
-| `donation-completed` | Fired when donation is successful | `{ txHash, amount, token, route }` |
-| `donation-failed` | Fired when donation fails | `{ error, code }` |
-| `wallet-connected` | Fired when wallet is connected | `{ address, chainId }` |
-| `wallet-disconnected` | Fired when wallet is disconnected | - |
-| `network-switched` | Fired when user switches networks | `{ chainId }` |
+| Event Name            | Description                          | Event Detail Properties            |
+| --------------------- | ------------------------------------ | ---------------------------------- |
+| `donation-initiated`  | Fired when user initiates a donation | `{ amount, token }`                |
+| `donation-completed`  | Fired when donation is successful    | `{ txHash, amount, token, route }` |
+| `donation-failed`     | Fired when donation fails            | `{ error, code }`                  |
+| `wallet-connected`    | Fired when wallet is connected       | `{ address, chainId }`             |
+| `wallet-disconnected` | Fired when wallet is disconnected    | -                                  |
+| `network-switched`    | Fired when user switches networks    | `{ chainId }`                      |
 
 ### Event Listeners Example
 
 ```html
-<donation-widget 
+<donation-widget
   id="myWidget"
   recipient="0x742d35Cc6634C0532925a3b844Bc454e4438f44e"
   recipient-chain-id="42161"
   recipient-token-address="0xaf88d065e77c8cC2239327C5EDb3A432268e5831"
   reown-project-id="YOUR_REOWN_PROJECT_ID"
-  lifi-api-key="YOUR_LIFI_API_KEY">
+  lifi-api-key="YOUR_LIFI_API_KEY"
+>
 </donation-widget>
 
 <script>
-  const widget = document.getElementById('myWidget');
+  const widget = document.getElementById("myWidget");
 
   // Listen for successful donations
-  widget.addEventListener('donation-completed', (event) => {
-    console.log('Donation completed!');
-    console.log('Transaction hash:', event.detail.txHash);
-    console.log('Amount:', event.detail.amount);
-    console.log('Token:', event.detail.token.symbol);
-    
+  widget.addEventListener("donation-completed", (event) => {
+    console.log("Donation completed!");
+    console.log("Transaction hash:", event.detail.txHash);
+    console.log("Amount:", event.detail.amount);
+    console.log("Token:", event.detail.token.symbol);
+
     // Send to analytics
-    gtag('event', 'donation', {
+    gtag("event", "donation", {
       value: event.detail.amount,
       currency: event.detail.token.symbol,
-      transaction_id: event.detail.txHash
+      transaction_id: event.detail.txHash,
     });
   });
 
   // Listen for failed donations
-  widget.addEventListener('donation-failed', (event) => {
-    console.error('Donation failed:', event.detail.error);
-    console.error('Error code:', event.detail.code);
-    
+  widget.addEventListener("donation-failed", (event) => {
+    console.error("Donation failed:", event.detail.error);
+    console.error("Error code:", event.detail.code);
+
     // Show error to user
     alert(`Donation failed: ${event.detail.error}`);
   });
 
   // Listen for wallet connections
-  widget.addEventListener('wallet-connected', (event) => {
-    console.log('Wallet connected:', event.detail.address);
-    console.log('Chain ID:', event.detail.chainId);
+  widget.addEventListener("wallet-connected", (event) => {
+    console.log("Wallet connected:", event.detail.address);
+    console.log("Chain ID:", event.detail.chainId);
   });
 
   // Listen for wallet disconnections
-  widget.addEventListener('wallet-disconnected', () => {
-    console.log('Wallet disconnected');
+  widget.addEventListener("wallet-disconnected", () => {
+    console.log("Wallet disconnected");
   });
 
   // Listen for network changes
-  widget.addEventListener('network-switched', (event) => {
-    console.log('Network switched to chain:', event.detail.chainId);
+  widget.addEventListener("network-switched", (event) => {
+    console.log("Network switched to chain:", event.detail.chainId);
   });
 </script>
 ```
@@ -384,80 +369,83 @@ const widget = document.querySelector('donation-widget');
 ```html
 <!DOCTYPE html>
 <html>
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Donation Widget with Event Tracking</title>
-</head>
-<body>
-  <donation-widget 
-    id="donationWidget"
-    recipient="0x742d35Cc6634C0532925a3b844Bc454e4438f44e"
-    recipient-chain-id="42161"
-    recipient-token-address="0xaf88d065e77c8cC2239327C5EDb3A432268e5831"
-    reown-project-id="YOUR_REOWN_PROJECT_ID"
-    lifi-api-key="YOUR_LIFI_API_KEY">
-  </donation-widget>
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Donation Widget with Event Tracking</title>
+  </head>
+  <body>
+    <donation-widget
+      id="donationWidget"
+      recipient="0x742d35Cc6634C0532925a3b844Bc454e4438f44e"
+      recipient-chain-id="42161"
+      recipient-token-address="0xaf88d065e77c8cC2239327C5EDb3A432268e5831"
+      reown-project-id="YOUR_REOWN_PROJECT_ID"
+      lifi-api-key="YOUR_LIFI_API_KEY"
+    >
+    </donation-widget>
 
-  <div id="eventLog"></div>
+    <div id="eventLog"></div>
 
-  <script src="https://your-cdn.com/donation-widget.js"></script>
-  
-  <script>
-    const widget = document.getElementById('donationWidget');
-    const eventLog = document.getElementById('eventLog');
+    <script src="https://your-cdn.com/donation-widget.js"></script>
 
-    function logEvent(eventName, data) {
-      const timestamp = new Date().toLocaleTimeString();
-      const entry = document.createElement('div');
-      entry.textContent = `[${timestamp}] ${eventName}: ${JSON.stringify(data)}`;
-      eventLog.appendChild(entry);
-    }
+    <script>
+      const widget = document.getElementById("donationWidget");
+      const eventLog = document.getElementById("eventLog");
 
-    // Track all events
-    widget.addEventListener('donation-initiated', (e) => {
-      logEvent('donation-initiated', {
-        amount: e.detail.amount,
-        token: e.detail.token?.symbol
+      function logEvent(eventName, data) {
+        const timestamp = new Date().toLocaleTimeString();
+        const entry = document.createElement("div");
+        entry.textContent = `[${timestamp}] ${eventName}: ${
+          JSON.stringify(data)
+        }`;
+        eventLog.appendChild(entry);
+      }
+
+      // Track all events
+      widget.addEventListener("donation-initiated", (e) => {
+        logEvent("donation-initiated", {
+          amount: e.detail.amount,
+          token: e.detail.token?.symbol,
+        });
       });
-    });
 
-    widget.addEventListener('donation-completed', (e) => {
-      logEvent('donation-completed', {
-        txHash: e.detail.txHash,
-        amount: e.detail.amount,
-        token: e.detail.token?.symbol
+      widget.addEventListener("donation-completed", (e) => {
+        logEvent("donation-completed", {
+          txHash: e.detail.txHash,
+          amount: e.detail.amount,
+          token: e.detail.token?.symbol,
+        });
+
+        // Success notification
+        alert("Thank you for your donation! 🎉");
       });
-      
-      // Success notification
-      alert('Thank you for your donation! 🎉');
-    });
 
-    widget.addEventListener('donation-failed', (e) => {
-      logEvent('donation-failed', {
-        error: e.detail.error,
-        code: e.detail.code
+      widget.addEventListener("donation-failed", (e) => {
+        logEvent("donation-failed", {
+          error: e.detail.error,
+          code: e.detail.code,
+        });
       });
-    });
 
-    widget.addEventListener('wallet-connected', (e) => {
-      logEvent('wallet-connected', {
-        address: e.detail.address,
-        chainId: e.detail.chainId
+      widget.addEventListener("wallet-connected", (e) => {
+        logEvent("wallet-connected", {
+          address: e.detail.address,
+          chainId: e.detail.chainId,
+        });
       });
-    });
 
-    widget.addEventListener('wallet-disconnected', () => {
-      logEvent('wallet-disconnected', {});
-    });
-
-    widget.addEventListener('network-switched', (e) => {
-      logEvent('network-switched', {
-        chainId: e.detail.chainId
+      widget.addEventListener("wallet-disconnected", () => {
+        logEvent("wallet-disconnected", {});
       });
-    });
-  </script>
-</body>
+
+      widget.addEventListener("network-switched", (e) => {
+        logEvent("network-switched", {
+          chainId: e.detail.chainId,
+        });
+      });
+    </script>
+  </body>
 </html>
 ```
 
@@ -472,8 +460,8 @@ You can control the widget programmatically using JavaScript.
 Change the recipient address dynamically:
 
 ```javascript
-const widget = document.querySelector('donation-widget');
-widget.setRecipient('0x1234567890123456789012345678901234567890');
+const widget = document.querySelector("donation-widget");
+widget.setRecipient("0x1234567890123456789012345678901234567890");
 ```
 
 #### `setTheme(theme: 'light' | 'dark' | 'auto' | 'custom')`
@@ -481,8 +469,8 @@ widget.setRecipient('0x1234567890123456789012345678901234567890');
 Change the theme programmatically:
 
 ```javascript
-const widget = document.querySelector('donation-widget');
-widget.setTheme('dark');
+const widget = document.querySelector("donation-widget");
+widget.setTheme("dark");
 ```
 
 #### `getState()`
@@ -490,7 +478,7 @@ widget.setTheme('dark');
 Get the current widget state:
 
 ```javascript
-const widget = document.querySelector('donation-widget');
+const widget = document.querySelector("donation-widget");
 const state = widget.getState();
 
 console.log(state);
@@ -510,7 +498,7 @@ console.log(state);
 Reset the widget to its initial state:
 
 ```javascript
-const widget = document.querySelector('donation-widget');
+const widget = document.querySelector("donation-widget");
 widget.reset(); // Clears amount, selected token, and errors
 ```
 
@@ -519,13 +507,13 @@ widget.reset(); // Clears amount, selected token, and errors
 You can also control the widget by changing attributes:
 
 ```javascript
-const widget = document.querySelector('donation-widget');
+const widget = document.querySelector("donation-widget");
 
 // Change recipient
-widget.setAttribute('recipient', '0x1234567890123456789012345678901234567890');
+widget.setAttribute("recipient", "0x1234567890123456789012345678901234567890");
 
 // Change theme
-widget.setAttribute('theme', 'dark');
+widget.setAttribute("theme", "dark");
 
 // Change default token
 
@@ -537,73 +525,79 @@ widget.setAttribute('theme', 'dark');
 ```html
 <!DOCTYPE html>
 <html>
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Widget Control Panel</title>
-</head>
-<body>
-  <div>
-    <h2>Control Panel</h2>
-    
-    <label>
-      Recipient Address:
-      <input type="text" id="recipientInput" placeholder="0x...">
-    </label>
-    
-    <label>
-      Theme:
-      <select id="themeSelect">
-        <option value="auto">Auto</option>
-        <option value="light">Light</option>
-        <option value="dark">Dark</option>
-      </select>
-    </label>
-    
-    <button onclick="applyChanges()">Apply Changes</button>
-    <button onclick="resetWidget()">Reset Widget</button>
-    <button onclick="getWidgetState()">Get State</button>
-  </div>
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Widget Control Panel</title>
+  </head>
+  <body>
+    <div>
+      <h2>Control Panel</h2>
 
-  <donation-widget 
-    id="widget"
-    recipient="0x742d35Cc6634C0532925a3b844Bc454e4438f44e"
-    recipient-chain-id="42161"
-    recipient-token-address="0xaf88d065e77c8cC2239327C5EDb3A432268e5831"
-    reown-project-id="YOUR_REOWN_PROJECT_ID"
-    lifi-api-key="YOUR_LIFI_API_KEY">
-  </donation-widget>
+      <label>
+        Recipient Address:
+        <input type="text" id="recipientInput" placeholder="0x...">
+      </label>
 
-  <script src="https://your-cdn.com/donation-widget.js"></script>
-  
-  <script>
-    const widget = document.getElementById('widget');
+      <label>
+        Theme:
+        <select id="themeSelect">
+          <option value="auto">Auto</option>
+          <option value="light">Light</option>
+          <option value="dark">Dark</option>
+        </select>
+      </label>
 
-    function applyChanges() {
-      const recipient = document.getElementById('recipientInput').value;
-      const theme = document.getElementById('themeSelect').value;
+      <button onclick="applyChanges()">Apply Changes</button>
+      <button onclick="resetWidget()">Reset Widget</button>
+      <button onclick="getWidgetState()">Get State</button>
+    </div>
 
-      if (recipient) {
-        widget.setRecipient(recipient);
+    <donation-widget
+      id="widget"
+      recipient="0x742d35Cc6634C0532925a3b844Bc454e4438f44e"
+      recipient-chain-id="42161"
+      recipient-token-address="0xaf88d065e77c8cC2239327C5EDb3A432268e5831"
+      reown-project-id="YOUR_REOWN_PROJECT_ID"
+      lifi-api-key="YOUR_LIFI_API_KEY"
+    >
+    </donation-widget>
+
+    <script src="https://your-cdn.com/donation-widget.js"></script>
+
+    <script>
+      const widget = document.getElementById("widget");
+
+      function applyChanges() {
+        const recipient =
+          document.getElementById("recipientInput").value;
+        const theme = document.getElementById("themeSelect").value;
+
+        if (recipient) {
+          widget.setRecipient(recipient);
+        }
+
+        widget.setTheme(theme);
+
+        alert("Changes applied!");
       }
-      
-      widget.setTheme(theme);
-      
-      alert('Changes applied!');
-    }
 
-    function resetWidget() {
-      widget.reset();
-      alert('Widget reset!');
-    }
+      function resetWidget() {
+        widget.reset();
+        alert("Widget reset!");
+      }
 
-    function getWidgetState() {
-      const state = widget.getState();
-      console.log('Widget State:', state);
-      alert(`Widget State (check console):\n${JSON.stringify(state, null, 2)}`);
-    }
-  </script>
-</body>
+      function getWidgetState() {
+        const state = widget.getState();
+        console.log("Widget State:", state);
+        alert(
+          `Widget State (check console):\n${
+            JSON.stringify(state, null, 2)
+          }`,
+        );
+      }
+    </script>
+  </body>
 </html>
 ```
 
@@ -612,8 +606,8 @@ widget.setAttribute('theme', 'dark');
 ### React
 
 ```jsx
-import { useEffect, useRef } from 'react';
-import 'donation-widget';
+import { useEffect, useRef } from "react";
+import "donation-widget";
 
 function DonationPage() {
   const widgetRef = useRef(null);
@@ -622,15 +616,18 @@ function DonationPage() {
     const widget = widgetRef.current;
 
     const handleDonationCompleted = (event) => {
-      console.log('Donation completed!', event.detail);
+      console.log("Donation completed!", event.detail);
       // Track with your analytics
       trackDonation(event.detail);
     };
 
-    widget?.addEventListener('donation-completed', handleDonationCompleted);
+    widget?.addEventListener("donation-completed", handleDonationCompleted);
 
     return () => {
-      widget?.removeEventListener('donation-completed', handleDonationCompleted);
+      widget?.removeEventListener(
+        "donation-completed",
+        handleDonationCompleted,
+      );
     };
   }, []);
 
@@ -727,27 +724,30 @@ onUnmounted(() => {
 ### Next.js
 
 ```jsx
-'use client';
+"use client";
 
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef } from "react";
 
 export default function DonationPage() {
   const widgetRef = useRef(null);
 
   useEffect(() => {
     // Import widget only on client side
-    import('donation-widget');
+    import("donation-widget");
 
     const widget = widgetRef.current;
 
     const handleDonationCompleted = (event) => {
-      console.log('Donation completed!', event.detail);
+      console.log("Donation completed!", event.detail);
     };
 
-    widget?.addEventListener('donation-completed', handleDonationCompleted);
+    widget?.addEventListener("donation-completed", handleDonationCompleted);
 
     return () => {
-      widget?.removeEventListener('donation-completed', handleDonationCompleted);
+      widget?.removeEventListener(
+        "donation-completed",
+        handleDonationCompleted,
+      );
     };
   }, []);
 
@@ -777,13 +777,14 @@ Add to your theme or use a custom HTML block:
 <script src="https://your-cdn.com/donation-widget.js"></script>
 
 <!-- Add widget anywhere in your content -->
-<donation-widget 
+<donation-widget
   recipient="0x742d35Cc6634C0532925a3b844Bc454e4438f44e"
   recipient-chain-id="42161"
   recipient-token-address="0xaf88d065e77c8cC2239327C5EDb3A432268e5831"
   reown-project-id="YOUR_REOWN_PROJECT_ID"
   lifi-api-key="YOUR_LIFI_API_KEY"
-  theme="auto">
+  theme="auto"
+>
 </donation-widget>
 ```
 
@@ -791,7 +792,7 @@ Add to your theme or use a custom HTML block:
 
 ### Prerequisites
 
-- Deno 1.40+
+- Deno 2.5.4
 
 ### Setup
 
@@ -816,6 +817,7 @@ deno task build
 # Preview production build
 deno task preview
 ```
+
 
 ### Project Structure
 
@@ -882,7 +884,8 @@ The main widget component.
 
 ## 🤝 Contributing
 
-Contributions are welcome! Please read our [Contributing Guide](CONTRIBUTING.md) for details.
+Contributions are welcome! Please read our [Contributing Guide](CONTRIBUTING.md)
+for details.
 
 1. Fork the repository
 2. Create your feature branch (`git checkout -b feature/amazing-feature`)
@@ -892,7 +895,8 @@ Contributions are welcome! Please read our [Contributing Guide](CONTRIBUTING.md)
 
 ## 📝 License
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
+for details.
 
 ## 💬 Support
 
@@ -907,4 +911,3 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 ---
 
 Made with ❤️
-
