@@ -26,6 +26,12 @@ jobs:
         uses: denoland/setup-deno@v2.0.3
         with:
           deno-version: v2.5.4
+      
+      - name: Install dependencies
+        run: deno install
+      
+      - name: Install www dependencies
+        run: cd www && deno install
 
       - name: Build project
         env:
