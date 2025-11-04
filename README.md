@@ -792,7 +792,7 @@ Add to your theme or use a custom HTML block:
 
 ### Prerequisites
 
-- Deno 1.40+
+- Deno 2.5.4
 
 ### Setup
 
@@ -817,6 +817,7 @@ deno task build
 # Preview production build
 deno task preview
 ```
+
 
 ### Project Structure
 
