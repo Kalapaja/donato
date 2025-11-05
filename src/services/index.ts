@@ -1,8 +1,18 @@
 export { WalletService } from "./WalletService.ts";
 export type { Token, WalletAccount } from "./WalletService.ts";
 
+export { OneInchService } from "./OneInchService.ts";
+export type {
+  OneInchConfig,
+  QuoteParams,
+  RouteCallbacks,
+  Route,
+  RouteStep,
+} from "./OneInchService.ts";
+
+// Keep LiFiService export for backward compatibility during migration
 export { LiFiService } from "./LiFiService.ts";
-export type { LiFiConfig, QuoteParams, RouteCallbacks } from "./LiFiService.ts";
+export type { LiFiConfig } from "./LiFiService.ts";
 
 export { ChainService } from "./ChainService.ts";
 export type { Chain } from "./ChainService.ts";

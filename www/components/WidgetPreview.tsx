@@ -36,8 +36,8 @@ export function WidgetPreview({ config }: WidgetPreviewProps) {
         widget.setAttribute("theme", config.theme || "auto");
         widget.setAttribute("reown-project-id", config.reownProjectId || "");
 
-        if (config.lifiApiKey) {
-          widget.setAttribute("lifi-api-key", config.lifiApiKey);
+        if (config.oneInchApiKey) {
+          widget.setAttribute("oneinch-api-key", config.oneInchApiKey);
         }
 
         widget.setAttribute("style", "max-width: 360px;");

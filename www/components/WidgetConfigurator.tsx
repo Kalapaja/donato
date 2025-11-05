@@ -3,7 +3,7 @@
 import type { WidgetConfig } from "../types/config";
 import { RecipientSection } from "./sections/RecipientSection";
 import { CurrencyChainSection } from "./sections/CurrencyChainSection";
-import { LiFiSection } from "./sections/LiFiSection";
+import { OneInchSection } from "./sections/OneInchSection";
 import { ReOwnSection } from "./sections/ReOwnSection";
 import { ThemeSection } from "./sections/ThemeSection";
 import { EmbedCodeSection } from "./sections/EmbedCodeSection";
@@ -72,9 +72,9 @@ export function WidgetConfigurator(
             paddingTop: "1.5rem",
           }}
         >
-          <LiFiSection
-            lifiApiKey={config.lifiApiKey || ""}
-            onApiKeyChange={(key) => onConfigChange({ lifiApiKey: key })}
+          <OneInchSection
+            oneInchApiKey={config.oneInchApiKey || ""}
+            onApiKeyChange={(key) => onConfigChange({ oneInchApiKey: key })}
           />
         </div>
 

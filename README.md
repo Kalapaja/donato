@@ -1,7 +1,7 @@
 # Donation Widget
 
 A modern, embeddable cryptocurrency donation widget with cross-chain support
-powered by LiFi. Accept donations in any token on any supported chain, and
+powered by 1inch. Accept donations in any token on any supported chain, and
 receive them in your preferred token on your preferred chain.
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
@@ -10,7 +10,7 @@ receive them in your preferred token on your preferred chain.
 
 - 🔗 **Cross-chain support** - Accept donations from Ethereum, Arbitrum,
   Polygon, BSC, Optimism, Base, and more
-- 💱 **Any token to any token** - Automatic conversion via LiFi aggregation
+- 💱 **Any token to any token** - Automatic conversion via 1inch aggregation
 - 🎨 **Fully customizable themes** - Light, dark, auto, or completely custom
   color schemes
 - 📱 **Responsive design** - Works perfectly on mobile and desktop
@@ -42,7 +42,7 @@ your CDN, or use it directly:
       recipient-chain-id="42161"
       recipient-token-address="0xaf88d065e77c8cC2239327C5EDb3A432268e5831"
       reown-project-id="YOUR_REOWN_PROJECT_ID"
-      lifi-api-key="YOUR_LIFI_API_KEY"
+      oneinch-api-key="YOUR_1INCH_API_KEY"
     >
     </donation-widget>
 
@@ -82,7 +82,7 @@ The minimal setup requires these attributes:
   recipient-chain-id="42161"
   recipient-token-address="0xaf88d065e77c8cC2239327C5EDb3A432268e5831"
   reown-project-id="YOUR_REOWN_PROJECT_ID"
-  lifi-api-key="YOUR_LIFI_API_KEY"
+  oneinch-api-key="YOUR_1INCH_API_KEY"
 >
 </donation-widget>
 ```
@@ -90,7 +90,7 @@ The minimal setup requires these attributes:
 **Important:**
 
 - Get your free Reown Project ID at [https://reown.com](https://reown.com)
-- Get your LiFi API key at [https://li.fi](https://li.fi)
+- Get your 1inch API key at [https://li.fi](https://li.fi)
 
 ### With All Options
 
@@ -100,7 +100,7 @@ The minimal setup requires these attributes:
   recipient-chain-id="42161"
   recipient-token-address="0xaf88d065e77c8cC2239327C5EDb3A432268e5831"
   reown-project-id="YOUR_REOWN_PROJECT_ID"
-  lifi-api-key="YOUR_LIFI_API_KEY"
+  oneinch-api-key="YOUR_1INCH_API_KEY"
   theme="dark"
 >
 </donation-widget>
@@ -116,7 +116,7 @@ The minimal setup requires these attributes:
 | `recipient-chain-id`      | `number` | Chain ID where you want to receive donations (e.g., 42161 = Arbitrum)                                  |
 | `recipient-token-address` | `string` | Token address you want to receive (e.g., USDC on Arbitrum: 0xaf88d065e77c8cC2239327C5EDb3A432268e5831) |
 | `reown-project-id`        | `string` | Your Reown project ID ([Get one here](https://reown.com))                                              |
-| `lifi-api-key`            | `string` | Your LiFi API key ([Get one here](https://li.fi))                                                      |
+| `oneinch-api-key`            | `string` | Your 1inch API key ([Get one here](https://li.fi))                                                      |
 
 ### Optional Attributes
 
@@ -145,7 +145,7 @@ The minimal setup requires these attributes:
   recipient-chain-id="56"
   recipient-token-address="0x55d398326f99059fF775485246999027B3197955"
   reown-project-id="YOUR_REOWN_PROJECT_ID"
-  lifi-api-key="YOUR_LIFI_API_KEY"
+  oneinch-api-key="YOUR_1INCH_API_KEY"
 >
 </donation-widget>
 ```
@@ -167,7 +167,7 @@ Automatically matches the user's system preference (light/dark mode):
   recipient-chain-id="42161"
   recipient-token-address="0xaf88d065e77c8cC2239327C5EDb3A432268e5831"
   reown-project-id="YOUR_REOWN_PROJECT_ID"
-  lifi-api-key="YOUR_LIFI_API_KEY"
+  oneinch-api-key="YOUR_1INCH_API_KEY"
   theme="auto"
 >
 </donation-widget>
@@ -181,7 +181,7 @@ Automatically matches the user's system preference (light/dark mode):
   recipient-chain-id="42161"
   recipient-token-address="0xaf88d065e77c8cC2239327C5EDb3A432268e5831"
   reown-project-id="YOUR_REOWN_PROJECT_ID"
-  lifi-api-key="YOUR_LIFI_API_KEY"
+  oneinch-api-key="YOUR_1INCH_API_KEY"
   theme="light"
 >
 </donation-widget>
@@ -195,7 +195,7 @@ Automatically matches the user's system preference (light/dark mode):
   recipient-chain-id="42161"
   recipient-token-address="0xaf88d065e77c8cC2239327C5EDb3A432268e5831"
   reown-project-id="YOUR_REOWN_PROJECT_ID"
-  lifi-api-key="YOUR_LIFI_API_KEY"
+  oneinch-api-key="YOUR_1INCH_API_KEY"
   theme="dark"
 >
 </donation-widget>
@@ -228,7 +228,7 @@ Set `theme="custom"` and use CSS variables to create your own color scheme.
   recipient-chain-id="42161"
   recipient-token-address="0xaf88d065e77c8cC2239327C5EDb3A432268e5831"
   reown-project-id="YOUR_REOWN_PROJECT_ID"
-  lifi-api-key="YOUR_LIFI_API_KEY"
+  oneinch-api-key="YOUR_1INCH_API_KEY"
   theme="custom"
   style="--color-background: oklch(15% 0.05 280); --color-foreground: oklch(95% 0.15 320); --color-primary: oklch(75% 0.25 320); --color-secondary: oklch(70% 0.25 190); --color-accent: oklch(80% 0.25 340); --color-border: oklch(45% 0.15 280); --color-muted: oklch(25% 0.08 280); --color-muted-foreground: oklch(65% 0.12 190); --radius: 0.25rem"
 >
@@ -243,7 +243,7 @@ Set `theme="custom"` and use CSS variables to create your own color scheme.
   recipient-chain-id="42161"
   recipient-token-address="0xaf88d065e77c8cC2239327C5EDb3A432268e5831"
   reown-project-id="YOUR_REOWN_PROJECT_ID"
-  lifi-api-key="YOUR_LIFI_API_KEY"
+  oneinch-api-key="YOUR_1INCH_API_KEY"
   theme="custom"
   style="--color-background: oklch(18% 0.08 230); --color-foreground: oklch(95% 0.08 200); --color-primary: oklch(65% 0.18 220); --color-secondary: oklch(35% 0.12 230); --color-accent: oklch(75% 0.2 200); --color-border: oklch(35% 0.1 230); --color-muted: oklch(25% 0.08 230); --color-muted-foreground: oklch(70% 0.1 210); --radius: 0.75rem"
 >
@@ -258,7 +258,7 @@ Set `theme="custom"` and use CSS variables to create your own color scheme.
   recipient-chain-id="42161"
   recipient-token-address="0xaf88d065e77c8cC2239327C5EDb3A432268e5831"
   reown-project-id="YOUR_REOWN_PROJECT_ID"
-  lifi-api-key="YOUR_LIFI_API_KEY"
+  oneinch-api-key="YOUR_1INCH_API_KEY"
   theme="custom"
   style="--color-background: oklch(98% 0.02 150); --color-foreground: oklch(25% 0.08 145); --color-primary: oklch(50% 0.15 145); --color-secondary: oklch(88% 0.05 150); --color-accent: oklch(45% 0.18 140); --color-border: oklch(80% 0.04 150); --color-muted: oklch(93% 0.03 150); --color-muted-foreground: oklch(45% 0.08 145); --radius: 1rem"
 >
@@ -273,7 +273,7 @@ Set `theme="custom"` and use CSS variables to create your own color scheme.
   recipient-chain-id="42161"
   recipient-token-address="0xaf88d065e77c8cC2239327C5EDb3A432268e5831"
   reown-project-id="YOUR_REOWN_PROJECT_ID"
-  lifi-api-key="YOUR_LIFI_API_KEY"
+  oneinch-api-key="YOUR_1INCH_API_KEY"
   theme="custom"
   style="--color-background: oklch(100% 0 0); --color-foreground: oklch(0% 0 0); --color-primary: oklch(20% 0 0); --color-secondary: oklch(95% 0 0); --color-accent: oklch(40% 0 0); --color-border: oklch(85% 0 0); --color-muted: oklch(97% 0 0); --color-muted-foreground: oklch(50% 0 0); --radius: 0rem"
 >
@@ -315,7 +315,7 @@ const widget = document.querySelector("donation-widget");
   recipient-chain-id="42161"
   recipient-token-address="0xaf88d065e77c8cC2239327C5EDb3A432268e5831"
   reown-project-id="YOUR_REOWN_PROJECT_ID"
-  lifi-api-key="YOUR_LIFI_API_KEY"
+  oneinch-api-key="YOUR_1INCH_API_KEY"
 >
 </donation-widget>
 
@@ -381,7 +381,7 @@ const widget = document.querySelector("donation-widget");
       recipient-chain-id="42161"
       recipient-token-address="0xaf88d065e77c8cC2239327C5EDb3A432268e5831"
       reown-project-id="YOUR_REOWN_PROJECT_ID"
-      lifi-api-key="YOUR_LIFI_API_KEY"
+      oneinch-api-key="YOUR_1INCH_API_KEY"
     >
     </donation-widget>
 
@@ -559,7 +559,7 @@ widget.setAttribute("theme", "dark");
       recipient-chain-id="42161"
       recipient-token-address="0xaf88d065e77c8cC2239327C5EDb3A432268e5831"
       reown-project-id="YOUR_REOWN_PROJECT_ID"
-      lifi-api-key="YOUR_LIFI_API_KEY"
+      oneinch-api-key="YOUR_1INCH_API_KEY"
     >
     </donation-widget>
 
@@ -640,7 +640,7 @@ function DonationPage() {
         recipient-chain-id="42161"
         recipient-token-address="0xaf88d065e77c8cC2239327C5EDb3A432268e5831"
         reown-project-id="YOUR_REOWN_PROJECT_ID"
-        lifi-api-key="YOUR_LIFI_API_KEY"
+        oneinch-api-key="YOUR_1INCH_API_KEY"
         theme="dark"
       />
     </div>
@@ -716,7 +716,7 @@ onUnmounted(() => {
   recipient-chain-id="42161"
   recipient-token-address="0xaf88d065e77c8cC2239327C5EDb3A432268e5831"
   reown-project-id="YOUR_REOWN_PROJECT_ID"
-  lifi-api-key="YOUR_LIFI_API_KEY"
+  oneinch-api-key="YOUR_1INCH_API_KEY"
   theme="dark"
 />
 ```
@@ -760,7 +760,7 @@ export default function DonationPage() {
         recipient-chain-id="42161"
         recipient-token-address="0xaf88d065e77c8cC2239327C5EDb3A432268e5831"
         reown-project-id="YOUR_REOWN_PROJECT_ID"
-        lifi-api-key="YOUR_LIFI_API_KEY"
+        oneinch-api-key="YOUR_1INCH_API_KEY"
         theme="dark"
       />
     </div>
@@ -782,7 +782,7 @@ Add to your theme or use a custom HTML block:
   recipient-chain-id="42161"
   recipient-token-address="0xaf88d065e77c8cC2239327C5EDb3A432268e5831"
   reown-project-id="YOUR_REOWN_PROJECT_ID"
-  lifi-api-key="YOUR_LIFI_API_KEY"
+  oneinch-api-key="YOUR_1INCH_API_KEY"
   theme="auto"
 >
 </donation-widget>
@@ -831,7 +831,7 @@ donation-widget/
 │   │   └── ...
 │   ├── services/            # Business logic
 │   │   ├── WalletService.ts
-│   │   ├── LiFiService.ts
+│   │   ├── OneInchService.ts
 │   │   └── ...
 │   └── index.ts             # Main entry point
 ├── examples/                # Example usage
@@ -856,7 +856,7 @@ The main widget component.
 - `recipient-chain-id` (required) - Chain ID for receiving
 - `recipient-token-address` (required) - Token address to receive
 - `reown-project-id` (required) - Reown project ID
-- `lifi-api-key` (required) - LiFi API key
+- `oneinch-api-key` (required) - 1inch API key
 - `theme` - Theme mode (default: 'auto')
 
 **Events:**
@@ -879,7 +879,7 @@ The main widget component.
 
 - The widget never has access to user private keys
 - All wallet interactions use WalletConnect/Reown protocol
-- Cross-chain swaps are executed through LiFi's audited smart contracts
+- Cross-chain swaps are executed through 1inch's audited smart contracts
 - No personal data is collected or stored
 
 ## 🤝 Contributing
@@ -905,7 +905,7 @@ for details.
 ## 🙏 Acknowledgments
 
 - Built with [Lit](https://lit.dev/)
-- Powered by [LiFi](https://li.fi/)
+- Powered by [1inch](https://1inch.dev/)
 - Wallet connections via [Reown](https://reown.com/)
 
 ---

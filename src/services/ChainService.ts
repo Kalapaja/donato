@@ -1,5 +1,5 @@
-import type { Token } from "@lifi/sdk";
-import type { LiFiService } from "./LiFiService.ts";
+import type { Token } from "./WalletService.ts";
+import type { OneInchService } from "./OneInchService.ts";
 
 export interface Chain {
   id: number;
@@ -17,7 +17,7 @@ export interface Chain {
 }
 
 export class ChainService {
-  private lifiService: LiFiService;
+  private oneInchService: OneInchService;
   private chains: Chain[] = [];
   private tokens: Token[] = [];
   private initialized = false;
@@ -98,8 +98,8 @@ export class ChainService {
     },
   ];
 
-  constructor(lifiService: LiFiService) {
-    this.lifiService = lifiService;
+  constructor(oneInchService: OneInchService) {
+    this.oneInchService = oneInchService;
   }
 
   /**
@@ -111,26 +111,26 @@ export class ChainService {
     }
 
     try {
-      // Fetch chains from LiFi
-      const lifiChains = await this.lifiService.getChains();
+      // Fetch chains from 1inch
+      const oneInchChains = await this.oneInchService.getChains();
 
       // Merge with our supported chains configuration
       this.chains = this.SUPPORTED_CHAINS.map((supportedChain) => {
-        const lifiChain = lifiChains.find((c) => c.id === supportedChain.id);
+        const oneInchChain = oneInchChains.find((c) => c.id === supportedChain.id);
 
         return {
           ...supportedChain,
-          logoURI: lifiChain?.logoURI,
+          logoURI: oneInchChain?.logoURI,
           nativeToken: {
             ...supportedChain.nativeToken,
-            logoURI: lifiChain?.nativeToken?.logoURI,
+            logoURI: oneInchChain?.nativeToken?.logoURI,
           },
         };
       });
 
       // Fetch tokens for all supported chains
       const chainIds = this.chains.map((chain) => chain.id);
-      this.tokens = await this.lifiService.getTokens(chainIds);
+      this.tokens = await this.oneInchService.getTokens(chainIds);
 
       this.initialized = true;
     } catch (error) {
@@ -316,12 +316,12 @@ export class ChainService {
   }
 
   /**
-   * Refresh tokens from LiFi API
+   * Refresh tokens from 1inch API
    */
   async refreshTokens(): Promise<void> {
     try {
       const chainIds = this.chains.map((chain) => chain.id);
-      this.tokens = await this.lifiService.getTokens(chainIds);
+      this.tokens = await this.oneInchService.getTokens(chainIds);
     } catch (error) {
       console.error("Failed to refresh tokens:", error);
       throw new Error("Failed to refresh token list");

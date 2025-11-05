@@ -2,13 +2,13 @@ import { css, html, LitElement, type PropertyValues } from "lit";
 import { customElement, property, state } from "lit/decorators.js";
 import {
   ChainService,
-  LiFiService,
+  OneInchService,
   ThemeService,
   toastService,
   WalletService,
 } from "../services/index.ts";
 import type { Token } from "../services/WalletService.ts";
-import type { Route } from "@lifi/sdk";
+import type { Route } from "../services/OneInchService.ts";
 import type { Theme, ThemeMode } from "../services/ThemeService.ts";
 
 // Import child components
@@ -25,7 +25,7 @@ import type { ToastContainer } from "./toast-container.ts";
  *
  * @attr {string} recipient - Recipient wallet address (required)
  * @attr {string} reown-project-id - Reown project ID (required)
- * @attr {string} lifi-api-key - LiFi API key (required)
+ * @attr {string} oneinch-api-key - 1inch API key (required)
  * @attr {number} recipient-chain-id - Chain ID where recipient will receive tokens (default: 42161 - Arbitrum)
  * @attr {string} recipient-token-address - Token address that recipient will receive (default: USDC on recipient chain)
  * @attr {string} theme - Theme mode: 'light', 'dark', 'auto', or 'custom' (default: 'auto'). 'custom' mode hides theme toggle and uses CSS variables from parent.
@@ -38,7 +38,7 @@ import type { ToastContainer } from "./toast-container.ts";
  * <donation-widget
  *   recipient="0x742d35Cc6634C0532925a3b844Bc454e4438f44e"
  *   reown-project-id="YOUR_REOWN_PROJECT_ID"
- *   lifi-api-key="YOUR_LIFI_API_KEY"
+ *   oneinch-api-key="YOUR_1INCH_API_KEY"
  *   recipient-chain-id="42161"
  *   recipient-token-address="0xaf88d065e77c8cC2239327C5EDb3A432268e5831"
  *   theme="dark">
@@ -56,9 +56,9 @@ export class DonationWidget extends LitElement {
   @property({ type: String, attribute: "reown-project-id" })
   accessor reownProjectId: string = "";
 
-  /** LiFi API key (required) */
-  @property({ type: String, attribute: "lifi-api-key" })
-  accessor lifiApiKey: string = "";
+  /** 1inch API key (required) */
+  @property({ type: String, attribute: "oneinch-api-key" })
+  accessor oneInchApiKey: string = "";
 
   // Optional properties with defaults
   /** Chain ID where recipient will receive tokens (default: 42161 - Arbitrum) */
@@ -110,7 +110,7 @@ export class DonationWidget extends LitElement {
 
   // Services
   private walletService: WalletService;
-  private lifiService: LiFiService;
+  private oneInchService: OneInchService;
   private chainService: ChainService;
   private themeService: ThemeService;
 
@@ -123,11 +123,11 @@ export class DonationWidget extends LitElement {
     // Initialize services
     this.walletService = new WalletService();
     this.themeService = new ThemeService();
-    this.lifiService = new LiFiService({
+    this.oneInchService = new OneInchService({
       walletService: this.walletService,
-      apiKey: this.lifiApiKey,
+      apiKey: this.oneInchApiKey,
     });
-    this.chainService = new ChainService(this.lifiService);
+    this.chainService = new ChainService(this.oneInchService);
   }
 
   static override styles = css`
@@ -300,8 +300,8 @@ export class DonationWidget extends LitElement {
         // Initialize wallet service
         this.walletService.init(this.reownProjectId);
 
-        // Initialize LiFi service
-        this.lifiService.init();
+        // Initialize 1inch service
+        this.oneInchService.init();
 
         // Initialize chain service
         await this.chainService.init();
@@ -332,7 +332,7 @@ export class DonationWidget extends LitElement {
       try {
         // Load tokens for supported chains
         const supportedChainIds = [1, 42161, 137, 56, 10, 8453]; // Ethereum, Arbitrum, Polygon, BSC, Optimism, Base
-        this.availableTokens = await this.lifiService.getTokens(
+        this.availableTokens = await this.oneInchService.getTokens(
           supportedChainIds,
         );
       } catch (error) {
@@ -380,13 +380,13 @@ export class DonationWidget extends LitElement {
         this.themeService.setThemeMode(this.theme);
       }
 
-      // Handle LiFi API key changes
-      if (changedProperties.has("lifiApiKey")) {
-        this.lifiService = new LiFiService({
+      // Handle 1inch API key changes
+      if (changedProperties.has("oneInchApiKey")) {
+        this.oneInchService = new OneInchService({
           walletService: this.walletService,
-          apiKey: this.lifiApiKey,
+          apiKey: this.oneInchApiKey,
         });
-        this.lifiService.init();
+        this.oneInchService.init();
       }
     }
 
@@ -413,8 +413,8 @@ export class DonationWidget extends LitElement {
         return 'Reown project ID is required. Add reown-project-id="..." attribute. Get one at https://reown.com';
       }
 
-      if (!this.lifiApiKey) {
-        return 'LiFi API key is required. Add lifi-api-key="..." attribute. Get one at https://li.fi';
+      if (!this.oneInchApiKey) {
+        return '1inch API key is required. Add oneinch-api-key="..." attribute. Get one at https://1inch.dev';
       }
 
       return null;
@@ -451,7 +451,7 @@ export class DonationWidget extends LitElement {
       try {
         const route = event.detail;
 
-        await this.lifiService.executeRoute(route, {
+        await this.oneInchService.executeRoute(route, {
           onRouteUpdate: (updatedRoute: Route) => {
             console.log("Route updated:", updatedRoute);
           },
@@ -547,7 +547,7 @@ export class DonationWidget extends LitElement {
             .recipientChainId="${this.recipientChainId}"
             .recipientTokenAddress="${this.recipientTokenAddress}"
             .walletService="${this.walletService}"
-            .lifiService="${this.lifiService}"
+            .oneInchService="${this.oneInchService}"
             .chainService="${this.chainService}"
             .toastService="${toastService}"
             .selectedToken="${this.selectedToken}"

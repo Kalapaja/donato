@@ -36,7 +36,7 @@ export {
 // Export services for advanced usage
 export {
   ChainService,
-  LiFiService,
+  OneInchService,
   ThemeService,
   toastService,
   WalletService,

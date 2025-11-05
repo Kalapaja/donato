@@ -25,8 +25,8 @@ export function EmbedCodeSection({ config, widgetScript }: EmbedCodeSectionProps
       widgetAttributes.push(`reown-project-id="${config.reownProjectId}"`);
     }
 
-    if (config.lifiApiKey) {
-      widgetAttributes.push(`lifi-api-key="${config.lifiApiKey}"`);
+    if (config.oneInchApiKey) {
+      widgetAttributes.push(`oneinch-api-key="${config.oneInchApiKey}"`);
     }
 
     let styleAttr = "";

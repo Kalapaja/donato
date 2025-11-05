@@ -3,7 +3,7 @@ export interface WidgetConfig {
   recipientChainId: number;
   recipientTokenAddress: string;
   reownProjectId: string;
-  lifiApiKey: string;
+  oneInchApiKey: string;
   theme: string;
   themeCustom?: {
     background: string;
