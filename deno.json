@@ -14,22 +14,21 @@
     "www:install": "cd www && deno install"
   },
   "imports": {
-    "@1inch/cross-chain-sdk": "npm:@1inch/cross-chain-sdk@1.0.0",
-    "@1inch/fusion-sdk": "npm:@1inch/fusion-sdk@2.0.0",
+    "@1inch/cross-chain-sdk": "npm:@1inch/cross-chain-sdk@1.1.1",
     "@lifi/sdk": "npm:@lifi/sdk@3.13.2",
-    "@reown/appkit": "npm:@reown/appkit@1.8.12",
-    "@reown/appkit-adapter-ethers": "npm:@reown/appkit-adapter-ethers@1.8.12",
-    "@std/testing": "jsr:@std/testing@1.0.0",
-    "@std/assert": "jsr:@std/assert@1.0.0",
+    "@reown/appkit": "npm:@reown/appkit@1.8.13",
+    "@reown/appkit-adapter-ethers": "npm:@reown/appkit-adapter-ethers@1.8.13",
+    "@std/testing": "jsr:@std/testing@1.0.16",
+    "@std/assert": "jsr:@std/assert@1.0.15",
     "autoprefixer": "npm:autoprefixer@10.4.21",
-    "ethers": "npm:ethers@6.13.4",
+    "ethers": "npm:ethers@6.15.0",
     "lit": "npm:lit@3.3.1",
     "lit-element": "npm:lit-element@4.2.1",
     "lit-html": "npm:lit-html@3.3.1",
     "postcss": "npm:postcss@8.5.6",
-    "terser": "npm:terser@5.37.0",
-    "viem": "npm:viem@2.38.5",
-    "vite": "npm:vite@7.1.12"
+    "terser": "npm:terser@5.44.1",
+    "viem": "npm:viem@2.38.6",
+    "vite": "npm:vite@7.2.0"
   },
   "nodeModulesDir": "auto",
   "compilerOptions": {
