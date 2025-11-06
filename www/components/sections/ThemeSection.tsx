@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { oklchToHex, hexToOklch } from "@/lib/color-utils";
 
 interface ThemeCustom {
   background: string;
@@ -38,6 +39,18 @@ const CUSTOM_THEME_DEFAULTS: ThemeCustom = {
   radius: "1rem",
 };
 
+// Fields that are colors (not radius)
+const COLOR_FIELDS: (keyof ThemeCustom)[] = [
+  "background",
+  "foreground",
+  "primary",
+  "secondary",
+  "accent",
+  "border",
+  "muted",
+  "mutedForeground",
+];
+
 export function ThemeSection(
   { theme, themeCustom, onThemeChange }: ThemeSectionProps,
 ) {
@@ -57,10 +70,14 @@ export function ThemeSection(
     onThemeChange("custom", updated);
   };
 
+  const handleColorChange = (field: keyof ThemeCustom, hexValue: string) => {
+    const oklchValue = hexToOklch(hexValue);
+    handleCustomThemeChange(field, oklchValue);
+  };
+
   const randomizeColors = () => {
     const randomHue = Math.floor(Math.random() * 360);
     const randomChroma = 0.1 + Math.random() * 0.2;
-    const randomLightness = 0.3 + Math.random() * 0.4;
 
     const newTheme: ThemeCustom = {
       background: `oklch(${
@@ -110,6 +127,7 @@ export function ThemeSection(
           {PRESET_THEMES.map((preset) => (
             <button
               key={preset.id}
+              type="button"
               onClick={() => handlePresetSelect(preset.id)}
               className="p-3 rounded-lg text-left text-sm transition-colors"
               style={{
@@ -153,6 +171,7 @@ export function ThemeSection(
               Custom Theme
             </span>
             <button
+              type="button"
               onClick={() => setShowWizard(!showWizard)}
               className="px-3 py-1 text-xs rounded-lg transition-colors"
               style={{
@@ -189,6 +208,7 @@ export function ThemeSection(
                   Customize Colors
                 </span>
                 <button
+                  type="button"
                   onClick={randomizeColors}
                   className="px-2 py-1 text-xs rounded-lg transition-colors"
                   style={{
@@ -208,43 +228,62 @@ export function ThemeSection(
               </div>
 
               <div className="grid grid-cols-2 gap-2">
-                {Object.entries(customTheme).map(([key, value]) => (
-                  <div key={key}>
-                    <label
-                      className="block text-xs font-medium mb-1 capitalize"
-                      style={{ color: "var(--color-muted-foreground)" }}
-                    >
-                      {key.replace(/([A-Z])/g, " $1").trim()}
-                    </label>
-                    <input
-                      type="text"
-                      value={value}
-                      onChange={(e) =>
-                        handleCustomThemeChange(
-                          key as keyof ThemeCustom,
-                          e.target.value,
-                        )}
-                      className="w-full px-2 py-1.5 text-xs rounded"
-                      style={{
-                        background: "var(--color-background)",
-                        border: "1px solid var(--color-border)",
-                        color: "var(--color-foreground)",
-                        borderRadius: "calc(var(--radius) - 2px)",
-                      }}
-                      onFocus={(e) => {
-                        e.currentTarget.style.outline =
-                          "2px solid var(--color-primary)";
-                        e.currentTarget.style.outlineOffset = "2px";
-                      }}
-                      onBlur={(e) => {
-                        e.currentTarget.style.outline = "none";
-                      }}
-                    />
-                  </div>
-                ))}
+                {Object.entries(customTheme).map(([key, value]) => {
+                  const fieldKey = key as keyof ThemeCustom;
+                  const isColorField = COLOR_FIELDS.includes(fieldKey);
+
+                  return (
+                    <div key={key}>
+                      <label
+                        className="block text-xs font-medium mb-1 capitalize"
+                        style={{ color: "var(--color-muted-foreground)" }}
+                      >
+                        {key.replace(/([A-Z])/g, " $1").trim()}
+                      </label>
+                      {isColorField ? (
+                        <input
+                          type="color"
+                          value={oklchToHex(value)}
+                          onChange={(e) =>
+                            handleColorChange(fieldKey, e.target.value)
+                          }
+                          className="w-full h-8 rounded cursor-pointer"
+                          style={{
+                            border: "1px solid rgba(0, 0, 0, 0.1)",
+                            borderRadius: "calc(var(--radius) - 2px)",
+                          }}
+                        />
+                      ) : (
+                        <input
+                          type="text"
+                          value={value}
+                          onChange={(e) =>
+                            handleCustomThemeChange(fieldKey, e.target.value)
+                          }
+                          className="w-full px-2 py-1.5 text-xs rounded"
+                          style={{
+                            background: "var(--color-background)",
+                            border: "1px solid var(--color-border)",
+                            color: "var(--color-foreground)",
+                            borderRadius: "calc(var(--radius) - 2px)",
+                          }}
+                          onFocus={(e) => {
+                            e.currentTarget.style.outline =
+                              "2px solid var(--color-primary)";
+                            e.currentTarget.style.outlineOffset = "2px";
+                          }}
+                          onBlur={(e) => {
+                            e.currentTarget.style.outline = "none";
+                          }}
+                        />
+                      )}
+                    </div>
+                  );
+                })}
               </div>
 
               <button
+                type="button"
                 onClick={() => {
                   onThemeChange("custom", customTheme);
                 }}
