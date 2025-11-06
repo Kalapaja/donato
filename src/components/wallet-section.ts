@@ -432,6 +432,10 @@ export class WalletSection extends LitElement {
     );
   }
 
+  private get isReOwnConfigured(): boolean {
+    return this.walletService?.getAppKit() !== null;
+  }
+
   override render() {
     if (!this.walletConnected) {
       return html`
@@ -439,7 +443,7 @@ export class WalletSection extends LitElement {
           <button
             class="button"
             @click="${this.handleConnect}"
-            ?disabled="${this.isConnecting}"
+            ?disabled="${this.isConnecting || !this.isReOwnConfigured}"
             aria-label="Connect wallet"
           >
             ${this.isConnecting
