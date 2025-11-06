@@ -5,6 +5,7 @@ import type {
   WalletAccount,
   WalletService,
 } from "../services/WalletService.ts";
+import type { Chain } from "../services/ChainService.ts";
 import type { Address } from "viem";
 import "./token-selector.ts";
 
@@ -18,6 +19,9 @@ export class WalletSection extends LitElement {
 
   @property({ type: Array })
   accessor availableTokens: Token[] = [];
+
+  @property({ type: Array })
+  accessor chains: Chain[] = [];
 
   @property({ type: Boolean })
   accessor isLoadingTokens: boolean = false;
@@ -519,6 +523,7 @@ export class WalletSection extends LitElement {
           <token-selector
             .tokens="${this.availableTokens}"
             .selectedToken="${this.selectedToken}"
+            .chains="${this.chains}"
             .isLoading="${this.isLoadingTokens}"
             .currentChainId="${this.chainId}"
             @token-selected="${this.handleTokenSelect}"

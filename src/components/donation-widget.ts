@@ -308,13 +308,16 @@ export class DonationWidget extends LitElement {
         this.walletService.init(this.reownProjectId);
       }
 
+      // Initialize LiFi service if API key is provided
       if (this.lifiApiKey) {
         this.lifiService.init();
-        await this.chainService.init();
-        
-        // Load available tokens only if we have the API key
-        await this.loadTokens();
       }
+
+      // Always initialize chain service (works with or without LiFi API key)
+      await this.chainService.init();
+      
+      // Load available tokens (will use hardcoded tokens if LiFi is unavailable)
+      this.loadTokens();
     } catch (error) {
       console.error("Failed to initialize widget:", error);
       this.error = error instanceof Error
@@ -333,17 +336,16 @@ export class DonationWidget extends LitElement {
       this.themeService.destroy();
     }
 
-    private async loadTokens() {
+    private loadTokens() {
       this.isLoadingTokens = true;
 
       try {
-        // Load tokens for supported chains
-        const supportedChainIds = [1, 42161, 137, 56, 10, 8453]; // Ethereum, Arbitrum, Polygon, BSC, Optimism, Base
-        this.availableTokens = await this.lifiService.getTokens(
-          supportedChainIds,
-        );
+        // Get tokens from chain service (will use hardcoded tokens if LiFi is unavailable)
+        this.availableTokens = this.chainService.getAllTokens();
       } catch (error) {
         console.error("Failed to load tokens:", error);
+        // Fallback to empty array if something goes wrong
+        this.availableTokens = [];
       } finally {
         this.isLoadingTokens = false;
       }
@@ -464,6 +466,46 @@ export class DonationWidget extends LitElement {
       this.selectedToken = event.detail;
     }
 
+    private async handleNetworkSwitch(event: CustomEvent<{ chainId: number }>) {
+      const newChainId = event.detail.chainId;
+      console.log("Network switched to:", newChainId);
+      
+      // Reload tokens for the new network
+      await this.reloadTokensForChain(newChainId);
+    }
+
+    private async reloadTokensForChain(chainId: number) {
+      this.isLoadingTokens = true;
+
+      try {
+        // Try to refresh tokens from LiFi for the specific chain
+        if (this.lifiApiKey) {
+          try {
+            const chainTokens = await this.lifiService.getTokens([chainId]);
+            if (chainTokens && chainTokens.length > 0) {
+              // Update tokens: remove old tokens for this chain and add new ones
+              const otherChainTokens = this.availableTokens.filter(
+                (token) => token.chainId !== chainId
+              );
+              this.availableTokens = [...otherChainTokens, ...chainTokens];
+              return;
+            }
+          } catch (error) {
+            console.warn("Failed to fetch tokens from LiFi for chain:", chainId, error);
+          }
+        }
+
+        // Fallback: reload all tokens from chain service
+        // This will include hardcoded tokens if LiFi is unavailable
+        this.availableTokens = this.chainService.getAllTokens();
+      } catch (error) {
+        console.error("Failed to reload tokens for chain:", error);
+        // Keep existing tokens as fallback
+      } finally {
+        this.isLoadingTokens = false;
+      }
+    }
+
     private handleQuoteUpdate(
       event: CustomEvent<
         { quote: Route | null; loading: boolean; error: string | null }
@@ -582,9 +624,11 @@ export class DonationWidget extends LitElement {
           .walletService="${this.walletService}"
           .selectedToken="${this.selectedToken}"
           .availableTokens="${this.availableTokens}"
+          .chains="${this.chainService.getChains()}"
           .isLoadingTokens="${this.isLoadingTokens}"
           .disabled="${!isFullyConfigured}"
           @token-selected="${this.handleTokenChange}"
+          @network-switched="${this.handleNetworkSwitch}"
         ></wallet-section>
 
         <donation-form
