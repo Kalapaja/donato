@@ -76,30 +76,85 @@ export function ThemeSection(
   };
 
   const randomizeColors = () => {
-    const randomHue = Math.floor(Math.random() * 360);
-    const randomChroma = 0.1 + Math.random() * 0.2;
+    // Выбираем случайную цветовую схему
+    const schemeType = Math.random();
+    
+    // Случайно выбираем светлую или темную тему (50/50)
+    const isDark = Math.random() < 0.5;
+    
+    // Базовый оттенок для основной палитры
+    const baseHue = Math.floor(Math.random() * 360);
+    
+    // Определяем дополнительные оттенки в зависимости от схемы
+    let primaryHue = baseHue;
+    let accentHue = baseHue;
+    let secondaryHue = baseHue;
+    
+    if (schemeType < 0.33) {
+      // Комплементарная схема (противоположные цвета)
+      primaryHue = baseHue;
+      accentHue = (baseHue + 180) % 360;
+      secondaryHue = (baseHue + 30) % 360;
+    } else if (schemeType < 0.66) {
+      // Триадная схема (равномерно распределенные)
+      primaryHue = baseHue;
+      accentHue = (baseHue + 120) % 360;
+      secondaryHue = (baseHue + 240) % 360;
+    } else {
+      // Аналогичная схема (близкие оттенки)
+      primaryHue = baseHue;
+      accentHue = (baseHue + 30) % 360;
+      secondaryHue = (baseHue + 60) % 360;
+    }
+
+    // Насыщенность: низкая для нейтральных, средняя для основных, выше для акцентов
+    const neutralChroma = 0.02 + Math.random() * 0.03; // Очень низкая для фона/границ
+    const primaryChroma = 0.08 + Math.random() * 0.12; // Умеренная для основных элементов
+    const accentChroma = 0.12 + Math.random() * 0.15; // Выше для акцентов, но не слишком
+
+    const backgroundHue = baseHue;
+    
+    // Настраиваем lightness в зависимости от светлой/темной темы
+    let backgroundLightness: number;
+    let foregroundLightness: number;
+    let primaryLightness: number;
+    let secondaryLightness: number;
+    let accentLightness: number;
+    let borderLightness: number;
+    let mutedLightness: number;
+    let mutedForegroundLightness: number;
+
+    if (isDark) {
+      // Темная тема
+      backgroundLightness = 8 + Math.random() * 7; // Темный фон (8-15%)
+      foregroundLightness = 90 + Math.random() * 8; // Светлый текст (90-98%)
+      primaryLightness = 65 + Math.random() * 15; // Яркий primary для темной темы
+      secondaryLightness = 20 + Math.random() * 10; // Темный secondary
+      accentLightness = 70 + Math.random() * 15; // Яркий accent
+      borderLightness = 15 + Math.random() * 8; // Темная граница
+      mutedLightness = 12 + Math.random() * 6; // Темный muted
+      mutedForegroundLightness = 60 + Math.random() * 15; // Приглушенный светлый текст
+    } else {
+      // Светлая тема
+      backgroundLightness = 95 + Math.random() * 5; // Очень светлый фон (95-100%)
+      foregroundLightness = 12 + Math.random() * 8; // Темный текст (12-20%)
+      primaryLightness = 45 + Math.random() * 15; // Основной цвет
+      secondaryLightness = 75 + Math.random() * 15; // Светлый secondary
+      accentLightness = 55 + Math.random() * 20; // Яркий accent
+      borderLightness = 80 + Math.random() * 10; // Светлая граница
+      mutedLightness = 88 + Math.random() * 8; // Светлый muted
+      mutedForegroundLightness = 45 + Math.random() * 15; // Приглушенный темный текст
+    }
 
     const newTheme: ThemeCustom = {
-      background: `oklch(${
-        90 + Math.random() * 10
-      }% ${randomChroma} ${randomHue})`,
-      foreground: `oklch(${
-        10 + Math.random() * 10
-      }% ${randomChroma} ${randomHue})`,
-      primary: `oklch(${50 + Math.random() * 20}% ${
-        randomChroma + 0.1
-      } ${randomHue})`,
-      secondary: `oklch(${
-        80 + Math.random() * 15
-      }% ${randomChroma} ${randomHue})`,
-      accent: `oklch(${60 + Math.random() * 20}% ${
-        randomChroma + 0.15
-      } ${randomHue})`,
-      border: `oklch(${75 + Math.random() * 15}% ${randomChroma} ${randomHue})`,
-      muted: `oklch(${85 + Math.random() * 10}% ${randomChroma} ${randomHue})`,
-      mutedForeground: `oklch(${
-        40 + Math.random() * 20
-      }% ${randomChroma} ${randomHue})`,
+      background: `oklch(${backgroundLightness}% ${neutralChroma} ${backgroundHue})`,
+      foreground: `oklch(${foregroundLightness}% ${neutralChroma * 1.5} ${backgroundHue})`,
+      primary: `oklch(${primaryLightness}% ${primaryChroma} ${primaryHue})`,
+      secondary: `oklch(${secondaryLightness}% ${primaryChroma * 0.6} ${secondaryHue})`,
+      accent: `oklch(${accentLightness}% ${accentChroma} ${accentHue})`,
+      border: `oklch(${borderLightness}% ${neutralChroma} ${backgroundHue})`,
+      muted: `oklch(${mutedLightness}% ${neutralChroma} ${backgroundHue})`,
+      mutedForeground: `oklch(${mutedForegroundLightness}% ${neutralChroma * 2} ${backgroundHue})`,
       radius: `${Math.round((Math.random() * 1.5) / 0.25) * 0.25}rem`,
     };
 
