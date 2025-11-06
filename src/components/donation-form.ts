@@ -39,6 +39,9 @@ export class DonationForm extends LitElement {
   @property({ type: Boolean })
   accessor isDonating: boolean = false;
 
+  @property({ type: Boolean })
+  accessor disabled: boolean = false;
+
   @state()
   private accessor recipientAmount: string = "";
 
@@ -63,6 +66,11 @@ export class DonationForm extends LitElement {
   static override styles = css`
     :host {
       display: block;
+    }
+
+    :host([disabled]) .form-container {
+      opacity: 0.5;
+      pointer-events: none;
     }
 
     .form-container {
@@ -345,6 +353,7 @@ export class DonationForm extends LitElement {
     const account = this.walletService.getAccount();
 
     return (
+      !this.disabled &&
       !this.isDonating &&
       !!this.recipientAmount &&
       parseFloat(this.recipientAmount) > 0 &&

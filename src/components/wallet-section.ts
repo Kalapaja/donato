@@ -22,6 +22,9 @@ export class WalletSection extends LitElement {
   @property({ type: Boolean })
   accessor isLoadingTokens: boolean = false;
 
+  @property({ type: Boolean })
+  accessor disabled: boolean = false;
+
   @state()
   private accessor address: Address | null = null;
 
@@ -48,6 +51,11 @@ export class WalletSection extends LitElement {
       margin-bottom: 1.5rem;
       width: 100%;
       box-sizing: border-box;
+    }
+
+    :host([disabled]) .wallet-container {
+      opacity: 0.5;
+      pointer-events: none;
     }
 
     .wallet-container {
@@ -443,7 +451,7 @@ export class WalletSection extends LitElement {
           <button
             class="button"
             @click="${this.handleConnect}"
-            ?disabled="${this.isConnecting || !this.isReOwnConfigured}"
+            ?disabled="${this.isConnecting || !this.isReOwnConfigured || this.disabled}"
             aria-label="Connect wallet"
           >
             ${this.isConnecting

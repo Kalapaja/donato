@@ -16,7 +16,9 @@ import "./wallet-section.ts";
 import "./donation-form.ts";
 import "./theme-toggle.ts";
 import "./toast-container.ts";
+import "./config-panel.ts";
 import type { ToastContainer } from "./toast-container.ts";
+import type { ConfigStatus } from "./config-panel.ts";
 
 /**
  * Donation Widget - Main component for cryptocurrency donations
@@ -108,6 +110,9 @@ export class DonationWidget extends LitElement {
   @state()
   private accessor isLoadingTokens: boolean = false;
 
+  @state()
+  private accessor configStatus: ConfigStatus | null = null;
+
   // Services
   private walletService: WalletService;
   private lifiService: LiFiService;
@@ -182,19 +187,19 @@ export class DonationWidget extends LitElement {
         0 1px 2px -1px oklch(0% 0 0 / 0.3);
       }
 
-      .header {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        margin-bottom: 1.5rem;
-      }
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1.5rem;
+    }
 
-      .title {
-        font-size: 1.5rem;
-        font-weight: 700;
-        color: var(--color-foreground);
-        margin: 0;
-      }
+    .title {
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: var(--color-foreground);
+      margin: 0;
+    }
 
       .error-message {
         padding: 0.75rem;
@@ -261,61 +266,63 @@ export class DonationWidget extends LitElement {
       this.cleanup();
     }
 
-    private async initializeWidget() {
-      try {
-        // Initialize theme service first (always needed for display)
-        this.themeService.init(this.theme);
-        this.currentTheme = this.themeService.getTheme();
-        this.canToggleTheme = this.themeService.canToggleTheme();
-        this.updateThemeClass(this.currentTheme);
+  private async initializeWidget() {
+    try {
+      // Initialize theme service first (always needed for display)
+      this.themeService.init(this.theme);
+      this.currentTheme = this.themeService.getTheme();
+      this.canToggleTheme = this.themeService.canToggleTheme();
+      this.updateThemeClass(this.currentTheme);
 
-        // Subscribe to theme changes
-        const unsubscribeTheme = this.themeService.onThemeChanged(
-          (theme: Theme) => {
-            this.currentTheme = theme;
-            this.updateThemeClass(theme);
-          },
-        );
-        this.cleanupFunctions.push(unsubscribeTheme);
+      // Subscribe to theme changes
+      const unsubscribeTheme = this.themeService.onThemeChanged(
+        (theme: Theme) => {
+          this.currentTheme = theme;
+          this.updateThemeClass(theme);
+        },
+      );
+      this.cleanupFunctions.push(unsubscribeTheme);
 
-        // Initialize toast container
-        await this.updateComplete;
-        const toastContainer = this.shadowRoot?.querySelector(
-          "toast-container",
-        ) as ToastContainer | null;
-        if (toastContainer) {
-          toastContainer.setToastService(toastService);
-        }
-
-        // Mark as initialized so we can show validation errors
-        this.isInitialized = true;
-
-        // Validate required attributes
-        const validationError = this.validateRequiredAttributes();
-        if (validationError) {
-          this.error = validationError;
-          return;
-        }
-
-        // Initialize wallet service
-        this.walletService.init(this.reownProjectId);
-
-        // Initialize LiFi service
-        this.lifiService.init();
-
-        // Initialize chain service
-        await this.chainService.init();
-
-        // Load available tokens
-        await this.loadTokens();
-      } catch (error) {
-        console.error("Failed to initialize widget:", error);
-        this.error = error instanceof Error
-          ? error.message
-          : "Failed to initialize widget";
-        this.isInitialized = true; // Still mark as initialized to show the error
+      // Initialize toast container
+      await this.updateComplete;
+      const toastContainer = this.shadowRoot?.querySelector(
+        "toast-container",
+      ) as ToastContainer | null;
+      if (toastContainer) {
+        toastContainer.setToastService(toastService);
       }
+
+      // Mark as initialized so we can show the UI
+      this.isInitialized = true;
+
+      // Validate required attributes
+      this.configStatus = this.validateRequiredAttributes();
+
+      // If not fully configured, show config panel but still initialize what we can
+      if (!this.configStatus.isValid) {
+        console.warn("Widget is not fully configured:", this.configStatus.missing);
+      }
+
+      // Initialize services based on what configuration is available
+      if (this.reownProjectId) {
+        this.walletService.init(this.reownProjectId);
+      }
+
+      if (this.lifiApiKey) {
+        this.lifiService.init();
+        await this.chainService.init();
+        
+        // Load available tokens only if we have the API key
+        await this.loadTokens();
+      }
+    } catch (error) {
+      console.error("Failed to initialize widget:", error);
+      this.error = error instanceof Error
+        ? error.message
+        : "Failed to initialize widget";
+      this.isInitialized = true; // Still mark as initialized to show the error
     }
+  }
 
     private cleanup() {
       // Call all cleanup functions
@@ -350,38 +357,50 @@ export class DonationWidget extends LitElement {
       }
     }
 
-    protected override updated(changedProperties: PropertyValues) {
-      super.updated(changedProperties);
+  protected override updated(changedProperties: PropertyValues) {
+    super.updated(changedProperties);
 
-      // Handle recipient changes
-      if (changedProperties.has("recipient")) {
-        if (this.recipient && !this.isValidAddress(this.recipient)) {
-          this.error = "Invalid recipient address format";
-        } else if (this.error === "Invalid recipient address format") {
-          this.error = null;
+    // Recalculate config status if any required property changed
+    if (
+      changedProperties.has("recipient") ||
+      changedProperties.has("reownProjectId") ||
+      changedProperties.has("lifiApiKey")
+    ) {
+      if (this.isInitialized) {
+        this.configStatus = this.validateRequiredAttributes();
+      }
+    }
+
+    // Handle recipient changes
+    if (changedProperties.has("recipient")) {
+      if (this.recipient && !this.isValidAddress(this.recipient)) {
+        this.error = "Invalid recipient address format";
+      } else if (this.error === "Invalid recipient address format") {
+        this.error = null;
+      }
+    }
+
+    // Handle reownProjectId changes
+    if (changedProperties.has("reownProjectId")) {
+      if (this.isInitialized && this.reownProjectId) {
+        // Re-initialize wallet service with new project ID
+        try {
+          this.walletService.init(this.reownProjectId);
+        } catch (err) {
+          console.error("Failed to re-initialize wallet service:", err);
+          this.error = "Failed to update Reown configuration";
         }
       }
+    }
 
-      // Handle reownProjectId changes
-      if (changedProperties.has("reownProjectId")) {
-        if (this.isInitialized && this.reownProjectId) {
-          // Re-initialize wallet service with new project ID
-          try {
-            this.walletService.init(this.reownProjectId);
-          } catch (err) {
-            console.error("Failed to re-initialize wallet service:", err);
-            this.error = "Failed to update Reown configuration";
-          }
-        }
-      }
+    // Handle theme changes
+    if (changedProperties.has("theme")) {
+      this.themeService.setThemeMode(this.theme);
+    }
 
-      // Handle theme changes
-      if (changedProperties.has("theme")) {
-        this.themeService.setThemeMode(this.theme);
-      }
-
-      // Handle LiFi API key changes
-      if (changedProperties.has("lifiApiKey")) {
+    // Handle LiFi API key changes
+    if (changedProperties.has("lifiApiKey")) {
+      if (this.lifiApiKey) {
         this.lifiService = new LiFiService({
           walletService: this.walletService,
           apiKey: this.lifiApiKey,
@@ -389,6 +408,7 @@ export class DonationWidget extends LitElement {
         this.lifiService.init();
       }
     }
+  }
 
     /**
      * Validate Ethereum address format
@@ -397,28 +417,40 @@ export class DonationWidget extends LitElement {
       return /^0x[a-fA-F0-9]{40}$/.test(address);
     }
 
-    /**
-     * Validate required attributes
-     */
-    private validateRequiredAttributes(): string | null {
-      if (!this.recipient) {
-        return 'Recipient address is required. Add recipient="0x..." attribute.';
-      }
+  /**
+   * Validate required attributes and return detailed configuration status
+   */
+  private validateRequiredAttributes(): ConfigStatus {
+    const configured: string[] = [];
+    const missing: string[] = [];
 
-      if (!this.isValidAddress(this.recipient)) {
-        return "Invalid recipient address format. Must be a valid Ethereum address (0x...).";
-      }
-
-      if (!this.reownProjectId) {
-        return 'Reown project ID is required. Add reown-project-id="..." attribute. Get one at https://reown.com';
-      }
-
-      if (!this.lifiApiKey) {
-        return 'LiFi API key is required. Add lifi-api-key="..." attribute. Get one at https://li.fi';
-      }
-
-      return null;
+    // Check recipient
+    if (this.recipient && this.isValidAddress(this.recipient)) {
+      configured.push("recipient");
+    } else {
+      missing.push("recipient");
     }
+
+    // Check reown project ID
+    if (this.reownProjectId) {
+      configured.push("reownProjectId");
+    } else {
+      missing.push("reownProjectId");
+    }
+
+    // Check LiFi API key
+    if (this.lifiApiKey) {
+      configured.push("lifiApiKey");
+    } else {
+      missing.push("lifiApiKey");
+    }
+
+    return {
+      isValid: missing.length === 0,
+      missing,
+      configured,
+    };
+  }
 
     private handleThemeChange(event: CustomEvent<Theme>) {
       this.themeService.setTheme(event.detail);
@@ -494,79 +526,93 @@ export class DonationWidget extends LitElement {
       }
     }
 
-    override render() {
-      if (!this.isInitialized) {
-        return html`
-          <div class="widget-container">
-            <div class="loading">Initializing widget...</div>
-          </div>
-        `;
-      }
-
+  override render() {
+    if (!this.isInitialized) {
       return html`
         <div class="widget-container">
-          <div class="header">
-            <h2 class="title">Donate</h2>
-            ${this.canToggleTheme
-              ? html`
-                <theme-toggle
-                  .theme="${this.currentTheme}"
-                  @theme-changed="${this.handleThemeChange}"
-                ></theme-toggle>
-              `
-              : ""}
-          </div>
-
-          ${this.error
-            ? html`
-              <div class="error-message" role="alert">
-                ${this.error}
-              </div>
-            `
-            : ""} ${this.recipient && this.isValidAddress(this.recipient)
-            ? html`
-              <div class="recipient-info">
-                <div class="recipient-label">Recipient</div>
-                <div class="recipient-address">${this.formatAddress(
-                  this.recipient,
-                )}</div>
-              </div>
-            `
-            : ""}
-
-          <wallet-section
-            .walletService="${this.walletService}"
-            .selectedToken="${this.selectedToken}"
-            .availableTokens="${this.availableTokens}"
-            .isLoadingTokens="${this.isLoadingTokens}"
-            @token-selected="${this.handleTokenChange}"
-          ></wallet-section>
-
-          <donation-form
-            .recipient="${this.recipient}"
-            .recipientChainId="${this.recipientChainId}"
-            .recipientTokenAddress="${this.recipientTokenAddress}"
-            .walletService="${this.walletService}"
-            .lifiService="${this.lifiService}"
-            .chainService="${this.chainService}"
-            .toastService="${toastService}"
-            .selectedToken="${this.selectedToken}"
-            .isDonating="${this.isDonating}"
-            @amount-changed="${this.handleAmountChange}"
-            @quote-updated="${this.handleQuoteUpdate}"
-            @donate="${this.handleDonate}"
-          ></donation-form>
-
-          <div class="footer">
-            <a href="mailto:support@donations.kalatori.org" class="support-link">
-              Contact developers
-            </a>
-          </div>
+          <div class="loading">Initializing widget...</div>
         </div>
-
-        <toast-container></toast-container>
       `;
     }
+
+    const isFullyConfigured = this.configStatus?.isValid ?? false;
+
+    return html`
+      <div class="widget-container">
+        <div class="header">
+          <h2 class="title">Donate</h2>
+          ${this.canToggleTheme
+            ? html`
+              <theme-toggle
+                .theme="${this.currentTheme}"
+                @theme-changed="${this.handleThemeChange}"
+              ></theme-toggle>
+            `
+            : ""}
+        </div>
+
+        ${this.configStatus && !this.configStatus.isValid
+          ? html`
+            <config-panel
+              .configStatus="${this.configStatus}"
+            ></config-panel>
+          `
+          : ""}
+
+        ${this.error
+          ? html`
+            <div class="error-message" role="alert">
+              ${this.error}
+            </div>
+          `
+          : ""}
+        
+        ${this.recipient && this.isValidAddress(this.recipient)
+          ? html`
+            <div class="recipient-info">
+              <div class="recipient-label">Recipient</div>
+              <div class="recipient-address">${this.formatAddress(
+                this.recipient,
+              )}</div>
+            </div>
+          `
+          : ""}
+
+        <wallet-section
+          .walletService="${this.walletService}"
+          .selectedToken="${this.selectedToken}"
+          .availableTokens="${this.availableTokens}"
+          .isLoadingTokens="${this.isLoadingTokens}"
+          .disabled="${!isFullyConfigured}"
+          @token-selected="${this.handleTokenChange}"
+        ></wallet-section>
+
+        <donation-form
+          .recipient="${this.recipient}"
+          .recipientChainId="${this.recipientChainId}"
+          .recipientTokenAddress="${this.recipientTokenAddress}"
+          .walletService="${this.walletService}"
+          .lifiService="${this.lifiService}"
+          .chainService="${this.chainService}"
+          .toastService="${toastService}"
+          .selectedToken="${this.selectedToken}"
+          .isDonating="${this.isDonating}"
+          .disabled="${!isFullyConfigured}"
+          @amount-changed="${this.handleAmountChange}"
+          @quote-updated="${this.handleQuoteUpdate}"
+          @donate="${this.handleDonate}"
+        ></donation-form>
+
+        <div class="footer">
+          <a href="mailto:support@donations.kalatori.org" class="support-link">
+            Contact developers
+          </a>
+        </div>
+      </div>
+
+      <toast-container></toast-container>
+    `;
+  }
 
     private formatAddress(address: string): string {
       if (!address || address.length < 10) return address;
