@@ -20,7 +20,7 @@ export function ReOwnSection(
         className="text-sm mb-4"
         style={{ color: "var(--color-muted-foreground)" }}
       >
-        Optional: Enable mobile wallet connections. If omitted, only browser
+        Enable mobile wallet connections. If omitted, only browser
         extensions will work.
       </p>
 

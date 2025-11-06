@@ -168,7 +168,7 @@ export function ThemeSection(
         className="block text-sm font-semibold mb-2"
         style={{ color: "var(--color-foreground)" }}
       >
-        Theme *
+        Theme
       </label>
       <p
         className="text-sm mb-4"

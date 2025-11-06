@@ -217,7 +217,7 @@ export function CurrencyChainSection({
         className="block text-sm font-semibold mb-2"
         style={{ color: "var(--color-foreground)" }}
       >
-        Network & Asset *
+        Network & Asset
       </label>
       <p
         className="text-sm mb-4"

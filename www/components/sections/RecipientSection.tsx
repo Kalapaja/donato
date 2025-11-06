@@ -30,7 +30,7 @@ export function RecipientSection(
         className="block text-sm font-semibold mb-2"
         style={{ color: "var(--color-foreground)" }}
       >
-        Recipient Address *
+        Recipient Address
       </label>
       <p
         className="text-sm mb-4"
