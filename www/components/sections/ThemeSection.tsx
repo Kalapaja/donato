@@ -100,7 +100,7 @@ export function ThemeSection(
       mutedForeground: `oklch(${
         40 + Math.random() * 20
       }% ${randomChroma} ${randomHue})`,
-      radius: `${Math.random() * 1.5}rem`,
+      radius: `${Math.round((Math.random() * 1.5) / 0.25) * 0.25}rem`,
     };
 
     setCustomTheme(newTheme);
