@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { WidgetConfigurator } from "./WidgetConfigurator";
 import { WidgetPreview } from "./WidgetPreview";
 import type { WidgetConfig } from "../types/config";
@@ -22,6 +22,64 @@ export function ClientPage({ widgetScript }: ClientPageProps) {
   const handleConfigChange = (updates: Partial<WidgetConfig>) => {
     setConfig((prev) => ({ ...prev, ...updates }));
   };
+
+  // Sync widget theme with landing page theme
+  useEffect(() => {
+    const html = document.documentElement;
+    const customThemeStyleId = "landing-page-custom-theme";
+    let customThemeStyle = document.getElementById(
+      customThemeStyleId,
+    ) as HTMLStyleElement;
+
+    const theme = config.theme || "auto";
+
+    // Remove both dark and light classes first
+    html.classList.remove("dark", "light");
+
+    if (theme === "light") {
+      // Light theme - add light class to override media query
+      html.classList.add("light");
+      // Remove custom theme styles if they exist
+      if (customThemeStyle) {
+        customThemeStyle.remove();
+      }
+    } else if (theme === "dark") {
+      // Dark theme - add dark class
+      html.classList.add("dark");
+      // Remove custom theme styles if they exist
+      if (customThemeStyle) {
+        customThemeStyle.remove();
+      }
+    } else if (theme === "auto") {
+      // Auto theme - remove both classes, let media query handle it
+      html.classList.remove("dark", "light");
+      // Remove custom theme styles if they exist
+      if (customThemeStyle) {
+        customThemeStyle.remove();
+      }
+    } else if (theme === "custom" && config.themeCustom) {
+      // Custom theme - apply custom CSS variables to root
+      if (!customThemeStyle) {
+        customThemeStyle = document.createElement("style");
+        customThemeStyle.id = customThemeStyleId;
+        document.head.appendChild(customThemeStyle);
+      }
+
+      customThemeStyle.textContent = `
+        :root {
+          --color-background: ${config.themeCustom.background};
+          --color-foreground: ${config.themeCustom.foreground};
+          --color-primary: ${config.themeCustom.primary};
+          --color-secondary: ${config.themeCustom.secondary};
+          --color-accent: ${config.themeCustom.accent};
+          --color-border: ${config.themeCustom.border};
+          --color-muted: ${config.themeCustom.muted};
+          --color-muted-foreground: ${config.themeCustom.mutedForeground};
+          --radius: ${config.themeCustom.radius};
+        }
+      `;
+    }
+  }, [config.theme, config.themeCustom]);
 
   return (
     <div
