@@ -9,7 +9,7 @@ The landing page provides a step-by-step configuration wizard:
 
 1. **Recipient Address** - Enter the Ethereum address that will receive
    donations, with optional WalletConnect verification
-2. **Currency & Chain** - Select blockchain network and token, with optional
+2. **Network & Asset** - Select blockchain network and asset, with optional
    Etherscan Multichain Portfolio integration
 3. **LiFi API Key** - Optional API key registration for cross-chain swaps
 4. **ReOwn Project ID** - Optional Project ID for wallet connections (falls back

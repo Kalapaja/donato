@@ -188,13 +188,13 @@ export function CurrencyChainSection({
         className="block text-sm font-semibold mb-2"
         style={{ color: "var(--color-foreground)" }}
       >
-        Currency & Chain *
+        Network & Asset *
       </label>
       <p
         className="text-sm mb-4"
         style={{ color: "var(--color-muted-foreground)" }}
       >
-        Select blockchain network and token to receive donations
+        Select blockchain network and asset to receive donations
       </p>
 
       <div className="space-y-4">
@@ -236,7 +236,7 @@ export function CurrencyChainSection({
             className="block text-xs font-medium mb-2"
             style={{ color: "var(--color-muted-foreground)" }}
           >
-            Token
+            Asset
           </label>
           <div className="space-y-2">
             <div className="flex gap-2 flex-wrap">
@@ -319,7 +319,7 @@ export function CurrencyChainSection({
                   className="text-xs font-medium"
                   style={{ color: "var(--color-muted-foreground)" }}
                 >
-                  Use custom token address
+                  Use custom asset address
                 </span>
               </label>
               {useCustomToken && (

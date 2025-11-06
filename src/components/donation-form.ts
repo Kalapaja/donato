@@ -375,7 +375,7 @@ export class DonationForm extends LitElement {
     }
 
     if (!this.selectedToken) {
-      return "Select Token";
+      return "Select Asset";
     }
 
     if (!this.recipientAmount || parseFloat(this.recipientAmount) <= 0) {
