@@ -23,8 +23,6 @@ export class AmountInput extends LitElement {
   @property({ type: Boolean })
   accessor isQuoteLoading: boolean = false;
 
-  @property({ type: String })
-  accessor quoteError: string | null = null;
 
   @property({ type: Boolean })
   accessor disabled: boolean = false;
@@ -120,11 +118,6 @@ export class AmountInput extends LitElement {
       to {
         transform: rotate(360deg);
       }
-    }
-
-    .quote-error {
-      color: oklch(63% 0.24 27);
-      font-size: 0.875rem;
     }
 
     .quote-info {
@@ -263,7 +256,7 @@ export class AmountInput extends LitElement {
             ?disabled="${this.disabled}"
             aria-label="${this.label}"
             aria-describedby="amount-help"
-            aria-invalid="${this.quoteError ? "true" : "false"}"
+            aria-invalid="false"
           />
           ${this.recipientToken
             ? html`
@@ -284,14 +277,6 @@ export class AmountInput extends LitElement {
                       aria-label="Loading quote"
                     ></span>
                     <span>Calculating quote...</span>
-                  </div>
-                </div>
-              `
-              : this.quoteError
-              ? html`
-                <div class="quote-display">
-                  <div class="quote-error" role="alert">
-                    ${this.quoteError}
                   </div>
                 </div>
               `

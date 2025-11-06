@@ -513,8 +513,12 @@ export class DonationWidget extends LitElement {
     ) {
       this.quote = event.detail.quote;
       this.isQuoteLoading = event.detail.loading;
+      // Set error for quote errors - all errors are displayed in donation-widget
       if (event.detail.error) {
         this.error = event.detail.error;
+      } else {
+        // Clear error when quote is successfully calculated
+        this.error = null;
       }
     }
 

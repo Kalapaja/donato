@@ -442,7 +442,6 @@ export class DonationForm extends LitElement {
           .recipientToken="${this.recipientTokenInfo}"
           .quote="${this.quote}"
           .isQuoteLoading="${this.isQuoteLoading}"
-          .quoteError="${this.quoteError}"
           ?disabled="${this.disabled || this.isDonating}"
           @amount-change="${this.handleAmountChange}"
         ></amount-input>
