@@ -1,0 +1,16 @@
+# Static file headers for Netlify/Cloudflare Pages
+
+# Versioned widget files - long-term caching (1 year) + CORS
+/donation-widget.v*.js
+  Cache-Control: public, max-age=31536000, immutable
+  Access-Control-Allow-Origin: *
+  Access-Control-Allow-Methods: GET, OPTIONS
+  Access-Control-Allow-Headers: Content-Type
+
+# Versions manifest - short-term caching (5 minutes) + CORS
+/versions.json
+  Cache-Control: public, max-age=300
+  Access-Control-Allow-Origin: *
+  Access-Control-Allow-Methods: GET, OPTIONS
+  Access-Control-Allow-Headers: Content-Type
+

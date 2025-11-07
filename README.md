@@ -22,11 +22,24 @@ receive them in your preferred token on your preferred chain.
 
 ## 📦 Installation
 
-### Option 1: CDN from GitHub Releases (Recommended)
+### Option 1: Using the Configurator (Recommended)
 
-Download the latest release from
-[GitHub Releases](https://github.com/Kalapaja/donato/releases) and host it on
-your CDN, or use it directly:
+The easiest way to integrate the widget is to use the configurator:
+
+1. Visit the configurator (deployed from `www/`)
+2. Configure your widget (recipient address, chain, token, theme)
+3. Select a specific version or use "latest"
+4. Copy the generated embed code with the correct integrity hash
+5. Paste it into your website
+
+The configurator automatically generates the complete embed code including:
+- Versioned script URL with SRI integrity hash
+- Widget configuration HTML
+- All necessary security attributes (`crossorigin="anonymous"`)
+
+### Option 2: Manual Integration from Versioned CDN
+
+If you prefer manual integration, you can embed a specific version directly:
 
 ```html
 <!DOCTYPE html>
@@ -46,15 +59,32 @@ your CDN, or use it directly:
     >
     </donation-widget>
 
-    <!-- Load the widget script from GitHub releases -->
+    <!-- Load specific version with SRI (recommended for production) -->
     <script
-      src="https://github.com/Kalapaja/donato/releases/download/v1.0.0/donation-widget.js"
+      src="https://your-cdn-domain.com/donation-widget.v0.1.0.js"
+      integrity="sha384-7VZDmiHh/FiieJH3qmVUcQ+fXKmNcEUd1+LV7evvqlk9EJnENaN4C64/Asu2LXBB"
+      crossorigin="anonymous"
     ></script>
   </body>
 </html>
 ```
 
-### Option 2: Build from Source
+**Important:**
+- Replace `your-cdn-domain.com` with your actual CDN domain where the widget is hosted
+- Always include the `integrity` attribute for security (get the hash from `versions.json`)
+- The `crossorigin="anonymous"` attribute is required for SRI to work
+
+### Option 3: Download from GitHub Releases
+
+You can also download widget files directly from [GitHub Releases](https://github.com/Kalapaja/donato/releases):
+
+1. Go to the [Releases page](https://github.com/Kalapaja/donato/releases)
+2. Download `donation-widget.v{version}.js` from the latest release
+3. Download `donation-widget.v{version}.js.integrity.txt` for the SRI hash
+4. Host the file on your own server or CDN
+5. Use the integrity hash in your embed code
+
+### Option 4: Build from Source
 
 ```bash
 # Clone the repository
@@ -69,6 +99,359 @@ deno task build
 ```
 
 The compiled widget will be in the `dist/` directory.
+
+## 🔐 Widget Versioning & Subresource Integrity (SRI)
+
+The donation widget supports versioned deployments with cryptographic integrity verification through Subresource Integrity (SRI). This ensures both stability and security for your integration.
+
+### Release & Distribution Architecture
+
+The widget uses a GitHub Release-based versioning system with automatic build and distribution:
+
+**How it works:**
+
+1. **Widget Build & Release** (Automated via GitHub Actions)
+   - When a Git tag is created (e.g., `v0.1.0`), GitHub Actions automatically triggers
+   - The widget is built with Vite in production mode
+   - The bundle is renamed to `donation-widget.v{version}.js`
+   - A SHA-384 integrity hash is calculated and saved to a `.integrity.txt` file
+   - Both files are uploaded as GitHub Release assets
+   - Release notes are automatically generated with embed code examples
+
+2. **WWW Build Process** (Automated during deployment)
+   - The configurator website (`www/`) fetches all releases from the GitHub API during build
+   - Widget scripts and integrity files are downloaded from GitHub Release assets
+   - All versions are placed in the `www/public/` directory for serving
+   - A `versions.json` manifest is generated containing metadata for all versions
+   - The manifest includes version numbers, file paths, integrity hashes, sizes, and release dates
+
+3. **Static File Serving** (CDN/Static Host)
+   - All widget versions are served from the `www/public/` directory
+   - Versioned files get long-term cache headers (1 year, immutable)
+   - The `versions.json` manifest gets short-term cache (5 minutes)
+   - CORS headers allow the widget to be embedded on any domain
+
+4. **User Integration**
+   - Users visit the configurator to select a version and generate embed code
+   - The configurator reads `versions.json` to show available versions
+   - Generated embed code includes the versioned URL and integrity hash
+   - Browsers verify the integrity hash before executing the script
+
+**Benefits of this architecture:**
+- ✅ **Immutable versions** - Once published, versions never change
+- ✅ **Automatic distribution** - No manual deployment needed
+- ✅ **Version discovery** - Configurator always shows all available versions
+- ✅ **Security** - SRI ensures scripts haven't been tampered with
+- ✅ **Performance** - Long-term caching for optimal load times
+
+### What is Versioning?
+
+Widget versioning allows you to:
+- **Lock to a specific version** - Your integration remains stable even when new versions are released
+- **Control updates** - Choose when to upgrade to new features or bug fixes
+- **Ensure compatibility** - Test new versions before deploying to production
+- **Roll back easily** - Return to a previous version if issues arise
+
+All widget builds follow [semantic versioning](https://semver.org/) (MAJOR.MINOR.PATCH):
+- **MAJOR** - Breaking changes that may require code updates
+- **MINOR** - New features, backward compatible
+- **PATCH** - Bug fixes, backward compatible
+
+### What is Subresource Integrity (SRI)?
+
+Subresource Integrity is a security feature that enables browsers to verify that files they fetch (such as the widget script) are delivered without unexpected manipulation.
+
+**How it works:**
+1. A cryptographic hash (SHA-384) is calculated from the widget file during build
+2. This hash is included in the `integrity` attribute of the script tag
+3. When the browser loads the script, it recalculates the hash
+4. If the hashes match, the script is executed; if not, the browser blocks it
+
+**Benefits of SRI:**
+- 🛡️ **Security** - Protects against compromised CDNs or man-in-the-middle attacks
+- ✅ **Integrity** - Guarantees the exact code you tested is what runs on user browsers
+- 🔒 **Trust** - Users can verify the script hasn't been tampered with
+- 📋 **Compliance** - Meets security requirements for many organizations
+
+### Versioned vs Latest URLs
+
+The widget is available through two types of URLs:
+
+#### Versioned URL (Recommended for Production)
+```html
+<!-- Specific version with SRI -->
+<script
+  src="https://your-cdn.com/donation-widget.v0.1.0.js"
+  integrity="sha384-7VZDmiHh/FiieJH3qmVUcQ+fXKmNcEUd1+LV7evvqlk9EJnENaN4C64/Asu2LXBB"
+  crossorigin="anonymous"
+></script>
+```
+
+**Characteristics:**
+- ✅ Immutable - Never changes once published
+- ✅ Long cache (1 year) - Excellent performance
+- ✅ SRI protection - Maximum security
+- ✅ Stable - No unexpected updates
+- ❌ Manual updates required
+
+**Best for:**
+- Production websites
+- Critical integrations
+- Applications requiring stability
+- Security-conscious deployments
+
+#### Latest URL (Convenient for Development)
+```html
+<!-- Always serves the latest version -->
+<script
+  src="https://your-cdn.com/donation-widget.js"
+  integrity="sha384-7VZDmiHh/FiieJH3qmVUcQ+fXKmNcEUd1+LV7evvqlk9EJnENaN4C64/Asu2LXBB"
+  crossorigin="anonymous"
+></script>
+```
+
+**Characteristics:**
+- ✅ Auto-updates - Always get the latest features and fixes
+- ✅ SRI protection - Still secure
+- ⚠️ Short cache (5 minutes) - Checks for updates frequently
+- ⚠️ May introduce changes - Update integrity hash when version changes
+- ❌ Less stable - Behavior may change
+
+**Best for:**
+- Development and testing
+- Personal projects
+- Getting started quickly
+- Non-critical integrations
+
+### Using Versioned Widget Scripts
+
+#### Step 1: Find Available Versions
+
+The `versions.json` manifest is automatically generated during the www build and contains metadata for all published widget versions.
+
+**Access the manifest:**
+- From the configurator domain: `https://your-cdn-domain.com/versions.json`
+- This file is generated by the www build process from GitHub Releases
+- Updated automatically when new versions are released and the www site is deployed
+
+**Example manifest structure:**
+```json
+{
+  "latest": "0.1.0",
+  "versions": {
+    "0.1.0": {
+      "file": "donation-widget.v0.1.0.js",
+      "integrity": "sha384-7VZDmiHh/FiieJH3qmVUcQ+fXKmNcEUd1+LV7evvqlk9EJnENaN4C64/Asu2LXBB",
+      "size": 2781344,
+      "date": "2025-11-07T13:36:05.372Z",
+      "releaseUrl": "https://github.com/Kalapaja/donato/releases/tag/v0.1.0"
+    }
+  }
+}
+```
+
+The manifest includes:
+- `latest` - The recommended stable version
+- `file` - The filename in the public directory
+- `integrity` - The SHA-384 hash for SRI
+- `size` - File size in bytes
+- `date` - Release publication date
+- `releaseUrl` - Link to the GitHub Release with full release notes
+
+#### Step 2: Choose Your Version
+
+Select the version you want to use based on:
+- **latest** field - The recommended stable version
+- **date** - When the version was published
+- **size** - Bundle size for performance considerations
+
+#### Step 3: Copy the Versioned Embed Code
+
+Use the script tag with the correct version and integrity hash:
+
+```html
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  </head>
+  <body>
+    <!-- Your donation widget -->
+    <donation-widget
+      recipient="0x742d35Cc6634C0532925a3b844Bc454e4438f44e"
+      recipient-chain-id="42161"
+      recipient-token-address="0xaf88d065e77c8cC2239327C5EDb3A432268e5831"
+      reown-project-id="YOUR_REOWN_PROJECT_ID"
+      lifi-api-key="YOUR_LIFI_API_KEY"
+    >
+    </donation-widget>
+
+    <!-- Load specific version with SRI -->
+    <script
+      src="https://your-cdn.com/donation-widget.v0.1.0.js"
+      integrity="sha384-7VZDmiHh/FiieJH3qmVUcQ+fXKmNcEUd1+LV7evvqlk9EJnENaN4C64/Asu2LXBB"
+      crossorigin="anonymous"
+    ></script>
+  </body>
+</html>
+```
+
+**Important:** Always include both the `integrity` and `crossorigin="anonymous"` attributes for SRI to work properly.
+
+### Creating a New Release
+
+If you're a maintainer creating a new widget version:
+
+1. **Update the version** in `deno.json`:
+   ```json
+   {
+     "version": "0.2.0"
+   }
+   ```
+
+2. **Commit your changes**:
+   ```bash
+   git add .
+   git commit -m "Release v0.2.0"
+   ```
+
+3. **Create and push a Git tag**:
+   ```bash
+   git tag v0.2.0
+   git push origin v0.2.0
+   ```
+
+4. **GitHub Actions automatically**:
+   - Builds the widget
+   - Calculates the integrity hash
+   - Creates a GitHub Release
+   - Uploads the versioned bundle and integrity file
+   - Generates release notes with embed code
+
+5. **The www site automatically**:
+   - Fetches the new release during next deployment
+   - Downloads the widget files to `www/public/`
+   - Updates the `versions.json` manifest
+   - Makes the new version available in the configurator
+
+**Note:** Git tags must follow the format `vX.Y.Z` (e.g., `v0.1.0`, `v1.2.3`).
+
+### Using the Widget Configurator
+
+The easiest way to generate embed code with the correct version and integrity hash is to use the interactive configurator (deployed from the `www/` directory).
+
+The configurator will:
+1. Display all available widget versions from `versions.json`
+2. Let you select a specific version or use "latest"
+3. Generate the complete embed code with the correct integrity hash
+4. Include all your configuration options (recipient, theme, etc.)
+5. Show version metadata (size, release date, release notes link)
+
+### Updating to a New Version
+
+When you're ready to update to a new version:
+
+1. **Check the changelog** - Review what changed in the new version
+2. **Test in development** - Use the new version in a test environment
+3. **Update your embed code** - Replace both the `src` URL and `integrity` hash
+4. **Deploy** - Push the updated code to production
+
+Example update from v0.1.0 to v0.2.0:
+
+```html
+<!-- Before: Version 0.1.0 -->
+<script
+  src="https://your-cdn.com/donation-widget.v0.1.0.js"
+  integrity="sha384-OLD_HASH_HERE"
+  crossorigin="anonymous"
+></script>
+
+<!-- After: Version 0.2.0 -->
+<script
+  src="https://your-cdn.com/donation-widget.v0.2.0.js"
+  integrity="sha384-NEW_HASH_HERE"
+  crossorigin="anonymous"
+></script>
+```
+
+**Important:** You must update BOTH the URL and the integrity hash together, or the script will fail to load.
+
+### Troubleshooting SRI Issues
+
+#### Script Fails to Load
+**Error:** "Failed to find a valid digest in the 'integrity' attribute"
+
+**Causes:**
+- Mismatched integrity hash and script content
+- Incorrect version URL
+- Script modified in transit
+
+**Solutions:**
+1. Verify you're using the correct integrity hash from versions.json
+2. Make sure the version in the URL matches the hash you're using
+3. Check that your CDN/server hasn't modified the file (compression, minification)
+4. Ensure CORS headers are properly configured with `Access-Control-Allow-Origin: *`
+
+#### CORS Errors
+**Error:** "Cross-Origin Request Blocked"
+
+**Solution:**
+The script must be served with proper CORS headers. Ensure your server includes:
+```
+Access-Control-Allow-Origin: *
+```
+
+The `crossorigin="anonymous"` attribute in the script tag is required for SRI to work with CDN-hosted files.
+
+### Security Best Practices
+
+1. **Always use SRI in production** - Include the `integrity` attribute
+2. **Use versioned URLs for stability** - Pin to specific versions
+3. **Verify hashes manually** - When updating, check versions.json for the correct hash
+4. **Serve over HTTPS** - SRI only works with secure connections
+5. **Monitor for updates** - Subscribe to release notifications
+6. **Test before deploying** - Always test new versions in a staging environment
+
+### Building Your Own Versioned Widget
+
+For maintainers and contributors creating new versions:
+
+**Development build (local testing):**
+```bash
+# Regular development build (not versioned)
+deno task build
+
+# This creates:
+# - dist/donation-widget.js (for local development)
+# - dist/donation-widget.js.map (source map)
+```
+
+**Production release (versioned):**
+```bash
+# 1. Update version in deno.json
+# 2. Commit and create a Git tag
+git tag v0.2.0
+git push origin v0.2.0
+
+# GitHub Actions will automatically:
+# - Run: deno task build:release
+# - Create dist/donation-widget.v0.2.0.js (versioned bundle)
+# - Calculate SHA-384 hash and save to .integrity.txt
+# - Upload both files to GitHub Release
+# - Generate comprehensive release notes
+```
+
+**For self-hosting (advanced):**
+
+If you want to host the widget on your own infrastructure:
+
+1. Download widget files from GitHub Releases
+2. Set up the www build process to fetch from your releases
+3. Configure your CDN/static host with proper cache headers
+4. Update the configurator to point to your CDN domain
+
+See the `www/scripts/fetch-releases.ts` script for reference configuration.
 
 ## 🚀 Quick Start
 

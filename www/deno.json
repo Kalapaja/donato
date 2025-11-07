@@ -1,5 +1,10 @@
 {
   "tasks": {
-    "www:dev": "npm run dev"
+    "www:dev": "npm run dev",
+    "test": "deno test --no-check --allow-read --allow-write --allow-env --allow-net ../scripts/fetch/",
+    "test:fetch-releases": "deno test --no-check --allow-read --allow-write --allow-env --allow-net ../scripts/fetch/fetch-releases.test.ts",
+    "fetch-releases": "deno run --allow-read --allow-env --allow-net ../scripts/fetch/fetch-releases.ts",
+    "fetch-releases:build": "deno run --allow-read --allow-write --allow-env --allow-net ../scripts/fetch/fetch-releases.ts build ./public",
+    "download-releases": "deno run --allow-read --allow-write --allow-env --allow-net ../scripts/fetch/fetch-releases.ts download"
   }
 }
