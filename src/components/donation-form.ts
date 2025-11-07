@@ -377,38 +377,11 @@ export class DonationForm extends LitElement {
       return "Processing...";
     }
 
-    const account = this.walletService.getAccount();
-
-    if (!account.address) {
-      return "Connect Wallet";
-    }
-
-    if (!this.selectedToken) {
-      return "Select Asset";
-    }
-
-    if (!this.recipientAmount || parseFloat(this.recipientAmount) <= 0) {
-      return "Enter Amount";
-    }
-
     if (this.isQuoteLoading) {
       return "Calculating...";
     }
 
-    if (this.quoteError) {
-      return "Quote Error";
-    }
-
-    if (!this.quote) {
-      return "Get Quote";
-    }
-
-    if (account.chainId !== this.selectedToken.chainId) {
-      return "Switch Network";
-    }
-
-    const tokenSymbol = this.recipientTokenInfo?.symbol || "tokens";
-    return `Donate ${this.recipientAmount} ${tokenSymbol}`;
+    return "Donate";
   }
 
   protected override async updated(changedProperties: Map<string, unknown>) {
