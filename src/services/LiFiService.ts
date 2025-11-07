@@ -287,6 +287,11 @@ export class LiFiService {
    * Get supported chains with caching
    */
   async getChains(): Promise<LiFiChain[]> {
+    // If no API key, return empty array (chains will be loaded from hardcoded config)
+    if (!this.apiKey) {
+      return [];
+    }
+
     // Check cache
     if (
       this.chainsCache &&
@@ -323,6 +328,11 @@ export class LiFiService {
    * Get tokens for specific chains with caching
    */
   async getTokens(chainIds: number[]): Promise<Token[]> {
+    // If no API key, return empty array (tokens will be loaded from hardcoded config)
+    if (!this.apiKey) {
+      return [];
+    }
+
     const cacheKey = chainIds.sort().join(",");
 
     // Check cache

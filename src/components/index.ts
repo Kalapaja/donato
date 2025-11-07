@@ -10,3 +10,4 @@ export { AmountInput } from "./amount-input.ts";
 export { DonateButton } from "./donate-button.ts";
 export { ToastNotification } from "./toast-notification.ts";
 export { ToastContainer } from "./toast-container.ts";
+export { ConfigPanel } from "./config-panel.ts";

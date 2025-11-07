@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef, startTransition } from "react";
 
 interface Chain {
   id: number;
@@ -138,21 +138,50 @@ export function CurrencyChainSection({
   const [selectedChain, setSelectedChain] = useState<Chain>(
     CHAINS.find((c) => c.id === recipientChainId) || CHAINS[1],
   );
-  const [selectedToken, setSelectedToken] = useState<Token | null>(null);
+  
+  // Initialize selectedToken from props
+  const getDefaultToken = (chainId: number): Token | null => {
+    const tokens = POPULAR_TOKENS[chainId] || [];
+    return tokens.find((t) => t.address === recipientTokenAddress) || tokens[0] || null;
+  };
+  
+  const [selectedToken, setSelectedToken] = useState<Token | null>(() =>
+    getDefaultToken(recipientChainId)
+  );
   const [customTokenAddress, setCustomTokenAddress] = useState("");
   const [useCustomToken, setUseCustomToken] = useState(false);
+  const prevRecipientChainId = useRef(recipientChainId);
+  const prevRecipientTokenAddress = useRef(recipientTokenAddress);
 
+  // Handle prop changes (not chain changes from user interaction)
   useEffect(() => {
-    const tokens = POPULAR_TOKENS[selectedChain.id] || [];
-    const defaultToken = tokens.find((t) =>
-      t.address === recipientTokenAddress
-    ) || tokens[0];
-    if (defaultToken) {
-      setSelectedToken(defaultToken);
-      setUseCustomToken(false);
-      onChainChange(selectedChain.id, defaultToken.address);
+    // Only update if props actually changed
+    if (
+      prevRecipientChainId.current !== recipientChainId ||
+      prevRecipientTokenAddress.current !== recipientTokenAddress
+    ) {
+      prevRecipientChainId.current = recipientChainId;
+      prevRecipientTokenAddress.current = recipientTokenAddress;
+
+      const chain = CHAINS.find((c) => c.id === recipientChainId) || CHAINS[1];
+      const tokens = POPULAR_TOKENS[chain.id] || [];
+      const defaultToken = tokens.find((t) =>
+        t.address === recipientTokenAddress
+      ) || tokens[0];
+
+      if (defaultToken) {
+        // Batch state updates to avoid cascading renders
+        startTransition(() => {
+          setSelectedChain(chain);
+          setSelectedToken(defaultToken);
+          setUseCustomToken(false);
+          setCustomTokenAddress("");
+        });
+        // Call callback after state updates are scheduled
+        onChainChange(chain.id, defaultToken.address);
+      }
     }
-  }, [selectedChain.id]);
+  }, [recipientChainId, recipientTokenAddress, onChainChange]);
 
   useEffect(() => {
     if (selectedToken && !useCustomToken) {
@@ -188,13 +217,13 @@ export function CurrencyChainSection({
         className="block text-sm font-semibold mb-2"
         style={{ color: "var(--color-foreground)" }}
       >
-        Currency & Chain *
+        Network & Asset
       </label>
       <p
         className="text-sm mb-4"
         style={{ color: "var(--color-muted-foreground)" }}
       >
-        Select blockchain network and token to receive donations
+        Select blockchain network and asset to receive donations
       </p>
 
       <div className="space-y-4">
@@ -236,13 +265,14 @@ export function CurrencyChainSection({
             className="block text-xs font-medium mb-2"
             style={{ color: "var(--color-muted-foreground)" }}
           >
-            Token
+            Asset
           </label>
           <div className="space-y-2">
             <div className="flex gap-2 flex-wrap">
               {tokens.map((token) => (
                 <button
                   key={token.address}
+                  type="button"
                   onClick={() => {
                     setSelectedToken(token);
                     setUseCustomToken(false);
@@ -319,7 +349,7 @@ export function CurrencyChainSection({
                   className="text-xs font-medium"
                   style={{ color: "var(--color-muted-foreground)" }}
                 >
-                  Use custom token address
+                  Use custom asset address
                 </span>
               </label>
               {useCustomToken && (

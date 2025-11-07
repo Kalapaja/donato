@@ -39,6 +39,9 @@ export class DonationForm extends LitElement {
   @property({ type: Boolean })
   accessor isDonating: boolean = false;
 
+  @property({ type: Boolean })
+  accessor disabled: boolean = false;
+
   @state()
   private accessor recipientAmount: string = "";
 
@@ -63,6 +66,11 @@ export class DonationForm extends LitElement {
   static override styles = css`
     :host {
       display: block;
+    }
+
+    :host([disabled]) .form-container {
+      opacity: 0.5;
+      pointer-events: none;
     }
 
     .form-container {
@@ -345,6 +353,7 @@ export class DonationForm extends LitElement {
     const account = this.walletService.getAccount();
 
     return (
+      !this.disabled &&
       !this.isDonating &&
       !!this.recipientAmount &&
       parseFloat(this.recipientAmount) > 0 &&
@@ -368,38 +377,11 @@ export class DonationForm extends LitElement {
       return "Processing...";
     }
 
-    const account = this.walletService.getAccount();
-
-    if (!account.address) {
-      return "Connect Wallet";
-    }
-
-    if (!this.selectedToken) {
-      return "Select Token";
-    }
-
-    if (!this.recipientAmount || parseFloat(this.recipientAmount) <= 0) {
-      return "Enter Amount";
-    }
-
     if (this.isQuoteLoading) {
       return "Calculating...";
     }
 
-    if (this.quoteError) {
-      return "Quote Error";
-    }
-
-    if (!this.quote) {
-      return "Get Quote";
-    }
-
-    if (account.chainId !== this.selectedToken.chainId) {
-      return "Switch Network";
-    }
-
-    const tokenSymbol = this.recipientTokenInfo?.symbol || "tokens";
-    return `Donate ${this.recipientAmount} ${tokenSymbol}`;
+    return "Donate";
   }
 
   protected override async updated(changedProperties: Map<string, unknown>) {
@@ -433,8 +415,7 @@ export class DonationForm extends LitElement {
           .recipientToken="${this.recipientTokenInfo}"
           .quote="${this.quote}"
           .isQuoteLoading="${this.isQuoteLoading}"
-          .quoteError="${this.quoteError}"
-          ?disabled="${this.isDonating}"
+          ?disabled="${this.disabled || this.isDonating}"
           @amount-change="${this.handleAmountChange}"
         ></amount-input>
 

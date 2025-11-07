@@ -12,8 +12,21 @@
   --radius: 0.25rem;
 }
 
+/* Dark theme via class (for explicit dark mode) */
+html.dark {
+  --color-background: oklch(16% 0 0);
+  --color-foreground: oklch(99% 0 0);
+  --color-primary: oklch(99% 0 0);
+  --color-secondary: oklch(26% 0 0);
+  --color-accent: oklch(68% 0 0);
+  --color-border: oklch(30% 0 0);
+  --color-muted: oklch(22% 0 0);
+  --color-muted-foreground: oklch(68% 0 0);
+}
+
+/* Dark theme via media query (for auto mode) */
 @media (prefers-color-scheme: dark) {
-  :root {
+  :root:not(.light) {
     --color-background: oklch(16% 0 0);
     --color-foreground: oklch(99% 0 0);
     --color-primary: oklch(99% 0 0);
@@ -44,4 +57,21 @@ body {
 
 * {
   border-color: var(--color-border);
+}
+
+/* Color picker styles - remove default browser styling */
+/* Source: https://stackoverflow.com/questions/11167281/webkit-css-to-control-the-box-around-the-color-in-an-inputtype-color */
+input[type="color"] {
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+  border: none;
+}
+
+input[type="color"]::-webkit-color-swatch-wrapper {
+  padding: 0;
+}
+
+input[type="color"]::-webkit-color-swatch {
+  border: none;
 }

@@ -18,7 +18,7 @@ export function LiFiSection({ lifiApiKey, onApiKeyChange }: LiFiSectionProps) {
         className="text-sm mb-4"
         style={{ color: "var(--color-muted-foreground)" }}
       >
-        Optional: Get a free API key for higher rate limits and better
+        Get a free API key for higher rate limits and better
         performance
       </p>
 

@@ -5,6 +5,7 @@ import type {
   WalletAccount,
   WalletService,
 } from "../services/WalletService.ts";
+import type { Chain } from "../services/ChainService.ts";
 import type { Address } from "viem";
 import "./token-selector.ts";
 
@@ -19,8 +20,14 @@ export class WalletSection extends LitElement {
   @property({ type: Array })
   accessor availableTokens: Token[] = [];
 
+  @property({ type: Array })
+  accessor chains: Chain[] = [];
+
   @property({ type: Boolean })
   accessor isLoadingTokens: boolean = false;
+
+  @property({ type: Boolean })
+  accessor disabled: boolean = false;
 
   @state()
   private accessor address: Address | null = null;
@@ -48,6 +55,11 @@ export class WalletSection extends LitElement {
       margin-bottom: 1.5rem;
       width: 100%;
       box-sizing: border-box;
+    }
+
+    :host([disabled]) .wallet-container {
+      opacity: 0.5;
+      pointer-events: none;
     }
 
     .wallet-container {
@@ -432,6 +444,10 @@ export class WalletSection extends LitElement {
     );
   }
 
+  private get isReOwnConfigured(): boolean {
+    return this.walletService?.getAppKit() !== null;
+  }
+
   override render() {
     if (!this.walletConnected) {
       return html`
@@ -439,7 +455,7 @@ export class WalletSection extends LitElement {
           <button
             class="button"
             @click="${this.handleConnect}"
-            ?disabled="${this.isConnecting}"
+            ?disabled="${this.isConnecting || !this.isReOwnConfigured || this.disabled}"
             aria-label="Connect wallet"
           >
             ${this.isConnecting
@@ -507,6 +523,7 @@ export class WalletSection extends LitElement {
           <token-selector
             .tokens="${this.availableTokens}"
             .selectedToken="${this.selectedToken}"
+            .chains="${this.chains}"
             .isLoading="${this.isLoadingTokens}"
             .currentChainId="${this.chainId}"
             @token-selected="${this.handleTokenSelect}"
