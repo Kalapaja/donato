@@ -1,6 +1,11 @@
 {
   "version": "5",
   "specifiers": {
+    "jsr:@std/assert@1": "1.0.10",
+    "jsr:@std/assert@1.0.10": "1.0.10",
+    "jsr:@std/assert@^1.0.10": "1.0.10",
+    "jsr:@std/internal@^1.0.5": "1.0.12",
+    "jsr:@std/testing@1.0.8": "1.0.8",
     "npm:@tailwindcss/postcss@4": "4.1.16",
     "npm:@types/node@20": "20.19.24",
     "npm:@types/react-dom@19": "19.2.2_@types+react@19.2.2",
@@ -12,6 +17,24 @@
     "npm:react@19.2.0": "19.2.0",
     "npm:tailwindcss@4": "4.1.16",
     "npm:typescript@5": "5.9.3"
+  },
+  "jsr": {
+    "@std/assert@1.0.10": {
+      "integrity": "59b5cbac5bd55459a19045d95cc7c2ff787b4f8527c0dd195078ff6f9481fbb3",
+      "dependencies": [
+        "jsr:@std/internal"
+      ]
+    },
+    "@std/internal@1.0.12": {
+      "integrity": "972a634fd5bc34b242024402972cd5143eac68d8dffaca5eaa4dba30ce17b027"
+    },
+    "@std/testing@1.0.8": {
+      "integrity": "ceef535808fb7568e91b0f8263599bd29b1c5603ffb0377227f00a8ca9fe42a2",
+      "dependencies": [
+        "jsr:@std/assert@^1.0.10",
+        "jsr:@std/internal"
+      ]
+    }
   },
   "npm": {
     "@alloc/quick-lru@5.2.0": {

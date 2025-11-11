@@ -4,9 +4,13 @@
   "private": true,
   "scripts": {
     "dev": "next dev -p 3001",
+    "prebuild": "deno task fetch-releases:build",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "fetch-releases": "deno task fetch-releases",
+    "fetch-releases:build": "deno run --allow-read --allow-write --allow-env --allow-net ../scripts/fetch/fetch-releases.ts build ./public",
+    "mock:versions": "cp public/versions.json.example public/versions.json"
   },
   "dependencies": {
     "react": "19.2.0",

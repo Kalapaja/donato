@@ -1,6 +1,7 @@
 import { defineConfig, Plugin } from "vite";
 import { resolve } from "node:path";
 import { existsSync, readFileSync } from "node:fs";
+import { versioningPlugin } from "./vite-plugin-versioning.ts";
 
 // Plugin to serve donation-widget.js from dist in dev mode
 function devWidgetPlugin(): Plugin {
@@ -42,11 +43,27 @@ export default defineConfig(({ mode, command }) => {
   const isProduction = mode === "production";
   const isServe = command === "serve";
 
+  // Read version from deno.json
+  let version = "0.0.0";
+  try {
+    const denoJsonPath = resolve(__dirname, "deno.json");
+    const denoJson = JSON.parse(readFileSync(denoJsonPath, "utf-8"));
+    version = denoJson.version || version;
+  } catch (error) {
+    console.warn("Could not read version from deno.json:", error);
+  }
+
   return {
-    plugins: isServe ? [devWidgetPlugin()] : [],
+    plugins: isServe ? [devWidgetPlugin()] : [
+      // Versioning plugin for production builds
+      versioningPlugin({
+        enabled: isProduction,
+      }),
+    ],
     // Define global constants to inline environment variables
     define: {
       "process.env.NODE_ENV": JSON.stringify(mode),
+      "__WIDGET_VERSION__": JSON.stringify(version),
     },
     build: {
       lib: {

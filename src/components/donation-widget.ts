@@ -256,10 +256,21 @@ export class DonationWidget extends LitElement {
       }
     `;
 
-    override async connectedCallback() {
-      super.connectedCallback();
-      await this.initializeWidget();
+  override async connectedCallback() {
+    super.connectedCallback();
+    
+    // Add version metadata to the widget element
+    const version = (window as any).__DONATION_WIDGET__?.version || "unknown";
+    this.setAttribute("data-version", version);
+    
+    // Log version in development mode
+    const isDevelopment = typeof process !== "undefined" && process.env?.NODE_ENV === "development";
+    if (isDevelopment) {
+      console.log(`Donation Widget initialized (v${version})`);
     }
+    
+    await this.initializeWidget();
+  }
 
     override disconnectedCallback() {
       super.disconnectedCallback();

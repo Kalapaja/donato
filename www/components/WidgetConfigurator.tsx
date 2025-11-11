@@ -1,12 +1,15 @@
 "use client";
 
+import { useState } from "react";
 import type { WidgetConfig } from "../types/config";
+import type { VersionEntry } from "../types/versions";
 import { RecipientSection } from "./sections/RecipientSection";
 import { CurrencyChainSection } from "./sections/CurrencyChainSection";
 import { LiFiSection } from "./sections/LiFiSection";
 import { ReOwnSection } from "./sections/ReOwnSection";
 import { ThemeSection } from "./sections/ThemeSection";
 import { EmbedCodeSection } from "./sections/EmbedCodeSection";
+import { VersionSelector } from "./VersionSelector";
 
 interface WidgetConfiguratorProps {
   config: Partial<WidgetConfig>;
@@ -17,6 +20,14 @@ interface WidgetConfiguratorProps {
 export function WidgetConfigurator(
   { config, onConfigChange, widgetScript }: WidgetConfiguratorProps,
 ) {
+  const [selectedVersion, setSelectedVersion] = useState<string | null>(null);
+  const [versionEntry, setVersionEntry] = useState<VersionEntry | null>(null);
+
+  const handleVersionChange = (version: string, entry: VersionEntry) => {
+    setSelectedVersion(version);
+    setVersionEntry(entry);
+  };
+
   const isValidConfig = !!(
     config.recipient &&
     /^0x[a-fA-F0-9]{40}$/.test(config.recipient) &&
@@ -106,17 +117,33 @@ export function WidgetConfigurator(
       </div>
 
       {isValidConfig && (
-        <div
-          style={{
-            paddingTop: "1.5rem",
-            borderTop: "1px solid var(--color-border)",
-          }}
-        >
-          <EmbedCodeSection 
-            config={config as WidgetConfig} 
-            widgetScript={widgetScript}
-          />
-        </div>
+        <>
+          <div
+            style={{
+              paddingTop: "1.5rem",
+              borderTop: "1px solid var(--color-border)",
+            }}
+          >
+            <VersionSelector 
+              selectedVersion={selectedVersion}
+              onVersionChange={handleVersionChange}
+            />
+          </div>
+
+          <div
+            style={{
+              paddingTop: "1.5rem",
+              borderTop: "1px solid var(--color-border)",
+            }}
+          >
+            <EmbedCodeSection 
+              config={config as WidgetConfig} 
+              widgetScript={widgetScript}
+              selectedVersion={selectedVersion || undefined}
+              versionEntry={versionEntry || undefined}
+            />
+          </div>
+        </>
       )}
     </div>
   );

@@ -1,0 +1,99 @@
+name: Release Widget
+
+on:
+  release:
+    types: [created]
+
+permissions:
+  contents: write
+
+jobs:
+  build-and-release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Deno
+        uses: denoland/setup-deno@v2.0.3
+        with:
+          deno-version: v2.5.4
+      
+      - name: Extract version from tag
+        id: version
+        run: |
+          # Extract version from tag name (e.g., "v1.0.0" -> "1.0.0")
+          VERSION="${{ github.ref_name }}"
+          VERSION="${VERSION#v}"
+          echo "version=${VERSION}" >> $GITHUB_OUTPUT
+          echo "Extracted version: ${VERSION}"
+      
+      - name: Install dependencies
+        run: deno install
+      
+      - name: Build widget for release
+        id: build
+        env:
+          GITHUB_REF_NAME: ${{ github.ref_name }}
+        run: |
+          echo "Building widget for release tag: ${GITHUB_REF_NAME}"
+          deno task build:release
+          
+          # Capture build outputs
+          VERSION="${{ steps.version.outputs.version }}"
+          FILE="dist/donation-widget.v${VERSION}.js"
+          INTEGRITY_FILE="${FILE}.integrity.txt"
+          
+          # Read integrity hash
+          if [ -f "${INTEGRITY_FILE}" ]; then
+            INTEGRITY=$(cat "${INTEGRITY_FILE}")
+            echo "integrity=${INTEGRITY}" >> $GITHUB_OUTPUT
+            echo "Build completed successfully"
+            echo "Version: ${VERSION}"
+            echo "File: ${FILE}"
+            echo "Integrity: ${INTEGRITY}"
+          else
+            echo "Error: Integrity file not found: ${INTEGRITY_FILE}"
+            exit 1
+          fi
+      
+      - name: Verify files
+        run: |
+          VERSION="${{ steps.version.outputs.version }}"
+          echo "Verifying release artifacts..."
+          ls -lh "dist/donation-widget.v${VERSION}.js"
+          ls -lh "dist/donation-widget.v${VERSION}.js.integrity.txt"
+          echo ""
+          echo "File size:"
+          du -h "dist/donation-widget.v${VERSION}.js"
+          echo ""
+          echo "Integrity hash:"
+          cat "dist/donation-widget.v${VERSION}.js.integrity.txt"
+      
+      - name: Upload release artifacts
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          VERSION="${{ steps.version.outputs.version }}"
+          WIDGET_FILE="dist/donation-widget.v${VERSION}.js"
+          INTEGRITY_FILE="${WIDGET_FILE}.integrity.txt"
+          
+          echo "Uploading artifacts to release..."
+          gh release upload "${{ github.ref_name }}" \
+            "${WIDGET_FILE}" \
+            "${INTEGRITY_FILE}" \
+            --clobber
+          
+          echo "✅ Successfully uploaded:"
+          echo "  - ${WIDGET_FILE}"
+          echo "  - ${INTEGRITY_FILE}"
+      
+      - name: Update release notes
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          RELEASE_ID: ${{ github.event.release.id }}
+          VERSION: ${{ steps.version.outputs.version }}
+          INTEGRITY: ${{ steps.build.outputs.integrity }}
+          WIDGET_FILE: dist/donation-widget.v${{ steps.version.outputs.version }}.js
+        run: deno task release:update-notes
+

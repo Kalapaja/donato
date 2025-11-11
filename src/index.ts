@@ -46,8 +46,9 @@ export {
 export type { Token } from "./services/WalletService.ts";
 export type { Theme, ThemeMode } from "./services/ThemeService.ts";
 
-// Version information
-export const VERSION = "1.0.0";
+// Version information (injected at build time from deno.json)
+declare const __WIDGET_VERSION__: string;
+export const VERSION = typeof __WIDGET_VERSION__ !== "undefined" ? __WIDGET_VERSION__ : "0.0.0";
 export const BUILD_DATE = new Date().toISOString();
 
 // Widget metadata
@@ -63,7 +64,12 @@ export const WIDGET_INFO = {
 
 // Log initialization
 if (typeof window !== "undefined") {
-  console.log(`🎁 Donation Widget v${VERSION} loaded`);
+  // Log version in development mode
+  const isDevelopment = typeof process !== "undefined" && process.env?.NODE_ENV === "development";
+  if (isDevelopment) {
+    console.log(`🎁 Donation Widget v${VERSION} loaded (development mode)`);
+    console.log("Widget info:", WIDGET_INFO);
+  }
 
   // Make widget info available globally for debugging
   (window as any).__DONATION_WIDGET__ = WIDGET_INFO;
