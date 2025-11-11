@@ -201,7 +201,7 @@ export async function extractVersion(
     };
   } catch (error) {
     throw new VersionExtractionError(
-      `Invalid version format: ${version}. ${(error as Error).message}`,
+      `Invalid version format: ${version} from ${source}. ${(error as Error).message}`,
       error as Error,
     );
   }

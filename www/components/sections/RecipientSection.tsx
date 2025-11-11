@@ -18,7 +18,7 @@ export function RecipientSection(
     setError(null);
 
     if (value && !/^0x[a-fA-F0-9]{40}$/.test(value)) {
-      setError("Invalid Ethereum address format");
+      setError("Invalid address format");
     }
   };
 
