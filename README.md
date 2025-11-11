@@ -111,7 +111,7 @@ The widget uses a GitHub Release-based versioning system with automatic build an
 **How it works:**
 
 1. **Widget Build & Release** (Automated via GitHub Actions)
-   - When a Git tag is created (e.g., `v0.0.0-dev`), GitHub Actions automatically triggers
+   - When a Git tag is created (e.g., `v0.0.0`), GitHub Actions automatically triggers
    - The widget is built with Vite in production mode
    - The bundle is renamed to `donation-widget.v{version}.js`
    - A SHA-384 integrity hash is calculated and saved to a `.integrity.txt` file
@@ -181,7 +181,7 @@ The widget is available through two types of URLs:
 ```html
 <!-- Specific version with SRI -->
 <script
-  src="https://your-cdn.com/donation-widget.v0.0.0-dev.js"
+  src="https://your-cdn.com/donation-widget.v0.0.0.js"
   integrity="sha384-7VZDmiHh/FiieJH3qmVUcQ+fXKmNcEUd1+LV7evvqlk9EJnENaN4C64/Asu2LXBB"
   crossorigin="anonymous"
 ></script>
@@ -237,14 +237,14 @@ The `versions.json` manifest is automatically generated during the www build and
 **Example manifest structure:**
 ```json
 {
-  "latest": "0.0.0-dev",
+  "latest": "0.0.0",
   "versions": {
-    "0.0.0-dev": {
-      "file": "donation-widget.v0.0.0-dev.js",
+    "0.0.0": {
+      "file": "donation-widget.v0.0.0.js",
       "integrity": "sha384-7VZDmiHh/FiieJH3qmVUcQ+fXKmNcEUd1+LV7evvqlk9EJnENaN4C64/Asu2LXBB",
       "size": 2781344,
       "date": "2025-11-07T13:36:05.372Z",
-      "releaseUrl": "https://github.com/Kalapaja/donato/releases/tag/v0.0.0-dev"
+      "releaseUrl": "https://github.com/Kalapaja/donato/releases/tag/v0.0.0"
     }
   }
 }
@@ -289,7 +289,7 @@ Use the script tag with the correct version and integrity hash:
 
     <!-- Load specific version with SRI -->
     <script
-      src="https://your-cdn.com/donation-widget.v0.0.0-dev.js"
+      src="https://your-cdn.com/donation-widget.v0.0.0.js"
       integrity="sha384-7VZDmiHh/FiieJH3qmVUcQ+fXKmNcEUd1+LV7evvqlk9EJnENaN4C64/Asu2LXBB"
       crossorigin="anonymous"
     ></script>
@@ -335,7 +335,7 @@ If you're a maintainer creating a new widget version:
    - Updates the `versions.json` manifest
    - Makes the new version available in the configurator
 
-**Note:** Git tags must follow the format `vX.Y.Z` (e.g., `v0.0.0-dev`, `v1.2.3`).
+**Note:** Git tags must follow the format `vX.Y.Z` (e.g., `v0.0.0`, `v1.2.3`).
 
 ### Using the Widget Configurator
 
@@ -357,12 +357,12 @@ When you're ready to update to a new version:
 3. **Update your embed code** - Replace both the `src` URL and `integrity` hash
 4. **Deploy** - Push the updated code to production
 
-Example update from v0.0.0-dev to v0.2.0:
+Example update from v0.0.0 to v0.2.0:
 
 ```html
-<!-- Before: Version 0.0.0-dev -->
+<!-- Before: Version 0.0.0 -->
 <script
-  src="https://your-cdn.com/donation-widget.v0.0.0-dev.js"
+  src="https://your-cdn.com/donation-widget.v0.0.0.js"
   integrity="sha384-OLD_HASH_HERE"
   crossorigin="anonymous"
 ></script>

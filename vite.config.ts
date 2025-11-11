@@ -44,7 +44,7 @@ export default defineConfig(({ mode, command }) => {
   const isServe = command === "serve";
 
   // Read version from deno.json
-  let version = "0.0.0-dev";
+  let version = "0.0.0";
   try {
     const denoJsonPath = resolve(__dirname, "deno.json");
     const denoJson = JSON.parse(readFileSync(denoJsonPath, "utf-8"));

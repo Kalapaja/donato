@@ -1,12 +1,12 @@
 {
-  "latest": "0.0.0-dev",
+  "latest": "0.0.0",
   "versions": {
-    "0.0.0-dev": {
-      "file": "donation-widget.v0.0.0-dev.js",
+    "0.0.0": {
+      "file": "donation-widget.v0.0.0.js",
       "integrity": "sha384-mock-integrity-hash-for-development",
       "size": 245760,
       "date": "2025-11-07T00:00:00.000Z",
-      "releaseUrl": "https://github.com/your-org/donato/releases/tag/v0.0.0-dev",
+      "releaseUrl": "https://github.com/your-org/donato/releases/tag/v0.0.0",
       "major": 0,
       "minor": 0,
       "patch": 0

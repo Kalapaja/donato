@@ -45,7 +45,7 @@ export class ManifestManager {
   constructor(manifestPath: string) {
     this.manifestPath = manifestPath;
     this.manifest = {
-      latest: "0.0.0-dev",
+      latest: "0.0.0",
       versions: {},
     };
   }
