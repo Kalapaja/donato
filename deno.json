@@ -16,7 +16,7 @@
     "preview": "vite preview",
     "lint": "deno lint src/",
     "www": "deno task --unstable --quiet --config=./www/deno.json dev",
-    "deploy": "deno run --allow-read --allow-write --allow-env --allow-net scripts/fetch/fetch-releases.ts build www/public && cd www && deno install && deno task build",
+    "deploy": "deno task build:versioned && cd www && deno install && deno task build",
     "www:install": "cd www && deno install"
   },
   "imports": {

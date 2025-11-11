@@ -116,7 +116,7 @@ function getConfig(): ReleaseNotesConfig {
     throw new UpdateError("WIDGET_FILE environment variable is required");
   }
   
-  const cdnDomain = "donations.kalatori.org";
+  const cdnDomain = "cdn.donations.kalatori.org";
   
   return {
     githubToken,
