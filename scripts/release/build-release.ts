@@ -13,10 +13,13 @@
  * 5. Save integrity hash to donation-widget.v{version}.js.integrity.txt
  * 
  * Usage:
+ *   WIDGET_VERSION=1.0.0 deno run --allow-read --allow-write --allow-run --allow-env scripts/build-release.ts
+ *   or
  *   GITHUB_REF_NAME=v1.0.0 deno run --allow-read --allow-write --allow-run --allow-env scripts/build-release.ts
  * 
  * Environment Variables:
- *   GITHUB_REF_NAME - Git tag name (e.g., "v1.0.0" or "1.0.0")
+ *   WIDGET_VERSION - Version string (e.g., "1.0.0") - takes priority
+ *   GITHUB_REF_NAME - Git tag name (e.g., "v1.0.0" or "1.0.0") - fallback if WIDGET_VERSION not set
  *   OUTPUT_DIR - Output directory (default: ./dist)
  * 
  * Output:
@@ -77,7 +80,11 @@ class BuildError extends Error {
 }
 
 /**
- * Extracts version from GITHUB_REF_NAME environment variable
+ * Extracts version from WIDGET_VERSION or GITHUB_REF_NAME environment variable
+ * 
+ * Priority:
+ * 1. WIDGET_VERSION (if set)
+ * 2. GITHUB_REF_NAME (fallback)
  * 
  * Handles formats:
  * - "v1.0.0" -> "1.0.0"
@@ -88,29 +95,39 @@ class BuildError extends Error {
  * @throws {BuildError} If version is missing or invalid
  */
 function extractVersionFromGitTag(): string {
-  const gitRef = Deno.env.get("GITHUB_REF_NAME");
+  // First, try WIDGET_VERSION
+  let version = Deno.env.get("WIDGET_VERSION");
+  let source = "WIDGET_VERSION";
   
-  if (!gitRef) {
-    throw new BuildError(
-      "GITHUB_REF_NAME environment variable is not set.\n" +
-      "This script is designed to run in GitHub Actions on release tag creation.\n" +
-      "For local testing, set GITHUB_REF_NAME manually:\n" +
-      "  GITHUB_REF_NAME=v1.0.0 deno task build:release"
-    );
+  // Fallback to GITHUB_REF_NAME if WIDGET_VERSION is not set
+  if (!version) {
+    const gitRef = Deno.env.get("GITHUB_REF_NAME");
+    
+    if (!gitRef) {
+      throw new BuildError(
+        "Neither WIDGET_VERSION nor GITHUB_REF_NAME environment variable is set.\n" +
+        "This script is designed to run in GitHub Actions on release tag creation.\n" +
+        "For local testing, set WIDGET_VERSION or GITHUB_REF_NAME manually:\n" +
+        "  WIDGET_VERSION=1.0.0 deno task build:release\n" +
+        "  or\n" +
+        "  GITHUB_REF_NAME=v1.0.0 deno task build:release"
+      );
+    }
+    
+    // Extract version from tag name
+    // Handle formats: "v1.0.0", "1.0.0", "refs/tags/v1.0.0"
+    version = gitRef
+      .replace(/^refs\/tags\//, "")  // Remove refs/tags/ prefix
+      .replace(/^v/, "");              // Remove v prefix
+    source = "GITHUB_REF_NAME";
   }
-  
-  // Extract version from tag name
-  // Handle formats: "v1.0.0", "1.0.0", "refs/tags/v1.0.0"
-  let version = gitRef
-    .replace(/^refs\/tags\//, "")  // Remove refs/tags/ prefix
-    .replace(/^v/, "");              // Remove v prefix
   
   // Validate semantic version format
   try {
     assertValidSemanticVersion(version);
   } catch (error) {
     throw new BuildError(
-      `Invalid version format in GITHUB_REF_NAME: "${gitRef}"\n` +
+      `Invalid version format in ${source}: "${version}"\n` +
       `Expected semantic version format (e.g., v1.0.0 or 1.0.0)\n` +
       `${(error as Error).message}`,
       error as Error
