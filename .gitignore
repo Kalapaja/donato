@@ -32,3 +32,6 @@ tmp
 .kiro
 .vite
 .idea
+
+**/donation-widget.v*.js
+**/donation-widget.v*.js.integrity.txt

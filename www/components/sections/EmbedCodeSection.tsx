@@ -66,7 +66,7 @@ export function EmbedCodeSection({
     
     if (versionEntry && selectedVersion) {
       // Use versioned URL with SRI from public directory
-      const origin = baseUrl || (typeof window !== "undefined" ? window.location.origin : "http://donations.kalatori.org");
+      const origin = baseUrl || (typeof window !== "undefined" ? window.location.origin : "http://cdn.donations.kalatori.org");
       const scriptUrl = `${origin}/${versionEntry.file}`;
       
       scriptTag = `<script\n  src="${scriptUrl}"\n  integrity="${versionEntry.integrity}"\n  crossorigin="anonymous"\n></script>`;

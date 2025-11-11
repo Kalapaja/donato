@@ -1,6 +1,6 @@
 {
   "tasks": {
-    "www:dev": "npm run dev",
+    "www:dev": "deno task dev",
     "test": "deno test --no-check --allow-read --allow-write --allow-env --allow-net ../scripts/fetch/",
     "test:fetch-releases": "deno test --no-check --allow-read --allow-write --allow-env --allow-net ../scripts/fetch/fetch-releases.test.ts",
     "fetch-releases": "deno run --allow-read --allow-env --allow-net ../scripts/fetch/fetch-releases.ts",
