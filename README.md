@@ -4,7 +4,7 @@ A modern, embeddable cryptocurrency donation widget with cross-chain support
 powered by LiFi. Accept donations in any token on any supported chain, and
 receive them in your preferred token on your preferred chain.
 
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![License: GPLv3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
 
 ## ✨ Features
 
@@ -1278,7 +1278,7 @@ for details.
 
 ## 📝 License
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
+This project is licensed under the GNU General Public License v3.0 - see the [LICENSE](LICENSE) file
 for details.
 
 ## 💬 Support
