@@ -256,19 +256,18 @@ export class DonationWidget extends LitElement {
       }
     `;
 
-  override async connectedCallback() {
+  override connectedCallback() {
     super.connectedCallback();
     
     // Add version metadata to the widget element
-    const version = (window as any).__DONATION_WIDGET__?.version || "unknown";
+    const version = (window as { __DONATION_WIDGET__?: { version?: string } }).__DONATION_WIDGET__?.version || "unknown";
     this.setAttribute("data-version", version);
     
-    // Log version in development mode
-    const isDevelopment = typeof process !== "undefined" && process.env?.NODE_ENV === "development";
-    if (isDevelopment) {
-      console.log(`Donation Widget initialized (v${version})`);
-    }
-    
+
+  }
+
+  override async firstUpdated() {
+    // firstUpdated is called after the first render, ensuring attributes are read
     await this.initializeWidget();
   }
 
@@ -395,13 +394,14 @@ export class DonationWidget extends LitElement {
 
     // Handle reownProjectId changes
     if (changedProperties.has("reownProjectId")) {
-      if (this.isInitialized && this.reownProjectId) {
-        // Re-initialize wallet service with new project ID
+      // Initialize or re-initialize wallet service when project ID is available
+      // WalletService.init() handles checking if already initialized and cleanup if needed
+      if (this.reownProjectId) {
         try {
           this.walletService.init(this.reownProjectId);
         } catch (err) {
-          console.error("Failed to re-initialize wallet service:", err);
-          this.error = "Failed to update Reown configuration";
+          console.error("Failed to initialize/re-initialize wallet service:", err);
+          this.error = "Failed to initialize Reown wallet connection";
         }
       }
     }

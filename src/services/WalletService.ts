@@ -37,6 +37,7 @@ export class WalletService {
   private accountChangeCallbacks: Set<EventCallback<WalletAccount>> = new Set();
   private chainChangeCallbacks: Set<EventCallback<number>> = new Set();
   private disconnectCallbacks: Set<EventCallback<void>> = new Set();
+  private initializedProjectId: string | null = null;
 
   private readonly supportedChains: ViemChain[] = [
     mainnet,
@@ -53,6 +54,23 @@ export class WalletService {
   init(projectId: string): void {
     if (!projectId) {
       throw new Error("Reown project ID is required");
+    }
+
+    // If already initialized with the same project ID, skip
+    if (this.appKit && this.initializedProjectId === projectId) {
+      return;
+    }
+
+    // If already initialized with a different project ID, disconnect first
+    if (this.appKit && this.initializedProjectId !== projectId) {
+      console.warn("Reown project ID changed. Reinitializing AppKit...");
+      // Disconnect and clean up old instance
+      this.appKit.disconnect().catch(() => {
+        // Ignore errors during cleanup
+      });
+      this.appKit = null;
+      this.walletClient = null;
+      this.currentAccount = null;
     }
 
     try {
@@ -110,9 +128,11 @@ export class WalletService {
         },
       });
 
+      this.initializedProjectId = projectId;
       this.setupEventListeners();
     } catch (error) {
       console.error("Failed to initialize Reown AppKit:", error);
+      this.initializedProjectId = null;
       throw new Error("Failed to initialize wallet connection");
     }
   }

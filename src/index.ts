@@ -1,10 +1,3 @@
-/**
- * Donation Widget - Embeddable cryptocurrency donation widget
- *
- * @version 1.0.0
- * @license MIT
- */
-
 // Import and register all components
 import "./components/donation-widget.ts";
 import "./components/wallet-section.ts";
@@ -59,7 +52,7 @@ export const WIDGET_INFO = {
   description:
     "Embeddable cryptocurrency donation widget with cross-chain support",
   author: "Donation Widget Team",
-  license: "MIT",
+  license: "GPLv3",
 } as const;
 
 // Log initialization

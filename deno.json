@@ -1,5 +1,5 @@
 {
-  "version": "0.1.0",
+  "version": "0.0.0-dev",
   "tasks": {
     "dev": "sh -c 'deno task dev:build & deno task dev:vite & deno task dev:www; wait'",
     "dev:build": "vite build --mode development --watch",

@@ -69,7 +69,7 @@ describe("ManifestManager", () => {
       const manager = new ManifestManager(manifestPath);
       const manifest = await manager.load();
 
-      assertEquals(manifest.latest, "0.0.0");
+      assertEquals(manifest.latest, "0.0.0-dev");
       assertEquals(Object.keys(manifest.versions).length, 0);
     });
 
