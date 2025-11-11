@@ -141,7 +141,7 @@ export function WidgetConfigurator(
               widgetScript={widgetScript}
               selectedVersion={selectedVersion || undefined}
               versionEntry={versionEntry || undefined}
-              baseUrl={process.env.NEXT_PUBLIC_CDN_DOMAIN || "http://cdn.donations.kalatori.org"}
+              baseUrl={process.env.NEXT_PUBLIC_CDN_DOMAIN || "https://cdn.donations.kalatori.org"}
             />
           </div>
         </>
