@@ -30,13 +30,13 @@ export function RecipientSection(
         className="block text-sm font-semibold mb-2"
         style={{ color: "var(--color-foreground)" }}
       >
-        Recipient Address
+        Payout Address
       </label>
       <p
         className="text-sm mb-4"
         style={{ color: "var(--color-muted-foreground)" }}
       >
-        Enter an address that will receive donations
+        Enter the wallet address for receiving donations
       </p>
 
       <div className="space-y-2">

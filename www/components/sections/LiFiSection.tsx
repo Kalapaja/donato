@@ -18,11 +18,38 @@ export function LiFiSection({ lifiApiKey, onApiKeyChange }: LiFiSectionProps) {
         className="text-sm mb-4"
         style={{ color: "var(--color-muted-foreground)" }}
       >
-        Get a free API key for higher rate limits and better
-        performance
+        Get a free API key for cross-chain routing{" "}
+        <a
+          href="https://li.fi"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="inline-flex items-center gap-1"
+          style={{ color: "var(--color-primary)" }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.textDecoration = "underline";
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.textDecoration = "none";
+          }}
+        >
+          at LiFi
+          <svg
+            className="w-3 h-3"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"
+            />
+          </svg>
+        </a>
       </p>
 
-      <div className="space-y-3">
+      <div>
         <input
           type="text"
           value={lifiApiKey}
@@ -43,35 +70,6 @@ export function LiFiSection({ lifiApiKey, onApiKeyChange }: LiFiSectionProps) {
             e.currentTarget.style.outline = "none";
           }}
         />
-
-        <a
-          href="https://li.fi"
-          target="_blank"
-          rel="noopener noreferrer"
-          className="inline-flex items-center gap-2 text-sm"
-          style={{ color: "var(--color-primary)" }}
-          onMouseEnter={(e) => {
-            e.currentTarget.style.textDecoration = "underline";
-          }}
-          onMouseLeave={(e) => {
-            e.currentTarget.style.textDecoration = "none";
-          }}
-        >
-          Get your free API key at LiFi
-          <svg
-            className="w-4 h-4"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"
-            />
-          </svg>
-        </a>
       </div>
     </div>
   );

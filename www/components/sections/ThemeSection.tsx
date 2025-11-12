@@ -1,7 +1,5 @@
 "use client";
 
-import { useState } from "react";
-import { oklchToHex, hexToOklch } from "@/lib/color-utils";
 
 interface ThemeCustom {
   background: string;
@@ -27,52 +25,11 @@ const PRESET_THEMES = [
   { id: "dark", name: "Dark", description: "Dark theme" },
 ];
 
-const CUSTOM_THEME_DEFAULTS: ThemeCustom = {
-  background: "oklch(100% 0 0)",
-  foreground: "oklch(14% 0 0)",
-  primary: "oklch(17% 0 0)",
-  secondary: "oklch(96% 0 0)",
-  accent: "oklch(32% 0 0)",
-  border: "oklch(91% 0 0)",
-  muted: "oklch(96% 0 0)",
-  mutedForeground: "oklch(52% 0 0)",
-  radius: "1rem",
-};
-
-// Fields that are colors (not radius)
-const COLOR_FIELDS: (keyof ThemeCustom)[] = [
-  "background",
-  "foreground",
-  "primary",
-  "secondary",
-  "accent",
-  "border",
-  "muted",
-  "mutedForeground",
-];
-
 export function ThemeSection(
-  { theme, themeCustom, onThemeChange }: ThemeSectionProps,
+  { theme, onThemeChange }: ThemeSectionProps,
 ) {
-  const [showWizard, setShowWizard] = useState(false);
-  const [customTheme, setCustomTheme] = useState<ThemeCustom>(
-    themeCustom || CUSTOM_THEME_DEFAULTS,
-  );
-
   const handlePresetSelect = (presetId: string) => {
     onThemeChange(presetId);
-    setShowWizard(false);
-  };
-
-  const handleCustomThemeChange = (field: keyof ThemeCustom, value: string) => {
-    const updated = { ...customTheme, [field]: value };
-    setCustomTheme(updated);
-    onThemeChange("custom", updated);
-  };
-
-  const handleColorChange = (field: keyof ThemeCustom, hexValue: string) => {
-    const oklchValue = hexToOklch(hexValue);
-    handleCustomThemeChange(field, oklchValue);
   };
 
   const randomizeColors = () => {
@@ -158,7 +115,6 @@ export function ThemeSection(
       radius: `${Math.round((Math.random() * 1.5) / 0.25) * 0.25}rem`,
     };
 
-    setCustomTheme(newTheme);
     onThemeChange("custom", newTheme);
   };
 
@@ -174,192 +130,67 @@ export function ThemeSection(
         className="text-sm mb-4"
         style={{ color: "var(--color-muted-foreground)" }}
       >
-        Choose a preset theme or create a custom one
+        Select a preset theme or generate a random one
       </p>
 
-      <div className="space-y-4">
-        <div className="grid grid-cols-3 gap-3">
-          {PRESET_THEMES.map((preset) => (
-            <button
-              key={preset.id}
-              type="button"
-              onClick={() => handlePresetSelect(preset.id)}
-              className="p-3 rounded-lg text-left text-sm transition-colors"
-              style={{
-                background: theme === preset.id && theme !== "custom"
-                  ? "var(--color-muted)"
-                  : "var(--color-background)",
-                border: theme === preset.id && theme !== "custom"
-                  ? "1px solid var(--color-primary)"
-                  : "1px solid var(--color-border)",
-                color: "var(--color-foreground)",
-                borderRadius: "calc(var(--radius) - 2px)",
-              }}
-              onMouseEnter={(e) => {
-                if (theme !== preset.id || theme === "custom") {
-                  e.currentTarget.style.background = "var(--color-muted)";
-                }
-              }}
-              onMouseLeave={(e) => {
-                if (theme !== preset.id || theme === "custom") {
-                  e.currentTarget.style.background = "var(--color-background)";
-                }
-              }}
-            >
-              <div className="font-medium mb-1">{preset.name}</div>
-              <div
-                className="text-xs"
-                style={{ color: "var(--color-muted-foreground)" }}
-              >
-                {preset.description}
-              </div>
-            </button>
-          ))}
-        </div>
-
-        <div>
-          <div className="flex items-center justify-between mb-2">
-            <span
-              className="text-xs font-medium"
-              style={{ color: "var(--color-muted-foreground)" }}
-            >
-              Custom Theme
-            </span>
-            <button
-              type="button"
-              onClick={() => setShowWizard(!showWizard)}
-              className="px-3 py-1 text-xs rounded-lg transition-colors"
-              style={{
-                background: "var(--color-background)",
-                border: "1px solid var(--color-border)",
-                color: "var(--color-foreground)",
-                borderRadius: "calc(var(--radius) - 2px)",
-              }}
-              onMouseEnter={(e) => {
+      <div className="grid sm:grid-cols-4 gap-3 grid-cols-2">
+        {PRESET_THEMES.map((preset) => (
+          <button
+            key={preset.id}
+            type="button"
+            onClick={() => handlePresetSelect(preset.id)}
+            className="p-3 rounded-lg text-left text-sm transition-colors"
+            style={{
+              background: theme === preset.id && theme !== "custom"
+                ? "var(--color-muted)"
+                : "var(--color-background)",
+              border: theme === preset.id && theme !== "custom"
+                ? "1px solid var(--color-primary)"
+                : "1px solid var(--color-border)",
+              color: "var(--color-foreground)",
+              borderRadius: "calc(var(--radius) - 2px)",
+            }}
+            onMouseEnter={(e) => {
+              if (theme !== preset.id || theme === "custom") {
                 e.currentTarget.style.background = "var(--color-muted)";
-              }}
-              onMouseLeave={(e) => {
+              }
+            }}
+            onMouseLeave={(e) => {
+              if (theme !== preset.id || theme === "custom") {
                 e.currentTarget.style.background = "var(--color-background)";
-              }}
-            >
-              {showWizard ? "Hide" : "Show"} Wizard
-            </button>
-          </div>
-
-          {showWizard && (
-            <div
-              className="p-4 rounded-lg space-y-3"
-              style={{
-                background: "var(--color-muted)",
-                border: "1px solid var(--color-border)",
-                borderRadius: "calc(var(--radius) - 2px)",
-              }}
-            >
-              <div className="flex justify-between items-center">
-                <span
-                  className="text-xs font-medium"
-                  style={{ color: "var(--color-foreground)" }}
-                >
-                  Customize Colors
-                </span>
-                <button
-                  type="button"
-                  onClick={randomizeColors}
-                  className="px-2 py-1 text-xs rounded-lg transition-colors"
-                  style={{
-                    background: "var(--color-primary)",
-                    color: "var(--color-background)",
-                    borderRadius: "calc(var(--radius) - 2px)",
-                  }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.background = "var(--color-accent)";
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.background = "var(--color-primary)";
-                  }}
-                >
-                  🎲 Randomize
-                </button>
-              </div>
-
-              <div className="grid grid-cols-2 gap-2">
-                {Object.entries(customTheme).map(([key, value]) => {
-                  const fieldKey = key as keyof ThemeCustom;
-                  const isColorField = COLOR_FIELDS.includes(fieldKey);
-
-                  return (
-                    <div key={key}>
-                      <label
-                        className="block text-xs font-medium mb-1 capitalize"
-                        style={{ color: "var(--color-muted-foreground)" }}
-                      >
-                        {key.replace(/([A-Z])/g, " $1").trim()}
-                      </label>
-                      {isColorField ? (
-                        <input
-                          type="color"
-                          value={oklchToHex(value)}
-                          onChange={(e) =>
-                            handleColorChange(fieldKey, e.target.value)
-                          }
-                          className="w-full h-8 rounded cursor-pointer"
-                          style={{
-                            border: "1px solid rgba(0, 0, 0, 0.1)",
-                            borderRadius: "calc(var(--radius) - 2px)",
-                          }}
-                        />
-                      ) : (
-                        <input
-                          type="text"
-                          value={value}
-                          onChange={(e) =>
-                            handleCustomThemeChange(fieldKey, e.target.value)
-                          }
-                          className="w-full px-2 py-1.5 text-xs rounded"
-                          style={{
-                            background: "var(--color-background)",
-                            border: "1px solid var(--color-border)",
-                            color: "var(--color-foreground)",
-                            borderRadius: "calc(var(--radius) - 2px)",
-                          }}
-                          onFocus={(e) => {
-                            e.currentTarget.style.outline =
-                              "2px solid var(--color-primary)";
-                            e.currentTarget.style.outlineOffset = "2px";
-                          }}
-                          onBlur={(e) => {
-                            e.currentTarget.style.outline = "none";
-                          }}
-                        />
-                      )}
-                    </div>
-                  );
-                })}
-              </div>
-
-              <button
-                type="button"
-                onClick={() => {
-                  onThemeChange("custom", customTheme);
-                }}
-                className="w-full px-4 py-2 text-sm rounded-lg font-medium transition-colors"
-                style={{
-                  background: "var(--color-primary)",
-                  color: "var(--color-background)",
-                  borderRadius: "calc(var(--radius) - 2px)",
-                }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.background = "var(--color-accent)";
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.background = "var(--color-primary)";
-                }}
-              >
-                Apply Custom Theme
-              </button>
-            </div>
-          )}
-        </div>
+              }
+            }}
+          >
+            <div className="font-medium mb-1">{preset.name}</div>
+          </button>
+        ))}
+        <button
+          type="button"
+          onClick={randomizeColors}
+          className="p-3 rounded-lg text-left text-sm transition-colors whitespace-nowrap"
+          style={{
+            background: theme === "custom"
+              ? "var(--color-muted)"
+              : "var(--color-background)",
+            border: theme === "custom"
+              ? "1px solid var(--color-primary)"
+              : "1px solid var(--color-border)",
+            color: "var(--color-foreground)",
+            borderRadius: "calc(var(--radius) - 2px)",
+          }}
+          onMouseEnter={(e) => {
+            if (theme !== "custom") {
+              e.currentTarget.style.background = "var(--color-muted)";
+            }
+          }}
+          onMouseLeave={(e) => {
+            if (theme !== "custom") {
+              e.currentTarget.style.background = "var(--color-background)";
+            }
+          }}
+        >
+          <div className="font-medium">🎲 Custom</div>
+        </button>
       </div>
     </div>
   );

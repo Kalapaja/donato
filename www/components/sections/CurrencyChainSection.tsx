@@ -228,12 +228,6 @@ export function CurrencyChainSection({
 
       <div className="space-y-4">
         <div>
-          <label
-            className="block text-xs font-medium mb-2"
-            style={{ color: "var(--color-muted-foreground)" }}
-          >
-            Blockchain Network
-          </label>
           <select
             value={selectedChain.id}
             onChange={(e) => handleChainChange(Number(e.target.value))}
@@ -261,12 +255,6 @@ export function CurrencyChainSection({
         </div>
 
         <div>
-          <label
-            className="block text-xs font-medium mb-2"
-            style={{ color: "var(--color-muted-foreground)" }}
-          >
-            Asset
-          </label>
           <div className="space-y-2">
             <div className="flex gap-2 flex-wrap">
               {tokens.map((token) => (

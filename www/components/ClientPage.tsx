@@ -87,18 +87,18 @@ export function ClientPage({ widgetScript }: ClientPageProps) {
       style={{ background: "var(--color-background)" }}
     >
       <div className="container mx-auto px-4 py-8 max-w-[1600px]">
-        <header className="text-center mb-8">
+        <header className="text-left mb-8">
           <h1
             className="text-4xl font-bold mb-2"
             style={{ color: "var(--color-foreground)" }}
           >
-            Donation Widget Constructor
+            Get Started with Crypto Donations in Minutes
           </h1>
           <p
             className="text-lg"
             style={{ color: "var(--color-muted-foreground)" }}
           >
-            Configure your donation widget and see it live
+            Set up your widget live, add your wallet, upload the code to website, and start accepting donations immediately
           </p>
         </header>
 

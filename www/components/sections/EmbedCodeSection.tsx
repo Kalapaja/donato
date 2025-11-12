@@ -1,12 +1,12 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { createPortal } from "react-dom";
 import type { WidgetConfig } from "../../types/config";
 import type { VersionEntry } from "../../types/versions";
 
 interface EmbedCodeSectionProps {
-  config: WidgetConfig;
+  config: Partial<WidgetConfig>;
   widgetScript: string;
   /** Selected version entry for generating versioned embed code */
   selectedVersion?: string;
@@ -27,19 +27,54 @@ export function EmbedCodeSection({
   const [copied, setCopied] = useState(false);
 
   const generateSimpleEmbedCode = (): string => {
-    const widgetAttributes: string[] = [
-      `recipient="${config.recipient}"`,
-      `recipient-chain-id="${config.recipientChainId}"`,
-      `recipient-token-address="${config.recipientTokenAddress}"`,
-      `theme="${config.theme}"`,
-    ];
+    const widgetAttributes: string[] = [];
+    const comments: string[] = [];
 
-    if (config.reownProjectId) {
-      widgetAttributes.push(`reown-project-id="${config.reownProjectId}"`);
+    // Recipient address (required)
+    if (config.recipient && /^0x[a-fA-F0-9]{40}$/.test(config.recipient)) {
+      widgetAttributes.push(`recipient="${config.recipient}"`);
+    } else {
+      widgetAttributes.push(`recipient="YOUR_RECIPIENT_ADDRESS"`);
+      comments.push("⚠️ Replace YOUR_RECIPIENT_ADDRESS with the recipient address (0x...)");
     }
 
+    // Chain ID (required)
+    if (config.recipientChainId) {
+      widgetAttributes.push(`recipient-chain-id="${config.recipientChainId}"`);
+    } else {
+      widgetAttributes.push(`recipient-chain-id="YOUR_CHAIN_ID"`);
+      comments.push("⚠️ Replace YOUR_CHAIN_ID with the chain ID (e.g., 42161 for Arbitrum)");
+    }
+
+    // Token address (required)
+    if (config.recipientTokenAddress) {
+      widgetAttributes.push(`recipient-token-address="${config.recipientTokenAddress}"`);
+    } else {
+      widgetAttributes.push(`recipient-token-address="YOUR_TOKEN_ADDRESS"`);
+      comments.push("⚠️ Replace YOUR_TOKEN_ADDRESS with the token address (0x...)");
+    }
+
+    // Theme (required)
+    if (config.theme) {
+      widgetAttributes.push(`theme="${config.theme}"`);
+    } else {
+      widgetAttributes.push(`theme="auto"`);
+    }
+
+    // Optional: ReOwn Project ID
+    if (config.reownProjectId) {
+      widgetAttributes.push(`reown-project-id="${config.reownProjectId}"`);
+    } else {
+      widgetAttributes.push(`reown-project-id="YOUR_REOWN_PROJECT_ID"`);
+      comments.push("⚠️ Replace YOUR_REOWN_PROJECT_ID with your ReOwn Project ID");
+    }
+
+    // Optional: LiFi API Key
     if (config.lifiApiKey) {
       widgetAttributes.push(`lifi-api-key="${config.lifiApiKey}"`);
+    } else {
+      widgetAttributes.push(`lifi-api-key="YOUR_LIFI_API_KEY"`);
+      comments.push("⚠️ Replace YOUR_LIFI_API_KEY with your LiFi API Key");
     }
 
     let styleAttr = "";
@@ -55,7 +90,7 @@ export function EmbedCodeSection({
         `--color-muted-foreground: ${config.themeCustom.mutedForeground}`,
         `--radius: ${config.themeCustom.radius}`,
       ];
-      styleAttr = ` style="${styleParts.join("; ")}"`;
+      styleAttr = ` style="\n    ${styleParts.join(";\n    ")}"`;
     }
 
     // Widget component code
@@ -75,7 +110,12 @@ export function EmbedCodeSection({
       scriptTag = `<script>\n${widgetScript}\n</script>`;
     }
 
-    return `${widgetCode}\n\n${scriptTag}`;
+    // Add comments at the beginning if there are any
+    const commentBlock = comments.length > 0 
+      ? `<!--\n${comments.join("\n")}\n-->\n\n`
+      : "";
+
+    return `${commentBlock}${widgetCode}\n\n${scriptTag}`;
   };
 
   const embedCode = generateSimpleEmbedCode();
@@ -89,6 +129,22 @@ export function EmbedCodeSection({
       console.error("Failed to copy:", err);
     }
   };
+
+  // Handle ESC key to close dialog
+  useEffect(() => {
+    if (!isOpen) return;
+
+    const handleEscape = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        setIsOpen(false);
+      }
+    };
+
+    document.addEventListener("keydown", handleEscape);
+    return () => {
+      document.removeEventListener("keydown", handleEscape);
+    };
+  }, [isOpen]);
 
   return (
     <>

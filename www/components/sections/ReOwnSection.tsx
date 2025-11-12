@@ -20,11 +20,38 @@ export function ReOwnSection(
         className="text-sm mb-4"
         style={{ color: "var(--color-muted-foreground)" }}
       >
-        Enable mobile wallet connections. If omitted, only browser
-        extensions will work.
+        Connect 500+ wallets with ReOwn project ID{" "}
+        <a
+          href="https://reown.com"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="inline-flex items-center gap-1"
+          style={{ color: "var(--color-primary)" }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.textDecoration = "underline";
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.textDecoration = "none";
+          }}
+        >
+          at ReOwn
+          <svg
+            className="w-3 h-3"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"
+            />
+          </svg>
+        </a>
       </p>
 
-      <div className="space-y-3">
+      <div>
         <input
           type="text"
           value={reownProjectId}
@@ -45,35 +72,6 @@ export function ReOwnSection(
             e.currentTarget.style.outline = "none";
           }}
         />
-
-        <a
-          href="https://reown.com"
-          target="_blank"
-          rel="noopener noreferrer"
-          className="inline-flex items-center gap-2 text-sm"
-          style={{ color: "var(--color-primary)" }}
-          onMouseEnter={(e) => {
-            e.currentTarget.style.textDecoration = "underline";
-          }}
-          onMouseLeave={(e) => {
-            e.currentTarget.style.textDecoration = "none";
-          }}
-        >
-          Get your free Project ID at ReOwn
-          <svg
-            className="w-4 h-4"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"
-            />
-          </svg>
-        </a>
       </div>
     </div>
   );
