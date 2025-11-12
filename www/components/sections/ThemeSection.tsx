@@ -189,7 +189,7 @@ export function ThemeSection(
             }
           }}
         >
-          <div className="font-medium">🎲 Custom</div>
+          <div className="font-medium truncate">🎲 Randomize</div>
         </button>
       </div>
     </div>
