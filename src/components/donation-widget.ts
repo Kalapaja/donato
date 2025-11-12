@@ -16,9 +16,7 @@ import "./wallet-section.ts";
 import "./donation-form.ts";
 import "./theme-toggle.ts";
 import "./toast-container.ts";
-import "./config-panel.ts";
 import type { ToastContainer } from "./toast-container.ts";
-import type { ConfigStatus } from "./config-panel.ts";
 
 /**
  * Donation Widget - Main component for cryptocurrency donations
@@ -109,9 +107,6 @@ export class DonationWidget extends LitElement {
 
   @state()
   private accessor isLoadingTokens: boolean = false;
-
-  @state()
-  private accessor configStatus: ConfigStatus | null = null;
 
   // Services
   private walletService: WalletService;
@@ -306,11 +301,11 @@ export class DonationWidget extends LitElement {
       this.isInitialized = true;
 
       // Validate required attributes
-      this.configStatus = this.validateRequiredAttributes();
+      const configStatus = this.validateRequiredAttributes();
 
-      // If not fully configured, show config panel but still initialize what we can
-      if (!this.configStatus.isValid) {
-        console.warn("Widget is not fully configured:", this.configStatus.missing);
+      // If not fully configured, log warning but still initialize what we can
+      if (!configStatus.isValid) {
+        console.warn("Widget is not fully configured:", configStatus.missing);
       }
 
       // Initialize services based on what configuration is available
@@ -372,14 +367,17 @@ export class DonationWidget extends LitElement {
   protected override updated(changedProperties: PropertyValues) {
     super.updated(changedProperties);
 
-    // Recalculate config status if any required property changed
+    // Revalidate configuration if any required property changed
     if (
       changedProperties.has("recipient") ||
       changedProperties.has("reownProjectId") ||
       changedProperties.has("lifiApiKey")
     ) {
       if (this.isInitialized) {
-        this.configStatus = this.validateRequiredAttributes();
+        const configStatus = this.validateRequiredAttributes();
+        if (!configStatus.isValid) {
+          console.warn("Widget is not fully configured:", configStatus.missing);
+        }
       }
     }
 
@@ -433,7 +431,7 @@ export class DonationWidget extends LitElement {
   /**
    * Validate required attributes and return detailed configuration status
    */
-  private validateRequiredAttributes(): ConfigStatus {
+  private validateRequiredAttributes(): { isValid: boolean; missing: string[]; configured: string[] } {
     const configured: string[] = [];
     const missing: string[] = [];
 
@@ -592,7 +590,8 @@ export class DonationWidget extends LitElement {
       `;
     }
 
-    const isFullyConfigured = this.configStatus?.isValid ?? false;
+    const configStatus = this.validateRequiredAttributes();
+    const isFullyConfigured = configStatus.isValid;
 
     return html`
       <div class="widget-container">
@@ -607,14 +606,6 @@ export class DonationWidget extends LitElement {
             `
             : ""}
         </div>
-
-        ${this.configStatus && !this.configStatus.isValid
-          ? html`
-            <config-panel
-              .configStatus="${this.configStatus}"
-            ></config-panel>
-          `
-          : ""}
 
         ${this.error
           ? html`
