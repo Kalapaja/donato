@@ -41,6 +41,27 @@ bun dev
 Open [http://localhost:3001](http://localhost:3001) with your browser to see the
 landing page.
 
+#### Environment Variables
+
+The site uses environment variables for configuration. For local development, you can create a `.env.local` file:
+
+```bash
+# Copy the example file
+cp .env.local.example .env.local
+
+# Edit .env.local and set your site URL (optional for local development)
+```
+
+**Available Environment Variables:**
+
+- `NEXT_PUBLIC_SITE_URL` - The canonical URL of your site (required for OpenGraph metadata in production)
+  - Format: Full URL (e.g., `https://donation-widget.example.com`)
+  - Default: `http://localhost:3000` (used automatically if not set)
+  - **Note:** For local development, you can leave this unset. The site will use `http://localhost:3000` as a fallback.
+  - **Production:** This must be set to your actual site URL for OpenGraph metadata to work correctly in social media previews.
+
+The `.env.local` file is git-ignored and should not be committed to the repository. Use `.env.local.example` as a template.
+
 #### Mocking Versions for Local Development
 
 For local development, the configurator needs a `versions.json` file to display available widget versions. You have two options:
@@ -140,6 +161,7 @@ npm run build
 
 - `GITHUB_TOKEN` - GitHub personal access token or Actions token
 - `GITHUB_REPOSITORY` - Repository in format "owner/repo" (e.g., "kampela/donato")
+- `NEXT_PUBLIC_SITE_URL` - The canonical URL of your site (required for OpenGraph metadata in production builds)
 
 ### Deployment on Cloudflare Pages
 
@@ -156,6 +178,7 @@ The site is deployed and built on Cloudflare Pages. Configure the following:
 3. Add the following variables:
    - `GITHUB_TOKEN` - Your GitHub personal access token (with `repo` scope for private repos)
    - `GITHUB_REPOSITORY` - `kampela/donato`
+   - `NEXT_PUBLIC_SITE_URL` - The canonical URL of your deployed site (e.g., `https://donation-widget.example.com`)
 
 **Creating a GitHub Token:**
 1. Go to https://github.com/settings/tokens
@@ -233,6 +256,171 @@ To learn more about this project:
 - [Build Scripts](../scripts/README.md) - Detailed documentation on build and fetch scripts
 - [Next.js Documentation](https://nextjs.org/docs) - Next.js features and API
 - [Learn Next.js](https://nextjs.org/learn) - Interactive Next.js tutorial
+
+## Testing OpenGraph Metadata
+
+The site includes comprehensive OpenGraph and Twitter Card metadata for proper social media previews. Here's how to test and validate the metadata:
+
+### Build-time Verification
+
+First, verify that metadata is generated correctly during build:
+
+```bash
+# Build the site
+npm run build
+
+# Check for OpenGraph tags in generated HTML
+grep -E "og:" out/index.html
+
+# Check for Twitter Card tags
+grep -E "twitter:" out/index.html
+
+# Verify metadataBase and canonical URL
+grep -E "(metadataBase|canonical)" out/index.html
+```
+
+Expected output should include:
+- `og:title`, `og:description`, `og:type`, `og:url`, `og:image`
+- `twitter:card`, `twitter:title`, `twitter:description`, `twitter:image`
+- `theme-color` meta tag
+
+### Online Validation Tools
+
+After deploying to a public URL, use these tools to validate OpenGraph metadata:
+
+#### 1. Facebook Sharing Debugger
+- **URL:** https://developers.facebook.com/tools/debug/
+- **Usage:** Enter your site URL and click "Debug"
+- **Features:**
+  - Shows how your link will appear when shared on Facebook
+  - Displays OpenGraph image preview
+  - Allows you to "Scrape Again" to clear Facebook's cache
+- **What to check:**
+  - Image displays correctly (1200x630px recommended)
+  - Title and description are correct
+  - URL is absolute and accessible
+
+#### 2. Twitter Card Validator
+- **URL:** https://cards-dev.twitter.com/validator
+- **Usage:** Enter your site URL and click "Preview card"
+- **Features:**
+  - Shows how your link will appear in Twitter/X
+  - Validates Twitter Card metadata
+  - Displays image preview
+- **What to check:**
+  - Card type is "summary_large_image"
+  - Image displays correctly
+  - Title and description are within character limits
+
+#### 3. LinkedIn Post Inspector
+- **URL:** https://www.linkedin.com/post-inspector/
+- **Usage:** Enter your site URL and click "Inspect"
+- **Features:**
+  - Shows how your link will appear on LinkedIn
+  - Validates OpenGraph tags
+  - Allows cache refresh
+- **What to check:**
+  - Image displays correctly
+  - Title and description are appropriate for professional network
+
+#### 4. OpenGraph.xyz (Universal Validator)
+- **URL:** https://www.opengraph.xyz/
+- **Usage:** Enter your site URL
+- **Features:**
+  - Validates OpenGraph tags across multiple platforms
+  - Shows preview for Facebook, Twitter, LinkedIn, Slack, Discord
+  - Displays all detected metadata tags
+- **What to check:**
+  - All platforms show correct preview
+  - All required tags are present
+
+### Manual Testing Checklist
+
+Use this checklist to verify OpenGraph metadata works correctly across different social networks:
+
+#### Pre-deployment Checks
+- [ ] Site builds successfully without errors
+- [ ] `NEXT_PUBLIC_SITE_URL` environment variable is set correctly
+- [ ] OpenGraph image is accessible at the configured path
+- [ ] All metadata tags are present in generated HTML (`out/index.html`)
+
+#### Facebook Testing
+- [ ] Share link in Facebook post or comment
+- [ ] Verify image appears (1200x630px recommended)
+- [ ] Verify title matches `siteConfig.title`
+- [ ] Verify description matches `siteConfig.description`
+- [ ] Click "Scrape Again" in Facebook Debugger to clear cache if needed
+
+#### Twitter/X Testing
+- [ ] Share link in a tweet
+- [ ] Verify large image card appears
+- [ ] Verify title and description are correct
+- [ ] Check that image loads quickly (optimize if > 1MB)
+- [ ] Test on mobile Twitter app
+
+#### LinkedIn Testing
+- [ ] Share link in LinkedIn post
+- [ ] Verify image appears correctly
+- [ ] Verify title and description are professional and appropriate
+- [ ] Check that preview looks good on desktop and mobile
+
+#### Telegram Testing
+- [ ] Share link in Telegram chat
+- [ ] Verify image preview appears
+- [ ] Verify title and description are displayed
+- [ ] Test in both desktop and mobile Telegram apps
+
+#### Other Platforms
+- [ ] **Slack:** Share link in Slack channel, verify preview
+- [ ] **Discord:** Share link in Discord, verify embed
+- [ ] **WhatsApp:** Share link, verify preview (if supported)
+- [ ] **Reddit:** Share link, verify preview card
+
+#### Mobile Testing
+- [ ] Test sharing on iOS Safari
+- [ ] Test sharing on Android Chrome
+- [ ] Verify image displays correctly on mobile devices
+- [ ] Check that preview cards are readable on small screens
+
+#### Edge Cases
+- [ ] Test with different URL parameters (if applicable)
+- [ ] Verify metadata works for homepage and any subpages
+- [ ] Test after clearing browser cache
+- [ ] Verify metadata updates after configuration changes
+
+### Troubleshooting
+
+**Problem:** Image doesn't appear in social media previews
+- **Solution:** 
+  - Verify image path is correct and accessible
+  - Ensure image URL is absolute (not relative)
+  - Check image file size (< 8MB recommended)
+  - Clear social media platform cache using their debugger tools
+
+**Problem:** Metadata shows old values after updating
+- **Solution:**
+  - Social media platforms cache metadata. Use "Scrape Again" or "Clear Cache" in their debugger tools
+  - Rebuild and redeploy the site
+  - Wait a few minutes for cache to expire (usually 24 hours)
+
+**Problem:** Build fails with configuration errors
+- **Solution:**
+  - Check that `NEXT_PUBLIC_SITE_URL` is set and is an absolute URL
+  - Verify all required fields in `siteConfig` are present
+  - Check validation errors in build output
+
+**Problem:** Metadata not appearing in generated HTML
+- **Solution:**
+  - Verify `metadataBase` is set correctly in `layout.tsx`
+  - Check that `siteConfig` is imported and used correctly
+  - Ensure Next.js Metadata API is being used (not manual meta tags)
+
+### Additional Resources
+
+- [Next.js Metadata API Documentation](https://nextjs.org/docs/app/api-reference/functions/generate-metadata)
+- [OpenGraph Protocol Specification](https://ogp.me/)
+- [Twitter Cards Documentation](https://developer.twitter.com/en/docs/twitter-for-websites/cards/overview/abouts-cards)
+- [Facebook Sharing Best Practices](https://developers.facebook.com/docs/sharing/webmasters)
 
 ## Deployment
 
