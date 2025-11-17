@@ -1,5 +1,5 @@
 import { ImageResponse } from "next/og";
-import { siteConfig } from "../lib/site-config.ts";
+import { siteConfig } from "../lib/site-config";
 
 // Required for static export
 export const dynamic = "force-static";
