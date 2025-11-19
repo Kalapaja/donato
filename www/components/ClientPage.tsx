@@ -5,11 +5,8 @@ import { WidgetConfigurator } from "./WidgetConfigurator";
 import { WidgetPreview } from "./WidgetPreview";
 import type { WidgetConfig } from "../types/config";
 
-interface ClientPageProps {
-  widgetScript: string;
-}
 
-export function ClientPage({ widgetScript }: ClientPageProps) {
+export function ClientPage() {
   const [config, setConfig] = useState<Partial<WidgetConfig>>({
     recipient: "",
     recipientChainId: 42161,
@@ -118,7 +115,6 @@ export function ClientPage({ widgetScript }: ClientPageProps) {
               <WidgetConfigurator
                 config={config}
                 onConfigChange={handleConfigChange}
-                widgetScript={widgetScript}
               />
             </div>
           </div>
