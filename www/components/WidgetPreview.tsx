@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { WidgetConfig } from "../types/config";
 
 interface WidgetPreviewProps {
@@ -9,8 +9,46 @@ interface WidgetPreviewProps {
 
 export function WidgetPreview({ config }: WidgetPreviewProps) {
   const containerRef = useRef<HTMLDivElement>(null);
+  const [isWidgetReady, setIsWidgetReady] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  // Wait for custom element to be defined
   useEffect(() => {
-    
+    async function waitForWidget() {
+      try {
+        // Check if custom element is already defined
+        if (customElements.get("donation-widget")) {
+          setIsWidgetReady(true);
+          return;
+        }
+
+        // Wait for custom element to be defined (with timeout)
+        await Promise.race([
+          customElements.whenDefined("donation-widget"),
+          new Promise((_, reject) =>
+            setTimeout(() => reject(new Error("Timeout waiting for widget")), 10000)
+          ),
+        ]);
+        setIsWidgetReady(true);
+        setError(null);
+      } catch (err) {
+        const errorMessage =
+          err instanceof Error
+            ? err.message
+            : "Failed to load widget script";
+        setError(errorMessage);
+        console.error("Error waiting for widget:", err);
+      }
+    }
+
+    waitForWidget();
+  }, []);
+
+  useEffect(() => {
+    if (!isWidgetReady || !containerRef.current) {
+      return;
+    }
+
     renderWidget();
 
     function renderWidget() {
@@ -78,7 +116,7 @@ export function WidgetPreview({ config }: WidgetPreviewProps) {
         containerRef.current.appendChild(widget);
       }
     }
-  }, [config]);
+  }, [config, isWidgetReady]);
 
   return (
     <div className="w-full">
@@ -90,6 +128,20 @@ export function WidgetPreview({ config }: WidgetPreviewProps) {
           borderRadius: "calc(var(--radius) - 2px)",
         }}
       >
+        {!isWidgetReady && !error && (
+          <div className="flex items-center justify-center w-full h-full">
+            <div className="text-sm" style={{ color: "var(--color-muted-foreground)" }}>
+              Loading widget...
+            </div>
+          </div>
+        )}
+        {error && (
+          <div className="flex items-center justify-center w-full h-full">
+            <div className="text-sm text-red-500">
+              Error: {error}
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

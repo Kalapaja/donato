@@ -21,7 +21,13 @@ export function WidgetScriptLoader() {
       <Script
         id="donation-widget-script"
         src="http://localhost:3000/donation-widget.js"
-        strategy="beforeInteractive"
+        strategy="afterInteractive"
+        onLoad={() => {
+          console.log("Widget script loaded successfully");
+        }}
+        onError={(e) => {
+          console.error("Failed to load widget script:", e);
+        }}
       />
     );
   }
@@ -37,7 +43,13 @@ export function WidgetScriptLoader() {
           src={scriptUrl}
           integrity={latestVersion.integrity}
           crossOrigin="anonymous"
-          strategy="beforeInteractive"
+          strategy="afterInteractive"
+          onLoad={() => {
+            console.log("Widget script loaded successfully:", scriptUrl);
+          }}
+          onError={(e) => {
+            console.error("Failed to load widget script:", scriptUrl, e);
+          }}
         />
       );
     }
