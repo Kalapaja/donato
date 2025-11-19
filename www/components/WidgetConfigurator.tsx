@@ -14,11 +14,10 @@ import { VersionSelector } from "./VersionSelector";
 interface WidgetConfiguratorProps {
   config: Partial<WidgetConfig>;
   onConfigChange: (updates: Partial<WidgetConfig>) => void;
-  widgetScript: string;
 }
 
 export function WidgetConfigurator(
-  { config, onConfigChange, widgetScript }: WidgetConfiguratorProps,
+  { config, onConfigChange }: WidgetConfiguratorProps,
 ) {
   const [selectedVersion, setSelectedVersion] = useState<string | null>(null);
   const [versionEntry, setVersionEntry] = useState<VersionEntry | null>(null);
@@ -115,7 +114,6 @@ export function WidgetConfigurator(
       >
         <EmbedCodeSection 
           config={config} 
-          widgetScript={widgetScript}
           selectedVersion={selectedVersion || undefined}
           versionEntry={versionEntry || undefined}
           baseUrl={process.env.NEXT_PUBLIC_CDN_DOMAIN || "https://cdn.donations.kalatori.org"}

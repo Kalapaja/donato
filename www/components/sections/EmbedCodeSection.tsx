@@ -4,10 +4,10 @@ import { useState, useEffect } from "react";
 import { createPortal } from "react-dom";
 import type { WidgetConfig } from "../../types/config";
 import type { VersionEntry } from "../../types/versions";
+import { useVersions } from "../../lib/useVersions";
 
 interface EmbedCodeSectionProps {
   config: Partial<WidgetConfig>;
-  widgetScript: string;
   /** Selected version entry for generating versioned embed code */
   selectedVersion?: string;
   /** Version entry data (contains integrity hash, file name, etc.) */
@@ -18,13 +18,13 @@ interface EmbedCodeSectionProps {
 
 export function EmbedCodeSection({ 
   config, 
-  widgetScript, 
   selectedVersion,
   versionEntry,
   baseUrl,
 }: EmbedCodeSectionProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [copied, setCopied] = useState(false);
+  const { manifest } = useVersions();
 
   const generateSimpleEmbedCode = (): string => {
     const widgetAttributes: string[] = [];
@@ -99,15 +99,23 @@ export function EmbedCodeSection({
     // Determine script tag
     let scriptTag: string;
     
-    if (versionEntry && selectedVersion) {
+    // Use selected version if available, otherwise use latest from manifest
+    const effectiveVersion = selectedVersion || (manifest?.latest);
+    const effectiveVersionEntry = versionEntry || (manifest && manifest.versions[effectiveVersion || ""]);
+    
+    if (effectiveVersionEntry && effectiveVersion) {
       // Use versioned URL with SRI from public directory
       const origin = baseUrl || (typeof window !== "undefined" ? window.location.origin : "https://cdn.donations.kalatori.org");
-      const scriptUrl = `${origin}/${versionEntry.file}`;
+      const scriptUrl = `${origin}/${effectiveVersionEntry.file}`;
       
-      scriptTag = `<script\n  src="${scriptUrl}"\n  integrity="${versionEntry.integrity}"\n  crossorigin="anonymous"\n></script>`;
+      scriptTag = `<script\n  src="${scriptUrl}"\n  integrity="${effectiveVersionEntry.integrity}"\n  crossorigin="anonymous"\n></script>`;
     } else {
-      // Fallback to inline script (for backward compatibility or when version is not selected)
-      scriptTag = `<script>\n${widgetScript}\n</script>`;
+      // Fallback: use development URL or show placeholder
+      if (process.env.NODE_ENV === 'development') {
+        scriptTag = `<script\n  src="http://localhost:3000/donation-widget.js"\n></script>`;
+      } else {
+        scriptTag = `<script>\n  // Please select a version or ensure versions.json is available\n</script>`;
+      }
     }
 
     // Add comments at the beginning if there are any
