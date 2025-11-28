@@ -503,9 +503,13 @@ The minimal setup requires these attributes:
 
 ### Optional Attributes
 
-| Attribute | Type     | Default | Description                                      |
-| --------- | -------- | ------- | ------------------------------------------------ |
-| `theme`   | `string` | `auto`  | Theme mode: `light`, `dark`, `auto`, or `custom` |
+| Attribute                 | Type      | Default                              | Description                                                                                            |
+| ------------------------- | --------- | ------------------------------------ | ------------------------------------------------------------------------------------------------------ |
+| `theme`                   | `string`  | `auto`                               | Theme mode: `light`, `dark`, `auto`, or `custom`                                                      |
+| `success-message`         | `string`  | `"Thank you for your donation!"`     | Custom success message displayed after donation                                                        |
+| `donate-again-text`       | `string`  | `"Donate Again"`                     | Custom text for the "donate again" button                                                              |
+| `confetti-enabled`        | `boolean` | `true`                               | Whether confetti animation is enabled                                                                  |
+| `confetti-colors`         | `string`  | Theme-appropriate colors             | Comma-separated list of hex colors for confetti (e.g., `"#ff0000,#00ff00,#0000ff"`)                 |
 
 ### Supported Chain IDs
 
@@ -663,6 +667,139 @@ Set `theme="custom"` and use CSS variables to create your own color scheme.
 </donation-widget>
 ```
 
+## 🎉 Success State & Celebration
+
+After a successful donation, the widget displays a celebratory success state with confetti animation and transaction details. You can customize all aspects of the success state to match your brand.
+
+### Success State Features
+
+- **Confetti Animation** - Animated confetti particles celebrate the successful donation
+- **Transaction Summary** - Shows amount, token, chain, and timestamp
+- **Donate Again Button** - Quick way for users to make another donation
+
+### Basic Success State
+
+By default, the widget automatically shows a success state after a successful donation:
+
+```html
+<donation-widget
+  recipient="0x742d35Cc6634C0532925a3b844Bc454e4438f44e"
+  recipient-chain-id="42161"
+  recipient-token-address="0xaf88d065e77c8cC2239327C5EDb3A432268e5831"
+  reown-project-id="YOUR_REOWN_PROJECT_ID"
+  lifi-api-key="YOUR_LIFI_API_KEY"
+>
+</donation-widget>
+```
+
+The success state includes:
+- Default success message: "Thank you for your donation!"
+- Confetti animation (enabled by default)
+- Transaction details with amount, token, chain, and timestamp
+- "Donate Again" button
+
+### Custom Success Message
+
+Customize the success message to match your brand voice:
+
+```html
+<donation-widget
+  recipient="0x742d35Cc6634C0532925a3b844Bc454e4438f44e"
+  recipient-chain-id="42161"
+  recipient-token-address="0xaf88d065e77c8cC2239327C5EDb3A432268e5831"
+  reown-project-id="YOUR_REOWN_PROJECT_ID"
+  lifi-api-key="YOUR_LIFI_API_KEY"
+  success-message="Thank you for your generous support! 🙏"
+>
+</donation-widget>
+```
+
+### Custom Donate Again Button Text
+
+Change the button text to encourage repeat donations:
+
+```html
+<donation-widget
+  recipient="0x742d35Cc6634C0532925a3b844Bc454e4438f44e"
+  recipient-chain-id="42161"
+  recipient-token-address="0xaf88d065e77c8cC2239327C5EDb3A432268e5831"
+  reown-project-id="YOUR_REOWN_PROJECT_ID"
+  lifi-api-key="YOUR_LIFI_API_KEY"
+  donate-again-text="Make Another Donation"
+>
+</donation-widget>
+```
+
+### Confetti Customization
+
+#### Disable Confetti
+
+For a more subtle celebration, disable the confetti animation:
+
+```html
+<donation-widget
+  recipient="0x742d35Cc6634C0532925a3b844Bc454e4438f44e"
+  recipient-chain-id="42161"
+  recipient-token-address="0xaf88d065e77c8cC2239327C5EDb3A432268e5831"
+  reown-project-id="YOUR_REOWN_PROJECT_ID"
+  lifi-api-key="YOUR_LIFI_API_KEY"
+  confetti-enabled="false"
+>
+</donation-widget>
+```
+
+#### Custom Confetti Colors
+
+Use your brand colors for the confetti animation. Provide a comma-separated list of hex colors:
+
+```html
+<donation-widget
+  recipient="0x742d35Cc6634C0532925a3b844Bc454e4438f44e"
+  recipient-chain-id="42161"
+  recipient-token-address="0xaf88d065e77c8cC2239327C5EDb3A432268e5831"
+  reown-project-id="YOUR_REOWN_PROJECT_ID"
+  lifi-api-key="YOUR_LIFI_API_KEY"
+  confetti-colors="#ff0000,#00ff00,#0000ff,#ffff00"
+>
+</donation-widget>
+```
+
+**Confetti Color Examples:**
+
+- **Brand Colors**: `"#ff6b6b,#4ecdc4,#45b7d1,#f7b731"`
+- **Rainbow**: `"#ff0000,#ff7f00,#ffff00,#00ff00,#0000ff,#4b0082,#9400d3"`
+- **Monochrome**: `"#000000,#333333,#666666,#999999"`
+- **Pastel**: `"#ffb3ba,#ffdfba,#ffffba,#baffc9,#bae1ff"`
+
+**Note:** If no custom colors are provided, the widget uses theme-appropriate default colors that match your selected theme (light or dark).
+
+### Complete Success State Example
+
+Combine all customization options for a fully branded experience:
+
+```html
+<donation-widget
+  recipient="0x742d35Cc6634C0532925a3b844Bc454e4438f44e"
+  recipient-chain-id="42161"
+  recipient-token-address="0xaf88d065e77c8cC2239327C5EDb3A432268e5831"
+  reown-project-id="YOUR_REOWN_PROJECT_ID"
+  lifi-api-key="YOUR_LIFI_API_KEY"
+  theme="dark"
+  success-message="Thank you for supporting our mission! 🚀"
+  donate-again-text="Support Us Again"
+  confetti-enabled="true"
+  confetti-colors="#ff6b6b,#4ecdc4,#45b7d1"
+>
+</donation-widget>
+```
+
+### Success State Behavior
+
+- **Automatic Display**: The success state appears automatically after a successful transaction
+- **Transaction Details**: Shows all relevant transaction information including amount, token, and chain
+- **Accessibility**: Respects `prefers-reduced-motion` media query for users who prefer reduced animations
+- **Performance**: Confetti animation automatically scales particle count based on viewport size for optimal performance
+
 ## 📡 JavaScript API & Events
 
 The widget emits custom events that you can listen to for tracking donations,
@@ -683,7 +820,7 @@ const widget = document.querySelector("donation-widget");
 | Event Name            | Description                          | Event Detail Properties            |
 | --------------------- | ------------------------------------ | ---------------------------------- |
 | `donation-initiated`  | Fired when user initiates a donation | `{ amount, token }`                |
-| `donation-completed`  | Fired when donation is successful    | `{ txHash, amount, token, route }` |
+| `donation-completed`  | Fired when donation is successful    | `{ amount, token, recipient }`     |
 | `donation-failed`     | Fired when donation fails            | `{ error, code }`                  |
 | `wallet-connected`    | Fired when wallet is connected       | `{ address, chainId }`             |
 | `wallet-disconnected` | Fired when wallet is disconnected    | -                                  |
@@ -708,15 +845,14 @@ const widget = document.querySelector("donation-widget");
   // Listen for successful donations
   widget.addEventListener("donation-completed", (event) => {
     console.log("Donation completed!");
-    console.log("Transaction hash:", event.detail.txHash);
     console.log("Amount:", event.detail.amount);
     console.log("Token:", event.detail.token.symbol);
+    console.log("Recipient:", event.detail.recipient);
 
     // Send to analytics
     gtag("event", "donation", {
       value: event.detail.amount,
       currency: event.detail.token.symbol,
-      transaction_id: event.detail.txHash,
     });
   });
 
@@ -795,9 +931,9 @@ const widget = document.querySelector("donation-widget");
 
       widget.addEventListener("donation-completed", (e) => {
         logEvent("donation-completed", {
-          txHash: e.detail.txHash,
           amount: e.detail.amount,
           token: e.detail.token?.symbol,
+          recipient: e.detail.recipient,
         });
 
         // Success notification
@@ -1235,12 +1371,19 @@ The main widget component.
 
 **Attributes:**
 
-- `recipient` (required) - Recipient wallet address
-- `recipient-chain-id` (required) - Chain ID for receiving
-- `recipient-token-address` (required) - Token address to receive
-- `reown-project-id` (required) - Reown project ID
-- `lifi-api-key` (required) - LiFi API key
-- `theme` - Theme mode (default: 'auto')
+**Required:**
+- `recipient` - Recipient wallet address
+- `recipient-chain-id` - Chain ID for receiving
+- `recipient-token-address` - Token address to receive
+- `reown-project-id` - Reown project ID
+- `lifi-api-key` - LiFi API key
+
+**Optional:**
+- `theme` - Theme mode: 'light', 'dark', 'auto', or 'custom' (default: 'auto')
+- `success-message` - Custom success message displayed after donation (default: "Thank you for your donation!")
+- `donate-again-text` - Custom text for the "donate again" button (default: "Donate Again")
+- `confetti-enabled` - Whether confetti animation is enabled (default: true)
+- `confetti-colors` - Comma-separated list of hex colors for confetti (e.g., "#ff0000,#00ff00,#0000ff")
 
 **Events:**
 

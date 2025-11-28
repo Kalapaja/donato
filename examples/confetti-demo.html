@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Confetti Demo</title>
+    <style>
+      body {
+        font-family: system-ui, -apple-system, sans-serif;
+        margin: 0;
+        padding: 20px;
+        background: oklch(98% 0 0);
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+      .container {
+        max-width: 500px;
+        width: 100%;
+      }
+      h1 {
+        text-align: center;
+        color: oklch(17% 0 0);
+        margin-bottom: 30px;
+      }
+      .controls {
+        background: oklch(100% 0 0);
+        padding: 20px;
+        border-radius: 8px;
+        margin-bottom: 20px;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+      }
+      button {
+        width: 100%;
+        padding: 12px;
+        background: oklch(17% 0 0);
+        color: white;
+        border: none;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 16px;
+        margin-bottom: 10px;
+      }
+      button:hover {
+        background: oklch(32% 0 0);
+      }
+      /* @media (prefers-color-scheme: dark) {
+        body {
+          background: oklch(10% 0 0);
+        }
+        h1 {
+          color: oklch(99% 0 0);
+        }
+        .controls {
+          background: oklch(17% 0 0);
+        }
+      } */
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <h1>🎉 Confetti Demo</h1>
+      
+      <div class="controls">
+        <button onclick="showConfetti()">Show Confetti (Default Colors)</button>
+        <button onclick="showCustomConfetti()">Show Custom Colors</button>
+        <button onclick="hideConfetti()">Hide Success State</button>
+      </div>
+
+      <div id="widget-container"></div>
+    </div>
+
+    <script type="module" src="/src/index.ts"></script>
+    
+    <script>
+      function showConfetti() {
+        const container = document.getElementById('widget-container');
+        container.innerHTML = `
+          <success-state
+            amount="100"
+            token-symbol="USDC"
+            chain-name="Ethereum"
+            timestamp="${Date.now()}"
+            recipient-address="0x742d35Cc6634C0532925a3b844Bc454e4438f44e"
+            confetti-enabled="true"
+          ></success-state>
+        `;
+      }
+
+      function showCustomConfetti() {
+        const container = document.getElementById('widget-container');
+        container.innerHTML = `
+          <success-state
+            amount="50"
+            token-symbol="ETH"
+            chain-name="Arbitrum"
+            timestamp="${Date.now()}"
+            recipient-address="0x742d35Cc6634C0532925a3b844Bc454e4438f44e"
+            confetti-enabled="true"
+            confetti-colors="#ff6b6b,#4ecdc4,#45b7d1,#f7b731"
+          ></success-state>
+        `;
+      }
+
+      function hideConfetti() {
+        const container = document.getElementById('widget-container');
+        container.innerHTML = '';
+      }
+
+      // Auto-show on load
+      window.addEventListener('load', () => {
+        setTimeout(showConfetti, 500);
+      });
+    </script>
+  </body>
+</html>
+
