@@ -14,6 +14,7 @@ import type { Theme, ThemeMode } from "../services/ThemeService.ts";
 // Import child components
 import "./wallet-section.ts";
 import "./donation-form.ts";
+import "./success-state.ts";
 import "./theme-toggle.ts";
 import "./toast-container.ts";
 import type { ToastContainer } from "./toast-container.ts";
@@ -29,6 +30,10 @@ import type { ToastContainer } from "./toast-container.ts";
  * @attr {number} recipient-chain-id - Chain ID where recipient will receive tokens (default: 42161 - Arbitrum)
  * @attr {string} recipient-token-address - Token address that recipient will receive (default: USDC on recipient chain)
  * @attr {string} theme - Theme mode: 'light', 'dark', 'auto', or 'custom' (default: 'auto'). 'custom' mode hides theme toggle and uses CSS variables from parent.
+ * @attr {string} success-message - Custom success message displayed after donation (default: "Thank you for your donation!")
+ * @attr {string} donate-again-text - Custom text for the "donate again" button (default: "Donate Again")
+ * @attr {boolean} confetti-enabled - Whether confetti animation is enabled (default: true)
+ * @attr {string} confetti-colors - Comma-separated list of hex colors for confetti (e.g., "#ff0000,#00ff00,#0000ff")
  *
  * @fires donation-completed - Fired when donation succeeds
  * @fires donation-failed - Fired when donation fails
@@ -41,7 +46,11 @@ import type { ToastContainer } from "./toast-container.ts";
  *   lifi-api-key="YOUR_LIFI_API_KEY"
  *   recipient-chain-id="42161"
  *   recipient-token-address="0xaf88d065e77c8cC2239327C5EDb3A432268e5831"
- *   theme="dark">
+ *   theme="dark"
+ *   success-message="Thank you for your generous donation!"
+ *   donate-again-text="Make Another Donation"
+ *   confetti-enabled="true"
+ *   confetti-colors="#ff0000,#00ff00,#0000ff">
  * </donation-widget>
  * ```
  */
@@ -73,6 +82,23 @@ export class DonationWidget extends LitElement {
   /** Theme mode: 'light', 'dark', or 'auto' (default: 'auto') */
   @property({ type: String })
   accessor theme: ThemeMode = "auto";
+
+  // Success state configuration options
+  /** Custom success message displayed after donation (default: "Thank you for your donation!") */
+  @property({ type: String, attribute: "success-message" })
+  accessor successMessage: string = "Thank you for your donation!";
+
+  /** Custom text for the "donate again" button (default: "Donate Again") */
+  @property({ type: String, attribute: "donate-again-text" })
+  accessor donateAgainText: string = "Donate Again";
+
+  /** Whether confetti animation is enabled (default: true) */
+  @property({ type: Boolean, attribute: "confetti-enabled" })
+  accessor confettiEnabled: boolean = true;
+
+  /** Comma-separated list of hex colors for confetti (optional) */
+  @property({ type: String, attribute: "confetti-colors" })
+  accessor confettiColors: string = "";
 
   // Internal state
   @state()
@@ -107,6 +133,17 @@ export class DonationWidget extends LitElement {
 
   @state()
   private accessor isLoadingTokens: boolean = false;
+
+  @state()
+  private accessor showSuccessState: boolean = false;
+
+  @state()
+  private accessor successData: {
+    amount: string;
+    tokenSymbol: string;
+    chainName: string;
+    timestamp: number;
+  } | null = null;
 
   // Services
   private walletService: WalletService;
@@ -531,6 +568,74 @@ export class DonationWidget extends LitElement {
       }
     }
 
+    /**
+     * Handle route update
+     */
+    private handleRouteUpdate(_event: CustomEvent<{ route: Route }>) {
+      // Route update handler (kept for potential future use)
+    }
+
+    /**
+     * Handle donation completed event from donation-form
+     */
+    private handleDonationCompleted(event: CustomEvent<{
+      amount: string;
+      token: Token | null;
+      recipient: string;
+    }>) {
+      const { amount, token, recipient } = event.detail;
+
+      if (!token) {
+        console.warn("Donation completed but no token information available");
+        return;
+      }
+
+      // Get chain name
+      const chainName = this.chainService.getChainName(this.recipientChainId);
+
+      // Get token symbol (use recipient token if available, otherwise use selected token)
+      const tokenSymbol = token.symbol || "tokens";
+
+      // Set success data
+      this.successData = {
+        amount,
+        tokenSymbol,
+        chainName,
+        timestamp: Date.now(),
+      };
+
+      // Show success state
+      this.showSuccessState = true;
+
+      // Dispatch success event (for external listeners)
+      this.dispatchEvent(
+        new CustomEvent("donation-completed", {
+          detail: {
+            amount,
+            token,
+            recipient,
+          },
+          bubbles: true,
+          composed: true,
+        }),
+      );
+    }
+
+    /**
+     * Handle donate again button click
+     */
+    private handleDonateAgain() {
+      // Reset success state
+      this.showSuccessState = false;
+      this.successData = null;
+
+      // Reset form state
+      this.recipientAmount = "";
+      this.quote = null;
+      this.selectedToken = null;
+      this.error = null;
+    }
+
     private async handleDonate(event: CustomEvent<Route>) {
       this.isDonating = true;
       this.error = null;
@@ -626,32 +731,51 @@ export class DonationWidget extends LitElement {
           `
           : ""}
 
-        <wallet-section
-          .walletService="${this.walletService}"
-          .selectedToken="${this.selectedToken}"
-          .availableTokens="${this.availableTokens}"
-          .chains="${this.chainService.getChains()}"
-          .isLoadingTokens="${this.isLoadingTokens}"
-          .disabled="${!isFullyConfigured}"
-          @token-selected="${this.handleTokenChange}"
-          @network-switched="${this.handleNetworkSwitch}"
-        ></wallet-section>
+        ${this.showSuccessState && this.successData
+          ? html`
+              <success-state
+                amount="${this.successData.amount}"
+                token-symbol="${this.successData.tokenSymbol}"
+                chain-name="${this.successData.chainName}"
+                timestamp="${this.successData.timestamp}"
+                recipient-address="${this.recipient}"
+                success-message="${this.successMessage}"
+                donate-again-text="${this.donateAgainText}"
+                ?confetti-enabled="${this.confettiEnabled}"
+                confetti-colors="${this.confettiColors}"
+                @donate-again="${this.handleDonateAgain}"
+              ></success-state>
+            `
+          : html`
+              <wallet-section
+                .walletService="${this.walletService}"
+                .selectedToken="${this.selectedToken}"
+                .availableTokens="${this.availableTokens}"
+                .chains="${this.chainService.getChains()}"
+                .isLoadingTokens="${this.isLoadingTokens}"
+                .disabled="${!isFullyConfigured}"
+                @token-selected="${this.handleTokenChange}"
+                @network-switched="${this.handleNetworkSwitch}"
+              ></wallet-section>
 
-        <donation-form
-          .recipient="${this.recipient}"
-          .recipientChainId="${this.recipientChainId}"
-          .recipientTokenAddress="${this.recipientTokenAddress}"
-          .walletService="${this.walletService}"
-          .lifiService="${this.lifiService}"
-          .chainService="${this.chainService}"
-          .toastService="${toastService}"
-          .selectedToken="${this.selectedToken}"
-          .isDonating="${this.isDonating}"
-          .disabled="${!isFullyConfigured}"
-          @amount-changed="${this.handleAmountChange}"
-          @quote-updated="${this.handleQuoteUpdate}"
-          @donate="${this.handleDonate}"
-        ></donation-form>
+              <donation-form
+                .recipient="${this.recipient}"
+                .recipientChainId="${this.recipientChainId}"
+                .recipientTokenAddress="${this.recipientTokenAddress}"
+                .walletService="${this.walletService}"
+                .lifiService="${this.lifiService}"
+                .chainService="${this.chainService}"
+                .toastService="${toastService}"
+                .selectedToken="${this.selectedToken}"
+                .isDonating="${this.isDonating}"
+                .disabled="${!isFullyConfigured}"
+                @amount-changed="${this.handleAmountChange}"
+                @quote-updated="${this.handleQuoteUpdate}"
+                @route-update="${this.handleRouteUpdate}"
+                @donation-completed="${this.handleDonationCompleted}"
+                @donate="${this.handleDonate}"
+              ></donation-form>
+            `}
 
         <div class="footer">
           <a href="mailto:support@donations.kalatori.org" class="support-link">
@@ -711,6 +835,8 @@ export class DonationWidget extends LitElement {
       this.quote = null;
       this.error = null;
       this.isDonating = false;
+      this.showSuccessState = false;
+      this.successData = null;
     }
   }
 

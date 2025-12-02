@@ -79,6 +79,7 @@ export default defineConfig(({ mode, command }) => {
               main: resolve(__dirname, "index.html"),
               javascript: resolve(__dirname, "examples/javascript-api.html"),
               themes: resolve(__dirname, "examples/themes.html"),
+              confettiDemo: resolve(__dirname, "examples/confetti-demo.html"),
             }
             : {
               main: resolve(__dirname, "src/index.ts"),

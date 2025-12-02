@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Success State Examples</title>
+    <style>
+      body {
+        font-family: system-ui, -apple-system, sans-serif;
+        margin: 0;
+        padding: 50px 20px;
+        background: oklch(98% 0 0);
+      }
+      h1 {
+        text-align: center;
+        color: oklch(17% 0 0);
+        margin-bottom: 10px;
+        font-weight: 600;
+      }
+      .subtitle {
+        text-align: center;
+        color: oklch(52% 0 0);
+        margin-bottom: 50px;
+      }
+      .grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+        gap: 30px;
+        max-width: 1200px;
+        margin: 0 auto;
+      }
+      .example-section {
+        background: oklch(100% 0 0);
+        padding: 30px;
+        border-radius: 8px;
+        box-shadow:
+          0 1px 3px 0 oklch(0% 0 0 / 0.1),
+          0 1px 2px -1px oklch(0% 0 0 / 0.1);
+      }
+      .example-section h2 {
+        margin: 0 0 10px 0;
+        font-size: 20px;
+        font-weight: 600;
+        color: oklch(17% 0 0);
+      }
+      .example-section p {
+        margin: 0 0 20px 0;
+        color: oklch(52% 0 0);
+        font-size: 14px;
+      }
+      .example-section.dark-bg {
+        background: oklch(17% 0 0);
+      }
+      .example-section.dark-bg h2 {
+        color: oklch(99% 0 0);
+      }
+      .example-section.dark-bg p {
+        color: oklch(68% 0 0);
+      }
+      .badge {
+        display: inline-block;
+        padding: 4px 12px;
+        border-radius: 4px;
+        font-size: 12px;
+        font-weight: 500;
+        margin-bottom: 15px;
+      }
+      .badge.default {
+        background: oklch(96% 0 0);
+        color: oklch(17% 0 0);
+        border: 1px solid oklch(91% 0 0);
+      }
+      .badge.custom {
+        background: oklch(96% 0 0);
+        color: oklch(17% 0 0);
+        border: 1px solid oklch(91% 0 0);
+      }
+      .badge.disabled {
+        background: oklch(21% 0 0);
+        color: oklch(99% 0 0);
+        border: 1px solid oklch(32% 0 0);
+      }
+      .code-block {
+        background: oklch(96% 0 0);
+        padding: 15px;
+        border-radius: 6px;
+        font-family: "Courier New", monospace;
+        font-size: 12px;
+        overflow-x: auto;
+        margin-top: 15px;
+        border: 1px solid oklch(91% 0 0);
+      }
+      .code-block code {
+        color: oklch(17% 0 0);
+      }
+      .note {
+        background: oklch(96% 0.05 200);
+        padding: 12px;
+        border-radius: 6px;
+        margin-top: 15px;
+        font-size: 13px;
+        color: oklch(25% 0.1 200);
+        border-left: 3px solid oklch(65% 0.18 220);
+      }
+      @media (prefers-color-scheme: dark) {
+        body {
+          background: oklch(10% 0 0);
+        }
+        h1 {
+          color: oklch(99% 0 0);
+        }
+        .subtitle {
+          color: oklch(68% 0 0);
+        }
+        .example-section {
+          background: oklch(17% 0 0);
+        }
+        .example-section h2 {
+          color: oklch(99% 0 0);
+        }
+        .example-section p {
+          color: oklch(68% 0 0);
+        }
+        .example-section.dark-bg {
+          background: oklch(12% 0 0);
+        }
+        .code-block {
+          background: oklch(21% 0 0);
+          border-color: oklch(32% 0 0);
+        }
+        .code-block code {
+          color: oklch(99% 0 0);
+        }
+        .note {
+          background: oklch(21% 0.05 200);
+          color: oklch(85% 0.1 200);
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Success State Examples</h1>
+    <p class="subtitle">
+      Customize the success state celebration with custom messages and confetti colors.
+    </p>
+
+    <div class="grid">
+      <!-- Default Success State -->
+      <div class="example-section">
+        <span class="badge default">Default</span>
+        <h2>Default Success State</h2>
+        <p>Standard success state with default message and confetti enabled.</p>
+
+        <donation-widget
+          recipient="0x742d35Cc6634C0532925a3b844Bc454e4438f44e"
+          recipient-chain-id="42161"
+          recipient-token-address="0xaf88d065e77c8cC2239327C5EDb3A432268e5831"
+          reown-project-id="YOUR_REOWN_PROJECT_ID"
+          lifi-api-key="YOUR_LIFI_API_KEY"
+        >
+        </donation-widget>
+      </div>
+
+      <!-- Custom Success Message -->
+      <div class="example-section">
+        <span class="badge custom">Custom Message</span>
+        <h2>Custom Success Message</h2>
+        <p>Personalize the success message to match your brand voice.</p>
+
+        <donation-widget
+          recipient="0x742d35Cc6634C0532925a3b844Bc454e4438f44e"
+          recipient-chain-id="42161"
+          recipient-token-address="0xaf88d065e77c8cC2239327C5EDb3A432268e5831"
+          reown-project-id="YOUR_REOWN_PROJECT_ID"
+          lifi-api-key="YOUR_LIFI_API_KEY"
+          success-message="Thank you for your generous support! 🙏"
+        >
+        </donation-widget>
+
+        <div class="code-block">
+          <code>success-message="Thank you for your generous support! 🙏"</code>
+        </div>
+      </div>
+
+      <!-- Custom Button Text -->
+      <div class="example-section">
+        <span class="badge custom">Custom Button</span>
+        <h2>Custom Donate Again Button</h2>
+        <p>Change the button text to encourage repeat donations.</p>
+
+        <donation-widget
+          recipient="0x742d35Cc6634C0532925a3b844Bc454e4438f44e"
+          recipient-chain-id="42161"
+          recipient-token-address="0xaf88d065e77c8cC2239327C5EDb3A432268e5831"
+          reown-project-id="YOUR_REOWN_PROJECT_ID"
+          lifi-api-key="YOUR_LIFI_API_KEY"
+          donate-again-text="Make Another Donation"
+        >
+        </donation-widget>
+
+        <div class="code-block">
+          <code>donate-again-text="Make Another Donation"</code>
+        </div>
+      </div>
+
+      <!-- Custom Confetti Colors -->
+      <div class="example-section">
+        <span class="badge custom">Custom Colors</span>
+        <h2>Custom Confetti Colors</h2>
+        <p>Use your brand colors for the confetti animation.</p>
+
+        <donation-widget
+          recipient="0x742d35Cc6634C0532925a3b844Bc454e4438f44e"
+          recipient-chain-id="42161"
+          recipient-token-address="0xaf88d065e77c8cC2239327C5EDb3A432268e5831"
+          reown-project-id="YOUR_REOWN_PROJECT_ID"
+          lifi-api-key="YOUR_LIFI_API_KEY"
+          confetti-colors="#ff6b6b,#4ecdc4,#45b7d1,#f7b731"
+        >
+        </donation-widget>
+
+        <div class="code-block">
+          <code>confetti-colors="#ff6b6b,#4ecdc4,#45b7d1,#f7b731"</code>
+        </div>
+
+        <div class="note">
+          <strong>Tip:</strong> Provide 2-5 colors for best visual effect. Colors are comma-separated hex values.
+        </div>
+      </div>
+
+      <!-- Disabled Confetti -->
+      <div class="example-section">
+        <span class="badge disabled">No Animation</span>
+        <h2>Disabled Confetti</h2>
+        <p>For a more subtle celebration, disable the confetti animation.</p>
+
+        <donation-widget
+          recipient="0x742d35Cc6634C0532925a3b844Bc454e4438f44e"
+          recipient-chain-id="42161"
+          recipient-token-address="0xaf88d065e77c8cC2239327C5EDb3A432268e5831"
+          reown-project-id="YOUR_REOWN_PROJECT_ID"
+          lifi-api-key="YOUR_LIFI_API_KEY"
+          confetti-enabled="false"
+        >
+        </donation-widget>
+
+        <div class="code-block">
+          <code>confetti-enabled="false"</code>
+        </div>
+      </div>
+
+      <!-- Complete Customization -->
+      <div class="example-section dark-bg">
+        <span class="badge custom">Fully Customized</span>
+        <h2>Complete Customization</h2>
+        <p>Combine all options for a fully branded success experience.</p>
+
+        <donation-widget
+          recipient="0x742d35Cc6634C0532925a3b844Bc454e4438f44e"
+          recipient-chain-id="42161"
+          recipient-token-address="0xaf88d065e77c8cC2239327C5EDb3A432268e5831"
+          reown-project-id="YOUR_REOWN_PROJECT_ID"
+          lifi-api-key="YOUR_LIFI_API_KEY"
+          theme="dark"
+          success-message="Thank you for supporting our mission! 🚀"
+          donate-again-text="Support Us Again"
+          confetti-enabled="true"
+          confetti-colors="#ff6b6b,#4ecdc4,#45b7d1"
+        >
+        </donation-widget>
+
+        <div class="code-block">
+          <code>
+            theme="dark"<br>
+            success-message="Thank you for supporting our mission! 🚀"<br>
+            donate-again-text="Support Us Again"<br>
+            confetti-enabled="true"<br>
+            confetti-colors="#ff6b6b,#4ecdc4,#45b7d1"
+          </code>
+        </div>
+      </div>
+    </div>
+
+    <!-- Load widget script -->
+    <script type="module" src="../src/index.ts"></script>
+  </body>
+</html>
+

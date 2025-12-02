@@ -261,9 +261,9 @@
 
       widget.addEventListener("donation-completed", (e) => {
         logEvent("donation-completed", {
-          txHash: e.detail.txHash?.substring(0, 10) + "...",
           amount: e.detail.amount,
           token: e.detail.token?.symbol,
+          recipient: e.detail.recipient,
         }, "success");
       });
 

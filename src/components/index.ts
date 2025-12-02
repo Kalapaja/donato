@@ -10,3 +10,6 @@ export { AmountInput } from "./amount-input.ts";
 export { DonateButton } from "./donate-button.ts";
 export { ToastNotification } from "./toast-notification.ts";
 export { ToastContainer } from "./toast-container.ts";
+export { ConfettiAnimation } from "./confetti-animation.ts";
+export type { ConfettiParticle, ConfettiConfig } from "./confetti-animation.ts";
+export { SuccessState } from "./success-state.ts";
