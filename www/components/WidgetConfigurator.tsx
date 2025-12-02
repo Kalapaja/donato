@@ -96,7 +96,7 @@ export function WidgetConfigurator(
             className="text-sm mb-4"
             style={{ color: "var(--color-muted-foreground)" }}
           >
-            Pre-fill donation amount (optional)
+            Pre-fill donation amount
           </p>
           
           {/* Preset amount cards */}

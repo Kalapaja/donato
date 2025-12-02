@@ -482,9 +482,17 @@ The minimal setup requires these attributes:
   recipient="0x742d35Cc6634C0532925a3b844Bc454e4438f44e"
   recipient-chain-id="42161"
   recipient-token-address="0xaf88d065e77c8cC2239327C5EDb3A432268e5831"
+  recipient-token-symbol="USDC"
   reown-project-id="YOUR_REOWN_PROJECT_ID"
   lifi-api-key="YOUR_LIFI_API_KEY"
   theme="dark"
+  locale="en"
+  default-amount="25"
+  header-title="Support Us"
+  success-message="Thank you for your support!"
+  donate-again-text="Donate Again"
+  confetti-enabled="true"
+  confetti-colors="#ff6b6b,#4ecdc4,#45b7d1"
 >
 </donation-widget>
 ```
@@ -505,7 +513,11 @@ The minimal setup requires these attributes:
 
 | Attribute                 | Type      | Default                              | Description                                                                                            |
 | ------------------------- | --------- | ------------------------------------ | ------------------------------------------------------------------------------------------------------ |
+| `recipient-token-symbol`  | `string`  | Auto-detected                        | Token symbol that recipient will receive (e.g., "USDC"). If not provided, will be looked up from chain data |
 | `theme`                   | `string`  | `auto`                               | Theme mode: `light`, `dark`, `auto`, or `custom`                                                      |
+| `locale`                  | `string`  | Auto-detected                        | Language/locale for the widget (e.g., `"en"`, `"ru"`). If not set, auto-detects from browser          |
+| `default-amount`          | `string`  | `""`                                 | Default donation amount to pre-fill (e.g., `"25"`)                                                     |
+| `header-title`            | `string`  | `"Donate"`                           | Header title text displayed next to the heart icon                                                     |
 | `success-message`         | `string`  | `"Thank you for your donation!"`     | Custom success message displayed after donation                                                        |
 | `donate-again-text`       | `string`  | `"Donate Again"`                     | Custom text for the "donate again" button                                                              |
 | `confetti-enabled`        | `boolean` | `true`                               | Whether confetti animation is enabled                                                                  |
@@ -663,6 +675,112 @@ Set `theme="custom"` and use CSS variables to create your own color scheme.
   lifi-api-key="YOUR_LIFI_API_KEY"
   theme="custom"
   style="--color-background: oklch(100% 0 0); --color-foreground: oklch(0% 0 0); --color-primary: oklch(20% 0 0); --color-secondary: oklch(95% 0 0); --color-accent: oklch(40% 0 0); --color-border: oklch(85% 0 0); --color-muted: oklch(97% 0 0); --color-muted-foreground: oklch(50% 0 0); --radius: 0rem"
+>
+</donation-widget>
+```
+
+## 💵 Pre-filled Amount
+
+You can pre-fill the donation amount using the `default-amount` attribute. This is useful for donation links with suggested amounts.
+
+### Basic Pre-filled Amount
+
+```html
+<donation-widget
+  recipient="0x742d35Cc6634C0532925a3b844Bc454e4438f44e"
+  recipient-chain-id="42161"
+  recipient-token-address="0xaf88d065e77c8cC2239327C5EDb3A432268e5831"
+  reown-project-id="YOUR_REOWN_PROJECT_ID"
+  lifi-api-key="YOUR_LIFI_API_KEY"
+  default-amount="25"
+>
+</donation-widget>
+```
+
+### Multiple Donation Pages
+
+Create different pages with different suggested amounts:
+
+```html
+<!-- Small donation page -->
+<donation-widget
+  recipient="0x742d35Cc6634C0532925a3b844Bc454e4438f44e"
+  recipient-chain-id="42161"
+  recipient-token-address="0xaf88d065e77c8cC2239327C5EDb3A432268e5831"
+  reown-project-id="YOUR_REOWN_PROJECT_ID"
+  lifi-api-key="YOUR_LIFI_API_KEY"
+  default-amount="10"
+  header-title="Buy us a coffee ☕"
+>
+</donation-widget>
+
+<!-- Large donation page -->
+<donation-widget
+  recipient="0x742d35Cc6634C0532925a3b844Bc454e4438f44e"
+  recipient-chain-id="42161"
+  recipient-token-address="0xaf88d065e77c8cC2239327C5EDb3A432268e5831"
+  reown-project-id="YOUR_REOWN_PROJECT_ID"
+  lifi-api-key="YOUR_LIFI_API_KEY"
+  default-amount="100"
+  header-title="Become a Sponsor 🌟"
+>
+</donation-widget>
+```
+
+## 🌐 Localization
+
+The widget supports multiple languages and automatically detects the user's browser language. You can also set the language explicitly using the `locale` attribute.
+
+### Supported Languages
+
+| Code | Language |
+| ---- | -------- |
+| `en` | English  |
+| `ru` | Russian  |
+
+### Auto-Detection (Default)
+
+By default, the widget automatically detects the user's preferred language from the browser:
+
+```html
+<donation-widget
+  recipient="0x742d35Cc6634C0532925a3b844Bc454e4438f44e"
+  recipient-chain-id="42161"
+  recipient-token-address="0xaf88d065e77c8cC2239327C5EDb3A432268e5831"
+  reown-project-id="YOUR_REOWN_PROJECT_ID"
+  lifi-api-key="YOUR_LIFI_API_KEY"
+>
+</donation-widget>
+```
+
+### Explicit Language Setting
+
+Force a specific language regardless of browser settings:
+
+```html
+<donation-widget
+  recipient="0x742d35Cc6634C0532925a3b844Bc454e4438f44e"
+  recipient-chain-id="42161"
+  recipient-token-address="0xaf88d065e77c8cC2239327C5EDb3A432268e5831"
+  reown-project-id="YOUR_REOWN_PROJECT_ID"
+  lifi-api-key="YOUR_LIFI_API_KEY"
+  locale="ru"
+>
+</donation-widget>
+```
+
+### Custom Header Title
+
+You can customize the header title using the `header-title` attribute:
+
+```html
+<donation-widget
+  recipient="0x742d35Cc6634C0532925a3b844Bc454e4438f44e"
+  recipient-chain-id="42161"
+  recipient-token-address="0xaf88d065e77c8cC2239327C5EDb3A432268e5831"
+  reown-project-id="YOUR_REOWN_PROJECT_ID"
+  lifi-api-key="YOUR_LIFI_API_KEY"
+  header-title="Support Our Project"
 >
 </donation-widget>
 ```
@@ -1379,7 +1497,11 @@ The main widget component.
 - `lifi-api-key` - LiFi API key
 
 **Optional:**
+- `recipient-token-symbol` - Token symbol that recipient will receive (e.g., "USDC"). If not provided, will be looked up from chain data
 - `theme` - Theme mode: 'light', 'dark', 'auto', or 'custom' (default: 'auto')
+- `locale` - Language/locale for the widget (e.g., "en", "ru"). If not set, auto-detects from browser
+- `default-amount` - Default donation amount to pre-fill (e.g., "25")
+- `header-title` - Header title text displayed next to the heart icon (default: uses i18n)
 - `success-message` - Custom success message displayed after donation (default: "Thank you for your donation!")
 - `donate-again-text` - Custom text for the "donate again" button (default: "Donate Again")
 - `confetti-enabled` - Whether confetti animation is enabled (default: true)
