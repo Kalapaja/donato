@@ -54,6 +54,26 @@ export function EmbedCodeSection({
       comments.push("⚠️ Replace YOUR_TOKEN_ADDRESS with the token address (0x...)");
     }
 
+    // Token symbol (optional, used for display in amount section)
+    if (config.recipientTokenSymbol) {
+      widgetAttributes.push(`recipient-token-symbol="${config.recipientTokenSymbol}"`);
+    }
+
+    // Default amount (optional)
+    if (config.defaultAmount) {
+      widgetAttributes.push(`default-amount="${config.defaultAmount}"`);
+    }
+
+    // Header title (optional, defaults to "SUPPORT")
+    if (config.headerTitle && config.headerTitle !== "SUPPORT") {
+      widgetAttributes.push(`header-title="${config.headerTitle}"`);
+    }
+
+    // Locale (optional, auto-detect by default)
+    if (config.locale) {
+      widgetAttributes.push(`locale="${config.locale}"`);
+    }
+
     // Theme (required)
     if (config.theme) {
       widgetAttributes.push(`theme="${config.theme}"`);

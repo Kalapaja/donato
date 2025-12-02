@@ -1,24 +1,22 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useEffect } from "react";
 import { WidgetConfigurator } from "./WidgetConfigurator";
 import { WidgetPreview } from "./WidgetPreview";
 import type { WidgetConfig } from "../types/config";
+import { useLocalStorageConfig } from "../lib/useLocalStorageConfig";
 
+const DEFAULT_CONFIG: Partial<WidgetConfig> = {
+  recipient: "",
+  recipientChainId: 1,
+  recipientTokenAddress: "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+  reownProjectId: "",
+  lifiApiKey: "",
+  theme: "auto",
+};
 
 export function ClientPage() {
-  const [config, setConfig] = useState<Partial<WidgetConfig>>({
-    recipient: "",
-    recipientChainId: 42161,
-    recipientTokenAddress: "0xaf88d065e77c8cC2239327C5EDb3A432268e5831",
-    reownProjectId: "",
-    lifiApiKey: "",
-    theme: "auto",
-  });
-
-  const handleConfigChange = (updates: Partial<WidgetConfig>) => {
-    setConfig((prev) => ({ ...prev, ...updates }));
-  };
+  const [config, handleConfigChange] = useLocalStorageConfig(DEFAULT_CONFIG);
 
   // Sync widget theme with landing page theme
   useEffect(() => {

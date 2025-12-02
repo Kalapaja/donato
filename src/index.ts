@@ -33,11 +33,17 @@ export {
   ThemeService,
   toastService,
   WalletService,
+  i18nService,
+  t,
 } from "./services/index.ts";
 
 // Export types
 export type { Token } from "./services/WalletService.ts";
 export type { Theme, ThemeMode } from "./services/ThemeService.ts";
+export type { Locale, TranslationKey, Translations } from "./services/I18nService.ts";
+
+// Export translations
+export { translations } from "./i18n/index.ts";
 
 // Version information (injected at build time from deno.json)
 declare const __WIDGET_VERSION__: string;

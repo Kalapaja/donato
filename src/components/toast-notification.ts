@@ -1,6 +1,7 @@
 import { css, html, LitElement } from "lit";
 import { customElement, property, state } from "lit/decorators.js";
 import type { Toast, ToastType } from "../services/ToastService.ts";
+import { t } from "../services/index.ts";
 
 @customElement("toast-notification")
 export class ToastNotification extends LitElement {
@@ -187,15 +188,15 @@ export class ToastNotification extends LitElement {
   private getAriaLabel(type: ToastType): string {
     switch (type) {
       case "success":
-        return "Success notification";
+        return t("toast.successAriaLabel");
       case "error":
-        return "Error notification";
+        return t("toast.errorAriaLabel");
       case "warning":
-        return "Warning notification";
+        return t("toast.warningAriaLabel");
       case "info":
-        return "Information notification";
+        return t("toast.infoAriaLabel");
       default:
-        return "Notification";
+        return t("toast.infoAriaLabel");
     }
   }
 
@@ -223,7 +224,7 @@ export class ToastNotification extends LitElement {
         <button
           class="toast-close"
           @click="${this.handleClose}"
-          aria-label="Close notification"
+          aria-label="${t("toast.closeAriaLabel")}"
           type="button"
         >
           ×

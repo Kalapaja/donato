@@ -71,6 +71,12 @@ export function WidgetPreview({ config }: WidgetPreviewProps) {
           "recipient-token-address",
           config.recipientTokenAddress || "",
         );
+        if (config.recipientTokenSymbol) {
+          widget.setAttribute(
+            "recipient-token-symbol",
+            config.recipientTokenSymbol,
+          );
+        }
         widget.setAttribute("theme", config.theme || "auto");
         widget.setAttribute("reown-project-id", config.reownProjectId || "");
 
@@ -78,7 +84,19 @@ export function WidgetPreview({ config }: WidgetPreviewProps) {
           widget.setAttribute("lifi-api-key", config.lifiApiKey);
         }
 
-        widget.setAttribute("style", "max-width: 360px;");
+        if (config.defaultAmount) {
+          widget.setAttribute("default-amount", config.defaultAmount);
+        }
+
+        if (config.headerTitle) {
+          widget.setAttribute("header-title", config.headerTitle);
+        }
+
+        if (config.locale) {
+          widget.setAttribute("locale", config.locale);
+        }
+
+        widget.setAttribute("style", "max-width: 480px;");
 
         // Apply custom theme styles if theme is custom
         const styleId = "donation-widget-custom-theme";

@@ -1,6 +1,7 @@
 import { css, html, LitElement } from "lit";
 import { customElement, property } from "lit/decorators.js";
 import "./confetti-animation.ts";
+import { t } from "../services/index.ts";
 
 /**
  * Success State Component
@@ -61,13 +62,13 @@ export class SuccessState extends LitElement {
   @property({ type: String, attribute: "recipient-name" })
   accessor recipientName: string = "";
 
-  /** Custom success message (optional, default: "Thank you for your donation!") */
+  /** Custom success message (optional, default: uses i18n) */
   @property({ type: String, attribute: "success-message" })
-  accessor successMessage: string = "Thank you for your donation!";
+  accessor successMessage: string = "";
 
-  /** Custom text for donate again button (optional, default: "Donate Again") */
+  /** Custom text for donate again button (optional, default: uses i18n) */
   @property({ type: String, attribute: "donate-again-text" })
-  accessor donateAgainText: string = "Donate Again";
+  accessor donateAgainText: string = "";
 
   /** Whether confetti animation is enabled (optional, default: true) */
   @property({ type: Boolean, attribute: "confetti-enabled" })
@@ -193,6 +194,47 @@ export class SuccessState extends LitElement {
       outline: 2px solid var(--color-accent);
       outline-offset: 2px;
     }
+
+    /* Mobile responsive styles */
+    @container donation-widget (max-width: 400px) {
+      :host {
+        padding: 1.5rem 1rem;
+      }
+
+      .success-icon {
+        width: 3rem;
+        height: 3rem;
+        font-size: 1.5rem;
+        margin-bottom: 1rem;
+      }
+
+      .success-message {
+        font-size: 1.25rem;
+      }
+
+      .transaction-summary {
+        padding: 0.75rem;
+        margin: 1rem 0;
+      }
+
+      .transaction-detail {
+        padding: 0.375rem 0;
+        font-size: 0.8125rem;
+        flex-wrap: wrap;
+        gap: 0.25rem;
+      }
+
+      .transaction-detail-value {
+        font-size: 0.8125rem;
+      }
+
+      .donate-again-button {
+        margin-top: 1rem;
+        padding: 0.625rem 1.5rem;
+        font-size: 0.9375rem;
+        min-width: 140px;
+      }
+    }
   `;
 
   /**
@@ -216,6 +258,14 @@ export class SuccessState extends LitElement {
       console.error("Failed to format timestamp:", error);
       return "";
     }
+  }
+
+  /**
+   * Format address to shortened version (first 6 + last 4 characters)
+   */
+  private formatAddress(address: string): string {
+    if (!address || address.length < 10) return address;
+    return `${address.slice(0, 6)}...${address.slice(-4)}`;
   }
 
   /**
@@ -252,7 +302,7 @@ export class SuccessState extends LitElement {
    * Render success message with amount interpolation (returns string for text content)
    */
   private renderSuccessMessage(): string {
-    let message = this.successMessage || "Thank you for your donation!";
+    let message = this.successMessage || t("success.defaultMessage");
 
     // Interpolate amount if present in message template
     if (this.amount) {
@@ -265,7 +315,7 @@ export class SuccessState extends LitElement {
 
       // If no placeholder found and amount not already in message, append amount
       if (!message.includes(this.amount)) {
-        message = `${message} You donated ${amountText}`;
+        message = `${message} ${t("success.youDonated", { amount: amountText })}`;
       }
     }
 
@@ -333,10 +383,10 @@ export class SuccessState extends LitElement {
         </div>
 
         <!-- Transaction Summary -->
-        <div class="transaction-summary" role="region" aria-label="Transaction details">
+        <div class="transaction-summary" role="region" aria-label="${t("success.transactionDetails")}">
           <!-- Amount and Token -->
           <div class="transaction-detail">
-            <span class="transaction-detail-label" id="amount-label">Amount</span>
+            <span class="transaction-detail-label" id="amount-label">${t("success.amount")}</span>
             <span 
               class="transaction-detail-value"
               aria-labelledby="amount-label"
@@ -348,7 +398,7 @@ export class SuccessState extends LitElement {
 
           <!-- Token and Chain -->
           <div class="transaction-detail">
-            <span class="transaction-detail-label" id="network-label">Network</span>
+            <span class="transaction-detail-label" id="network-label">${t("success.network")}</span>
             <span 
               class="transaction-detail-value"
               aria-labelledby="network-label"
@@ -358,11 +408,27 @@ export class SuccessState extends LitElement {
             </span>
           </div>
 
+          <!-- Recipient -->
+          ${this.recipientAddress
+            ? html`
+                <div class="transaction-detail">
+                  <span class="transaction-detail-label" id="recipient-label">${t("success.recipient")}</span>
+                  <span 
+                    class="transaction-detail-value"
+                    aria-labelledby="recipient-label"
+                    aria-label="Recipient address: ${this.recipientAddress}"
+                  >
+                    ${this.formatAddress(this.recipientAddress)}
+                  </span>
+                </div>
+              `
+            : ""}
+
           <!-- Timestamp -->
           ${this.timestamp
             ? html`
                 <div class="transaction-detail">
-                  <span class="transaction-detail-label" id="timestamp-label">Time</span>
+                  <span class="transaction-detail-label" id="timestamp-label">${t("success.time")}</span>
                   <span 
                     class="transaction-detail-value transaction-timestamp"
                     aria-labelledby="timestamp-label"
@@ -379,10 +445,10 @@ export class SuccessState extends LitElement {
         <button
           class="donate-again-button"
           @click=${this.handleDonateAgain}
-          aria-label="Donate again"
+          aria-label="${t("success.donateAgain")}"
           aria-describedby="success-message"
         >
-          ${this.donateAgainText}
+          ${this.donateAgainText || t("success.donateAgain")}
         </button>
       </div>
     `;

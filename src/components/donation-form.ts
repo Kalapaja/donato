@@ -1,11 +1,12 @@
 import { css, html, LitElement } from "lit";
 import { customElement, property, state } from "lit/decorators.js";
 import type { Token, WalletService } from "../services/WalletService.ts";
-import type { LiFiService, QuoteParams } from "../services/LiFiService.ts";
+import { LiFiService, type QuoteParams } from "../services/LiFiService.ts";
 import type { ChainService } from "../services/ChainService.ts";
 import type { ToastService } from "../services/ToastService.ts";
 import type { Route } from "@lifi/sdk";
 import { ErrorHandler } from "../services/ErrorHandler.ts";
+import type { Address } from "viem";
 import "./amount-input.ts";
 import "./donate-button.ts";
 
@@ -42,6 +43,10 @@ export class DonationForm extends LitElement {
   @property({ type: Boolean })
   accessor disabled: boolean = false;
 
+  /** External recipient amount (synced from parent widget) */
+  @property({ type: String, attribute: "recipient-amount" })
+  accessor externalRecipientAmount: string = "";
+
   @state()
   private accessor recipientAmount: string = "";
 
@@ -59,6 +64,9 @@ export class DonationForm extends LitElement {
 
   @state()
   private accessor recipientTokenInfo: Token | null = null;
+
+  @state()
+  private accessor isDirectTransfer: boolean = false;
 
   private quoteDebounceTimer: number | null = null;
   private readonly QUOTE_DEBOUNCE_MS = 500;
@@ -136,6 +144,7 @@ export class DonationForm extends LitElement {
     this.quote = null;
     this.userPayAmount = null;
     this.quoteError = null;
+    this.isDirectTransfer = false;
 
     // Validate inputs
     if (!this.recipientAmount || parseFloat(this.recipientAmount) <= 0) {
@@ -158,6 +167,14 @@ export class DonationForm extends LitElement {
       return;
     }
 
+    // Emit loading state at start of calculation
+    this.dispatchEvent(
+      new CustomEvent("quote-updated", {
+        detail: { quote: null, loading: true, error: null },
+        bubbles: true,
+        composed: true,
+      }),
+    );
     this.isQuoteLoading = true;
 
     try {
@@ -177,37 +194,80 @@ export class DonationForm extends LitElement {
         recipientChain: this.recipientChainId,
       });
 
-      const quoteParams: QuoteParams = {
-        fromChain: this.selectedToken.chainId,
-        fromToken: this.selectedToken.address,
-        fromAddress: account.address,
-        toChain: this.recipientChainId,
-        toToken: this.recipientTokenAddress,
-        toAmount: toAmountInSmallestUnit,
-        toAddress: this.recipient,
-      };
+      // Check if this is a same-token transfer (no swap needed)
+      const isSameToken = LiFiService.isSameTokenTransfer(
+        this.selectedToken.chainId,
+        this.selectedToken.address,
+        this.recipientChainId,
+        this.recipientTokenAddress,
+      );
 
-      const quote = await this.lifiService.getQuote(quoteParams);
-      this.quote = quote;
+      if (isSameToken) {
+        // Direct transfer - create a mock quote with 1:1 ratio
+        console.log("Same token detected, using direct transfer");
+        this.isDirectTransfer = true;
 
-      console.log("Quote received:", {
-        fromAmount: quote.fromAmount,
-        toAmount: quote.toAmount,
-        fromToken: quote.fromToken?.symbol,
-        toToken: quote.toToken?.symbol,
-        steps: quote.steps?.length,
-      });
+        // For direct transfer, fromAmount equals toAmount (1:1 ratio)
+        const mockQuote: Route = {
+          id: `direct-${Date.now()}`,
+          fromChainId: this.selectedToken.chainId,
+          fromAmountUSD: "",
+          fromAmount: toAmountInSmallestUnit,
+          fromToken: this.selectedToken as Route["fromToken"],
+          fromAddress: account.address,
+          toChainId: this.recipientChainId,
+          toAmountUSD: "",
+          toAmount: toAmountInSmallestUnit,
+          toAmountMin: toAmountInSmallestUnit,
+          toToken: this.recipientTokenInfo as Route["toToken"],
+          toAddress: this.recipient,
+          gasCostUSD: "0",
+          steps: [],
+          insurance: { state: "NOT_INSURABLE", feeAmountUsd: "0" },
+        };
 
-      // Calculate user pay amount from quote
-      if (quote.fromAmount) {
-        const fromAmount = BigInt(quote.fromAmount);
-        const decimals = this.selectedToken.decimals;
-        const divisor = BigInt(10 ** decimals);
-        const amount = Number(fromAmount) / Number(divisor);
-        this.userPayAmount = amount.toFixed(6);
-        console.log("User pay amount calculated:", this.userPayAmount);
+        this.quote = mockQuote;
+        this.userPayAmount = this.recipientAmount;
+
+        console.log("Direct transfer quote created:", {
+          fromAmount: mockQuote.fromAmount,
+          toAmount: mockQuote.toAmount,
+          isDirectTransfer: true,
+        });
       } else {
-        console.warn("Quote has no fromAmount");
+        // Use LiFi for swap/bridge
+        const quoteParams: QuoteParams = {
+          fromChain: this.selectedToken.chainId,
+          fromToken: this.selectedToken.address,
+          fromAddress: account.address,
+          toChain: this.recipientChainId,
+          toToken: this.recipientTokenAddress,
+          toAmount: toAmountInSmallestUnit,
+          toAddress: this.recipient,
+        };
+
+        const quote = await this.lifiService.getQuote(quoteParams);
+        this.quote = quote;
+
+        console.log("Quote received:", {
+          fromAmount: quote.fromAmount,
+          toAmount: quote.toAmount,
+          fromToken: quote.fromToken?.symbol,
+          toToken: quote.toToken?.symbol,
+          steps: quote.steps?.length,
+        });
+
+        // Calculate user pay amount from quote
+        if (quote.fromAmount) {
+          const fromAmount = BigInt(quote.fromAmount);
+          const decimals = this.selectedToken.decimals;
+          const divisor = BigInt(10 ** decimals);
+          const amount = Number(fromAmount) / Number(divisor);
+          this.userPayAmount = amount.toFixed(6);
+          console.log("User pay amount calculated:", this.userPayAmount);
+        } else {
+          console.warn("Quote has no fromAmount");
+        }
       }
 
       // Emit quote update event
@@ -217,6 +277,7 @@ export class DonationForm extends LitElement {
             quote: this.quote,
             loading: false,
             error: null,
+            isDirectTransfer: this.isDirectTransfer,
           },
           bubbles: true,
           composed: true,
@@ -256,39 +317,43 @@ export class DonationForm extends LitElement {
     // Emit donation initiated event
     this.dispatchEvent(
       new CustomEvent("donation-initiated", {
-        detail: { quote: this.quote },
+        detail: { quote: this.quote, isDirectTransfer: this.isDirectTransfer },
         bubbles: true,
         composed: true,
       }),
     );
 
     try {
-      // this.quote is already a Route from getQuote
-      const route = this.quote;
+      if (this.isDirectTransfer) {
+        // Execute direct token transfer without LiFi
+        await this.executeDirectTransfer();
+      } else {
+        // Execute LiFi route for swap/bridge
+        const route = this.quote;
 
-      // Execute route with callbacks
-      await this.lifiService.executeRoute(route, {
-        onRouteUpdate: (updatedRoute: Route) => {
-          // Emit route update event
-          this.dispatchEvent(
-            new CustomEvent("route-update", {
-              detail: { route: updatedRoute },
-              bubbles: true,
-              composed: true,
-            }),
-          );
-        },
-        onStepUpdate: (step: Route) => {
-          // Emit step update event
-          this.dispatchEvent(
-            new CustomEvent("step-update", {
-              detail: { step },
-              bubbles: true,
-              composed: true,
-            }),
-          );
-        },
-      });
+        await this.lifiService.executeRoute(route, {
+          onRouteUpdate: (updatedRoute: Route) => {
+            // Emit route update event
+            this.dispatchEvent(
+              new CustomEvent("route-update", {
+                detail: { route: updatedRoute },
+                bubbles: true,
+                composed: true,
+              }),
+            );
+          },
+          onStepUpdate: (step: Route) => {
+            // Emit step update event
+            this.dispatchEvent(
+              new CustomEvent("step-update", {
+                detail: { step },
+                bubbles: true,
+                composed: true,
+              }),
+            );
+          },
+        });
+      }
 
       // Show success notification
       const tokenSymbol = this.recipientTokenInfo?.symbol || "tokens";
@@ -303,6 +368,7 @@ export class DonationForm extends LitElement {
             amount: this.recipientAmount,
             token: this.selectedToken,
             recipient: this.recipient,
+            isDirectTransfer: this.isDirectTransfer,
           },
           bubbles: true,
           composed: true,
@@ -330,6 +396,7 @@ export class DonationForm extends LitElement {
           detail: {
             error: userError,
             originalError: error,
+            isDirectTransfer: this.isDirectTransfer,
           },
           bubbles: true,
           composed: true,
@@ -341,12 +408,40 @@ export class DonationForm extends LitElement {
     }
   }
 
+  /**
+   * Execute a direct token transfer (same token, same chain)
+   * No LiFi swap needed - just a simple ERC20/native transfer
+   */
+  private async executeDirectTransfer(): Promise<void> {
+    if (!this.selectedToken || !this.quote) {
+      throw new Error("Missing token or quote information");
+    }
+
+    const amount = BigInt(this.quote.fromAmount);
+    const toAddress = this.recipient as Address;
+
+    console.log("Executing direct transfer:", {
+      token: this.selectedToken.symbol,
+      amount: amount.toString(),
+      to: toAddress,
+    });
+
+    const txHash = await this.walletService.transferToken(
+      this.selectedToken,
+      toAddress,
+      amount,
+    );
+
+    console.log("Direct transfer successful:", txHash);
+  }
+
   private resetForm() {
     this.recipientAmount = "";
     this.userPayAmount = null;
     this.quote = null;
     this.quoteError = null;
     this.isQuoteLoading = false;
+    this.isDirectTransfer = false;
   }
 
   private get canDonate(): boolean {
@@ -386,6 +481,35 @@ export class DonationForm extends LitElement {
 
   protected override async updated(changedProperties: Map<string, unknown>) {
     super.updated(changedProperties);
+
+    // Sync external recipient amount to internal state
+    if (changedProperties.has("externalRecipientAmount")) {
+      if (this.externalRecipientAmount !== this.recipientAmount) {
+        this.recipientAmount = this.externalRecipientAmount;
+        // Clear quote if amount is cleared
+        if (!this.recipientAmount || parseFloat(this.recipientAmount) <= 0) {
+          this.quote = null;
+          this.userPayAmount = null;
+          this.quoteError = null;
+          this.isQuoteLoading = false;
+          // Emit quote update with null quote
+          this.dispatchEvent(
+            new CustomEvent("quote-updated", {
+              detail: {
+                quote: null,
+                loading: false,
+                error: null,
+              },
+              bubbles: true,
+              composed: true,
+            }),
+          );
+        } else if (this.selectedToken) {
+          // Trigger quote calculation when amount changes externally and token is selected
+          this.debouncedQuoteCalculation();
+        }
+      }
+    }
 
     // Reload recipient token info when recipient chain or token changes
     if (

@@ -70,6 +70,49 @@ export class LiFiService {
   }
 
   /**
+   * Check if this is a same-token transfer (no swap needed)
+   * Same token transfer = same chainId AND same token address
+   * @param fromChain - Source chain ID
+   * @param fromToken - Source token address
+   * @param toChain - Destination chain ID
+   * @param toToken - Destination token address
+   * @returns true if this is a direct transfer (no swap needed)
+   */
+  static isSameTokenTransfer(
+    fromChain: number,
+    fromToken: string,
+    toChain: number,
+    toToken: string,
+  ): boolean {
+    // Must be on the same chain
+    if (fromChain !== toChain) {
+      return false;
+    }
+
+    // Normalize addresses for comparison
+    const normalizedFrom = fromToken.toLowerCase();
+    const normalizedTo = toToken.toLowerCase();
+
+    // Direct match
+    if (normalizedFrom === normalizedTo) {
+      return true;
+    }
+
+    // Handle native token variations
+    // Native tokens can be represented as 0x0...0 or 0xEEE...EEE
+    const nativeAddresses = [
+      "0x0000000000000000000000000000000000000000",
+      "0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+    ];
+
+    const fromIsNative = nativeAddresses.includes(normalizedFrom);
+    const toIsNative = nativeAddresses.includes(normalizedTo);
+
+    // Both are native tokens on the same chain
+    return fromIsNative && toIsNative;
+  }
+
+  /**
    * Initialize LiFi SDK
    */
   init(): void {
