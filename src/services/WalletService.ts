@@ -117,14 +117,16 @@ export class WalletService {
           icons: ["https://avatars.githubusercontent.com/u/37784886"],
         },
         features: {
-          analytics: true, // Enable analytics
-          email: true, // Enable email login
-          socials: ["google", "github", "apple"], // Enable social logins
-          emailShowWallets: true, // Show wallets along with email
+          analytics: true,
+          email: false,
+          socials: false,
+          swaps: false,
+          onramp: false,
+          history: false,
+          send: false
         },
-        themeMode: "dark",
         themeVariables: {
-          "--w3m-accent": "oklch(60% 0.19 250)",
+          "--w3m-accent": "oklch(0% 0 0)",
         },
       });
 
@@ -142,6 +144,9 @@ export class WalletService {
    */
   private setupEventListeners(): void {
     if (!this.appKit) return;
+
+    // Track previous chainId to detect chain changes
+    let previousChainId: number | null = null;
 
     // Subscribe to state changes
     this.appKit.subscribeState((state) => {
@@ -162,12 +167,25 @@ export class WalletService {
       if (account && chainId) {
         const address = account as Address;
         const walletAccount: WalletAccount = { address, chainId };
+        
+        // Check if chain changed
+        const chainChanged = previousChainId !== null && previousChainId !== chainId;
+        
         this.currentAccount = walletAccount;
         this.notifyAccountChange(walletAccount);
         this.updateWalletClient(address, chainId);
+        
+        // Notify chain change if chain actually changed
+        if (chainChanged) {
+          this.notifyChainChange(chainId);
+        }
+        
+        // Update previous chainId
+        previousChainId = chainId;
       } else if (this.currentAccount) {
         this.currentAccount = null;
         this.walletClient = null;
+        previousChainId = null;
         this.notifyDisconnect();
       }
     });
@@ -419,6 +437,160 @@ export class WalletService {
   }
 
   /**
+   * Transfer ERC20 tokens directly to an address
+   * @param token - The token to transfer
+   * @param toAddress - Recipient address
+   * @param amount - Amount in smallest unit (wei-like)
+   * @returns Transaction hash
+   */
+  async transferToken(
+    token: Token,
+    toAddress: Address,
+    amount: bigint,
+  ): Promise<string> {
+    if (!this.currentAccount) {
+      throw new Error("Wallet not connected");
+    }
+
+    // Check if this is a native token transfer
+    if (this.isNativeToken(token.address)) {
+      return this.transferNative(toAddress, amount);
+    }
+
+    console.log("Starting ERC20 transfer:", {
+      token: token.symbol,
+      tokenAddress: token.address,
+      to: toAddress,
+      amount: amount.toString(),
+    });
+
+    try {
+      // ERC20 transfer function selector: transfer(address,uint256) = 0xa9059cbb
+      const functionSelector = "0xa9059cbb";
+      
+      // Encode the recipient address (32 bytes, left-padded)
+      const encodedAddress = toAddress.slice(2).toLowerCase().padStart(64, "0");
+      
+      // Encode the amount (32 bytes, left-padded)
+      const encodedAmount = amount.toString(16).padStart(64, "0");
+      
+      // Combine into calldata
+      const data = `${functionSelector}${encodedAddress}${encodedAmount}`;
+
+      console.log("Transaction data prepared:", {
+        to: token.address,
+        data: data.slice(0, 50) + "...",
+        from: this.currentAccount.address,
+      });
+
+      // Use raw provider for better compatibility with Reown AppKit
+      const provider = this.appKit?.getWalletProvider();
+      if (!provider || typeof provider !== "object" || !("request" in provider)) {
+        throw new Error("Wallet provider not available");
+      }
+
+      const ethProvider = provider as {
+        request: (args: { method: string; params?: unknown[] }) => Promise<unknown>;
+      };
+
+      console.log("Sending transaction via eth_sendTransaction...");
+
+      const hash = await ethProvider.request({
+        method: "eth_sendTransaction",
+        params: [{
+          from: this.currentAccount.address,
+          to: token.address,
+          data: data, // Already has 0x prefix from functionSelector
+        }],
+      });
+
+      console.log("Transaction sent, hash:", hash);
+      return hash as string;
+    } catch (error: unknown) {
+      console.error("Failed to transfer token:", error);
+
+      if (error instanceof Error && error.message?.includes("User rejected")) {
+        throw new Error("Transaction was rejected by user");
+      }
+
+      if (error instanceof Error && error.message?.includes("insufficient")) {
+        throw new Error("Insufficient token balance");
+      }
+
+      throw new Error("Failed to transfer tokens. Please try again.");
+    }
+  }
+
+  /**
+   * Transfer native tokens (ETH, MATIC, BNB, etc.) directly to an address
+   * @param toAddress - Recipient address
+   * @param amount - Amount in wei
+   * @returns Transaction hash
+   */
+  async transferNative(toAddress: Address, amount: bigint): Promise<string> {
+    if (!this.currentAccount) {
+      throw new Error("Wallet not connected");
+    }
+
+    console.log("Starting native transfer:", {
+      to: toAddress,
+      amount: amount.toString(),
+    });
+
+    try {
+      // Use raw provider for better compatibility with Reown AppKit
+      const provider = this.appKit?.getWalletProvider();
+      if (!provider || typeof provider !== "object" || !("request" in provider)) {
+        throw new Error("Wallet provider not available");
+      }
+
+      const ethProvider = provider as {
+        request: (args: { method: string; params?: unknown[] }) => Promise<unknown>;
+      };
+
+      // Convert amount to hex
+      const valueHex = `0x${amount.toString(16)}`;
+
+      console.log("Sending native transaction via eth_sendTransaction...");
+
+      const hash = await ethProvider.request({
+        method: "eth_sendTransaction",
+        params: [{
+          from: this.currentAccount.address,
+          to: toAddress,
+          value: valueHex,
+        }],
+      });
+
+      console.log("Transaction sent, hash:", hash);
+      return hash as string;
+    } catch (error: unknown) {
+      console.error("Failed to transfer native token:", error);
+
+      if (error instanceof Error && error.message?.includes("User rejected")) {
+        throw new Error("Transaction was rejected by user");
+      }
+
+      if (error instanceof Error && error.message?.includes("insufficient")) {
+        throw new Error("Insufficient balance");
+      }
+
+      throw new Error("Failed to transfer. Please try again.");
+    }
+  }
+
+  /**
+   * Check if a token address represents a native token
+   */
+  isNativeToken(tokenAddress: string): boolean {
+    const normalizedAddress = tokenAddress.toLowerCase();
+    return (
+      normalizedAddress === "0x0000000000000000000000000000000000000000" ||
+      normalizedAddress === "0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee"
+    );
+  }
+
+  /**
    * Subscribe to account changes
    */
   onAccountChanged(callback: EventCallback<WalletAccount>): () => void {
@@ -545,5 +717,21 @@ export class WalletService {
       throw new Error("AppKit not initialized");
     }
     this.appKit.close();
+  }
+
+  /**
+   * Set the theme mode for AppKit
+   * @param mode - Theme mode: 'light' or 'dark'
+   */
+  setThemeMode(mode: "light" | "dark"): void {
+    if (!this.appKit) {
+      return;
+    }
+
+    try {
+      this.appKit.setThemeMode(mode);
+    } catch (error) {
+      console.error("Failed to set AppKit theme mode:", error);
+    }
   }
 }

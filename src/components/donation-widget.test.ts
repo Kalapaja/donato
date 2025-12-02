@@ -138,19 +138,16 @@ describe("donation-widget", () => {
         // Render widget with success state
         const renderedContent = renderWidget(widgetState);
         
-        // Property validation: Success state should be displayed when donation is completed
         assert(
           widgetState.showSuccessState === true,
           `Success state should be displayed when donation is completed. Amount: ${testCase.amount}`
         );
         
-        // Property validation: Rendered content should contain success-state element
         assert(
           contentContainsSuccessState(renderedContent),
           `Rendered content should contain success state. Content: ${renderedContent}`
         );
         
-        // Property validation: Transaction data should be set
         assert(
           widgetState.transactionData !== null,
           `Transaction data should be set when donation is completed. Amount: ${testCase.amount}`
@@ -188,19 +185,16 @@ describe("donation-widget", () => {
         // Render widget with success state
         const renderedContent = renderWidget(widgetState);
         
-        // Property validation: Donation form should be hidden when success state is shown
         assert(
           widgetState.showDonationForm === false,
           `Donation form should be hidden when success state is shown. Amount: ${testCase.amount}`
         );
         
-        // Property validation: Rendered content should not contain donation form
         assert(
           !contentContainsDonationForm(renderedContent),
           `Rendered content should not contain donation form when success state is shown. Content: ${renderedContent}`
         );
         
-        // Property validation: Success state should be shown
         assert(
           widgetState.showSuccessState === true,
           `Success state should be shown when donation completed is received. Amount: ${testCase.amount}`
@@ -217,25 +211,21 @@ describe("donation-widget", () => {
       // Render widget before transaction
       const renderedContent = renderWidget(widgetState);
       
-      // Property validation: Success state should not be displayed before transaction completes
       assert(
         widgetState.showSuccessState === false,
         "Success state should not be displayed before transaction completes"
       );
       
-      // Property validation: Rendered content should not contain success state
       assert(
         contentDoesNotContainSuccessState(renderedContent),
         `Rendered content should not contain success state before transaction completes. Content: ${renderedContent}`
       );
       
-      // Property validation: Donation form should be displayed
       assert(
         widgetState.showDonationForm === true,
         "Donation form should be displayed before transaction completes"
       );
       
-      // Property validation: Transaction data should be null
       assert(
         widgetState.transactionData === null,
         "Transaction data should be null before transaction completes"
@@ -243,7 +233,6 @@ describe("donation-widget", () => {
     });
     
     it("should display success state with various donation completed formats", () => {
-      // Additional test: Verify success state displays with various hash formats
       const testCases = [
         {
           amount: "100",
@@ -265,13 +254,11 @@ describe("donation-widget", () => {
         // Render widget
         const renderedContent = renderWidget(widgetState);
         
-        // Property validation: Success state should be displayed regardless of hash format
         assert(
           widgetState.showSuccessState === true,
           `Success state should be displayed with any donation completed format. Amount: ${testCase.amount}`
         );
         
-        // Property validation: Rendered content should contain success state
         assert(
           contentContainsSuccessState(renderedContent),
           `Rendered content should contain success state. Content: ${renderedContent}, Amount: ${testCase.amount}`
@@ -280,7 +267,6 @@ describe("donation-widget", () => {
     });
     
     it("should transition from form to success state when donation completed is received", () => {
-      // Additional test: Verify state transition from form to success state
       
       // Initial state: form is shown, success state is hidden
       const initialState = simulateWidgetBeforeTransaction();
@@ -291,7 +277,6 @@ describe("donation-widget", () => {
       
       // After donation completed is received: success state is shown, form is hidden
       const finalState = simulateWidgetWithDonationCompleted(
-        "0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef",
         "100",
         "USDC",
         "Ethereum"
@@ -302,7 +287,6 @@ describe("donation-widget", () => {
         "Final state should show success state and hide form"
       );
       
-      // Property validation: State should transition correctly
       assert(
         initialState.showSuccessState === false && finalState.showSuccessState === true,
         "State should transition from success state hidden to shown"
@@ -375,13 +359,11 @@ describe("donation-widget", () => {
         // Simulate clicking donate again button
         const resetState = simulateWidgetAfterDonateAgain(successState);
         
-        // Property validation: Success state should be hidden after donate again
         assert(
           resetState.showSuccessState === false,
           `Success state should be hidden after clicking donate again button. Amount: ${testCase.amount}`
         );
         
-        // Property validation: Rendered content should not contain success state
         const renderedContent = renderWidget(resetState);
         assert(
           contentDoesNotContainSuccessState(renderedContent),
@@ -426,13 +408,11 @@ describe("donation-widget", () => {
         // Simulate clicking donate again button
         const resetState = simulateWidgetAfterDonateAgain(successState);
         
-        // Property validation: Donation form should be shown after donate again
         assert(
           resetState.showDonationForm === true,
           `Donation form should be shown after clicking donate again button. Amount: ${testCase.amount}`
         );
         
-        // Property validation: Rendered content should contain donation form
         const renderedContent = renderWidget(resetState);
         assert(
           contentContainsDonationForm(renderedContent),
@@ -477,25 +457,21 @@ describe("donation-widget", () => {
         // Simulate clicking donate again button
         const resetState = simulateWidgetAfterDonateAgain(successState);
         
-        // Property validation: Widget state should be reset to initial values
         assert(
           isInitialState(resetState),
           `Widget state should be reset to initial values after donate again. Amount: ${testCase.amount}`
         );
         
-        // Property validation: Transaction data should be cleared
         assert(
           resetState.transactionData === null,
           `Transaction data should be cleared after donate again. Amount: ${testCase.amount}`
         );
         
-        // Property validation: Success state should be false
         assert(
           resetState.showSuccessState === false,
           `Success state should be false after donate again. Amount: ${testCase.amount}`
         );
         
-        // Property validation: Donation form should be shown
         assert(
           resetState.showDonationForm === true,
           `Donation form should be shown after donate again. Amount: ${testCase.amount}`
@@ -504,7 +480,6 @@ describe("donation-widget", () => {
     });
     
     it("should transition from success state to initial state when donate again is clicked", () => {
-      // Additional test: Verify complete state transition
       
       // Initial state: form is shown, success state is hidden
       const initialState = simulateWidgetBeforeTransaction();
@@ -515,7 +490,6 @@ describe("donation-widget", () => {
       
       // After transaction: success state is shown, form is hidden
       const successState = simulateWidgetWithDonationCompleted(
-        "0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef",
         "100",
         "USDC",
         "Ethereum"
@@ -532,7 +506,6 @@ describe("donation-widget", () => {
         "Reset state should show form and hide success state"
       );
       
-      // Property validation: State should transition correctly
       assert(
         initialState.showSuccessState === resetState.showSuccessState &&
         initialState.showDonationForm === resetState.showDonationForm &&

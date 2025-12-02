@@ -2,9 +2,13 @@ export interface WidgetConfig {
   recipient: string;
   recipientChainId: number;
   recipientTokenAddress: string;
+  recipientTokenSymbol: string;
   reownProjectId: string;
   lifiApiKey: string;
   theme: string;
+  defaultAmount?: string;
+  headerTitle?: string;
+  locale?: string;
   themeCustom?: {
     background: string;
     foreground: string;

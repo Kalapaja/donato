@@ -120,7 +120,6 @@ describe("confetti-animation", () => {
     });
 
     it("should apply gravity consistently across multiple particles", () => {
-      // Additional test: Multiple particles should all fall downward
       const testCases = [
         { particleCount: 2, deltaTime: 16, steps: 3 },
         { particleCount: 5, deltaTime: 33, steps: 2 },
@@ -213,13 +212,11 @@ describe("confetti-animation", () => {
           cleanup();
         }
         
-        // Property validation: After animation completes, cleanup should cancel all frames
         assert(
           cancelledFrameIds.length === animationFrameIds.length,
           `All animation frames should be cancelled after cleanup. Expected: ${animationFrameIds.length}, Cancelled: ${cancelledFrameIds.length}, FrameCount: ${testCase.frameCount}`
         );
         
-        // Property validation: Every frame ID should be in the cancelled list
         animationFrameIds.forEach(id => {
           assert(
             cancelledFrameIds.includes(id),
@@ -227,13 +224,11 @@ describe("confetti-animation", () => {
           );
         });
         
-        // Property validation: No frame should be cancelled before cleanup
         // (This is verified by the fact that all frames are cancelled after cleanup is called)
       }
     });
     
     it("should ensure cleanup is called after animation duration", () => {
-      // Additional test: Verify cleanup timing relative to animation duration
       const testCases = [
         { duration: 3000, elapsedTime: 3000 },
         { duration: 3000, elapsedTime: 4000 },
@@ -317,7 +312,6 @@ describe("confetti-animation", () => {
         const particleCount1 = calculateParticleCount(testCase.width1, testCase.height1);
         const particleCount2 = calculateParticleCount(testCase.width2, testCase.height2);
         
-        // Property validation: If viewport 1 is larger (by area), it should have
         // more or equal particles than viewport 2
         if (area1 > area2) {
           assert(
@@ -326,7 +320,6 @@ describe("confetti-animation", () => {
           );
         }
         
-        // Property validation: If viewport 2 is larger (by area), it should have
         // more or equal particles than viewport 1
         if (area2 > area1) {
           assert(
@@ -335,7 +328,6 @@ describe("confetti-animation", () => {
           );
         }
         
-        // Property validation: If viewports have equal area, they should have equal particle counts
         // (or at least the same count, allowing for rounding differences)
         if (area1 === area2) {
           // Allow for small differences due to rounding, but counts should be very close
@@ -360,7 +352,6 @@ describe("confetti-animation", () => {
     });
     
     it("should maintain scaling property across multiple viewport sizes", () => {
-      // Additional test: Verify scaling property holds for multiple viewport sizes
       const viewportSets = [
         [
           { width: 320, height: 568 },
@@ -396,7 +387,6 @@ describe("confetti-animation", () => {
         // Sort by area (ascending)
         viewportData.sort((a, b) => a.area - b.area);
         
-        // Property validation: Particle counts should be non-decreasing as area increases
         // (larger viewports should have more or equal particles)
         for (let i = 1; i < viewportData.length; i++) {
           const prev = viewportData[i - 1];
@@ -448,7 +438,6 @@ describe("confetti-animation", () => {
         const startTime = 0;
         const actualDuration = simulateAnimation(startTime, testCase.frameRate, testCase.targetDuration);
         
-        // Property validation: Animation duration should be within 3-5 seconds (3000-5000ms)
         // The actual duration might be slightly longer due to frame timing,
         // but should still be reasonable (within 6 seconds max to account for frame rounding)
         assert(
@@ -456,7 +445,6 @@ describe("confetti-animation", () => {
           `Animation duration should be within bounds [3000ms, 6000ms]. Target: ${testCase.targetDuration}ms, Actual: ${actualDuration}ms, FrameRate: ${testCase.frameRate}fps`
         );
         
-        // Property validation: The target duration itself should be within 3-5 seconds
         // This ensures the configuration is correct
         assert(
           testCase.targetDuration >= 3000 && testCase.targetDuration <= 5000,
@@ -466,7 +454,6 @@ describe("confetti-animation", () => {
     });
     
     it("should respect duration bounds for different animation configurations", () => {
-      // Additional test: Verify duration bounds hold for various configurations
       const testCases = [
         { duration: 3000, startOffset: 0 },
         { duration: 4000, startOffset: 100 },
@@ -482,7 +469,6 @@ describe("confetti-animation", () => {
         // Calculate actual duration (accounting for floating point precision)
         const calculatedDuration = endTime - startTime;
         
-        // Property validation: Duration should be between 3-5 seconds
         // Allow small tolerance (0.1ms) for floating point precision errors
         assert(
           calculatedDuration >= 2999.9 && calculatedDuration <= 5000.1,
@@ -498,7 +484,6 @@ describe("confetti-animation", () => {
     });
     
     it("should ensure animation duration configuration is within bounds", () => {
-      // Additional test: Verify that animation duration configuration is always within 3-5 seconds
       const testCases = [
         { duration: 3000 },
         { duration: 3500 },
@@ -508,7 +493,6 @@ describe("confetti-animation", () => {
       ];
       
       for (const testCase of testCases) {
-        // Property validation: Animation duration should be between 3-5 seconds
         // This is the core requirement - the animation must complete within 3-5 seconds
         // If the duration is outside this range, it violates the requirement
         if (testCase.duration < 3000 || testCase.duration > 5000) {
@@ -518,7 +502,6 @@ describe("confetti-animation", () => {
           continue;
         }
         
-        // Property validation: Valid duration must be within bounds
         assert(
           testCase.duration >= 3000 && testCase.duration <= 5000,
           `Animation duration should be within bounds [3000ms, 5000ms]. Duration: ${testCase.duration}ms`
@@ -589,13 +572,11 @@ describe("confetti-animation", () => {
         // Parse colors from string
         const parsedColors = parseColors(testCase.colorsString);
         
-        // Property validation: Parsed colors should match expected colors
         assert(
           parsedColors.length === testCase.expectedColors.length,
           `Parsed colors should have correct length. Expected: ${testCase.expectedColors.length}, Got: ${parsedColors.length}, Colors: ${testCase.colorsString}`
         );
         
-        // Property validation: All expected colors should be in parsed colors
         testCase.expectedColors.forEach(expectedColor => {
           assert(
             parsedColors.includes(expectedColor),
@@ -603,7 +584,6 @@ describe("confetti-animation", () => {
           );
         });
         
-        // Property validation: All parsed colors should be in expected colors
         parsedColors.forEach(parsedColor => {
           assert(
             testCase.expectedColors.includes(parsedColor),
@@ -611,7 +591,6 @@ describe("confetti-animation", () => {
           );
         });
         
-        // Property validation: When creating particles, they should use colors from the provided set
         // Generate multiple particles to verify color distribution
         const particleCount = 100;
         const particles: ConfettiParticle[] = [];
@@ -642,7 +621,6 @@ describe("confetti-animation", () => {
     });
     
     it("should use default colors when custom colors are not provided", () => {
-      // Additional test: Verify default colors are used when custom colors not provided
       const defaultColors = [
         "#ff0000", "#00ff00", "#0000ff", "#ffff00", "#ff00ff", "#00ffff",
         "#ff8800", "#8800ff", "#00ff88", "#ff0088"
@@ -673,13 +651,11 @@ describe("confetti-animation", () => {
         const colorsString = testCase.colorsString ?? "";
         const parsedColors = parseColors(colorsString);
         
-        // Property validation: Default colors should be used when custom colors not provided
         assert(
           parsedColors.length === defaultColors.length,
           `Default colors should be used when custom colors not provided. Expected length: ${defaultColors.length}, Got: ${parsedColors.length}, Colors: ${testCase.colorsString ?? "undefined"}`
         );
         
-        // Property validation: All default colors should be present
         defaultColors.forEach(defaultColor => {
           assert(
             parsedColors.includes(defaultColor),
@@ -690,7 +666,6 @@ describe("confetti-animation", () => {
     });
     
     it("should use default colors when invalid colors are provided", () => {
-      // Additional test: Verify default colors are used when invalid colors are provided
       const defaultColors = [
         "#ff0000", "#00ff00", "#0000ff", "#ffff00", "#ff00ff", "#00ffff",
         "#ff8800", "#8800ff", "#00ff88", "#ff0088"
@@ -723,7 +698,6 @@ describe("confetti-animation", () => {
         // Parse colors
         const parsedColors = parseColors(testCase.colorsString);
         
-        // Property validation: Default colors should be used when all provided colors are invalid
         // Note: If some colors are valid, those should be used; if all are invalid, defaults are used
         // For these test cases, we expect defaults since all colors are invalid
         const hasValidColors = testCase.colorsString
@@ -749,7 +723,6 @@ describe("confetti-animation", () => {
     });
     
     it("should use provided colors when some are valid and some are invalid", () => {
-      // Additional test: Verify that valid colors are used even when some are invalid
       const defaultColors = [
         "#ff0000", "#00ff00", "#0000ff", "#ffff00", "#ff00ff", "#00ffff",
         "#ff8800", "#8800ff", "#00ff88", "#ff0088"
@@ -784,13 +757,11 @@ describe("confetti-animation", () => {
         // Parse colors
         const parsedColors = parseColors(testCase.colorsString);
         
-        // Property validation: Valid colors should be used, invalid ones should be filtered out
         assert(
           parsedColors.length === testCase.expectedValidColors.length,
           `Valid colors should be used. Expected length: ${testCase.expectedValidColors.length}, Got: ${parsedColors.length}, Colors: ${testCase.colorsString}`
         );
         
-        // Property validation: All expected valid colors should be present
         testCase.expectedValidColors.forEach(expectedColor => {
           assert(
             parsedColors.includes(expectedColor),
@@ -825,14 +796,12 @@ describe("confetti-animation", () => {
         // Render confetti component with enabled = false
         const renderedContent = renderConfetti(testCase.enabled);
         
-        // Property validation: When disabled is true, component should not render
         // (returns empty template)
         assert(
           renderedContent === "",
           `Confetti should not render when disabled is true. Rendered: ${renderedContent}, Enabled: ${testCase.enabled}`
         );
         
-        // Property validation: No canvas element should be present
         assert(
           !renderedContent.includes("canvas"),
           `Canvas element should not be present when disabled. Rendered: ${renderedContent}, Enabled: ${testCase.enabled}`
@@ -841,7 +810,6 @@ describe("confetti-animation", () => {
     });
     
     it("should render when disabled is false", () => {
-      // Additional test: Verify confetti renders when enabled is false (i.e., disabled = false means enabled = true)
       // Mock function that simulates rendering confetti component
       const renderConfetti = (enabled: boolean): string => {
         if (!enabled) {
@@ -861,13 +829,11 @@ describe("confetti-animation", () => {
         // Render confetti component with enabled = true
         const renderedContent = renderConfetti(testCase.enabled);
         
-        // Property validation: When enabled is true, component should render canvas
         assert(
           renderedContent.includes("canvas"),
           `Confetti should render when enabled is true. Rendered: ${renderedContent}, Enabled: ${testCase.enabled}`
         );
         
-        // Property validation: Canvas element should be present
         assert(
           renderedContent !== "",
           `Canvas element should be present when enabled. Rendered: ${renderedContent}, Enabled: ${testCase.enabled}`
@@ -876,7 +842,6 @@ describe("confetti-animation", () => {
     });
     
     it("should render by default when flag not provided", () => {
-      // Additional test: Verify confetti renders by default when enabled flag is not provided
       // Mock function that simulates rendering confetti component with default enabled value
       const renderConfetti = (enabled?: boolean): string => {
         // Default value is true when not provided
@@ -899,14 +864,12 @@ describe("confetti-animation", () => {
         // Render confetti component without enabled flag (undefined)
         const renderedContent = renderConfetti(testCase.enabled);
         
-        // Property validation: When enabled is not provided (undefined), component should render by default
         // (default value is true)
         assert(
           renderedContent.includes("canvas"),
           `Confetti should render by default when flag not provided. Rendered: ${renderedContent}, Enabled: ${testCase.enabled}`
         );
         
-        // Property validation: Canvas element should be present when using default value
         assert(
           renderedContent !== "",
           `Canvas element should be present when using default enabled value. Rendered: ${renderedContent}, Enabled: ${testCase.enabled}`
@@ -915,7 +878,6 @@ describe("confetti-animation", () => {
     });
     
     it("should handle enabled flag changes correctly", () => {
-      // Additional test: Verify confetti responds correctly to enabled flag changes
       // Mock function that simulates rendering confetti component
       const renderConfetti = (enabled: boolean): string => {
         if (!enabled) {
@@ -939,7 +901,6 @@ describe("confetti-animation", () => {
         // Render with new enabled value
         const newRendered = renderConfetti(testCase.newEnabled);
         
-        // Property validation: When enabled changes from true to false, rendering should change
         if (testCase.initialEnabled && !testCase.newEnabled) {
           assert(
             initialRendered.includes("canvas") && newRendered === "",
@@ -947,7 +908,6 @@ describe("confetti-animation", () => {
           );
         }
         
-        // Property validation: When enabled changes from false to true, rendering should change
         if (!testCase.initialEnabled && testCase.newEnabled) {
           assert(
             initialRendered === "" && newRendered.includes("canvas"),
@@ -955,7 +915,6 @@ describe("confetti-animation", () => {
           );
         }
         
-        // Property validation: When enabled stays true, rendering should remain
         if (testCase.initialEnabled && testCase.newEnabled) {
           assert(
             initialRendered.includes("canvas") && newRendered.includes("canvas"),
@@ -963,7 +922,6 @@ describe("confetti-animation", () => {
           );
         }
         
-        // Property validation: When enabled stays false, rendering should remain empty
         if (!testCase.initialEnabled && !testCase.newEnabled) {
           assert(
             initialRendered === "" && newRendered === "",

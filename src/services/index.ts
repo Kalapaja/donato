@@ -15,3 +15,6 @@ export type { UserFriendlyError } from "./ErrorHandler.ts";
 
 export { ToastService, toastService } from "./ToastService.ts";
 export type { Toast, ToastOptions, ToastType } from "./ToastService.ts";
+
+export { i18nService, t } from "./I18nService.ts";
+export type { Locale, TranslationKey, Translations } from "./I18nService.ts";

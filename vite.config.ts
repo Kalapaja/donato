@@ -105,17 +105,8 @@ export default defineConfig(({ mode, command }) => {
         // so we need to preserve them
         treeshake: {
           moduleSideEffects: (id) => {
-            // Preserve side effects for @reown packages (web components need registration)
-            if (id.includes('@reown/')) {
-              return true;
-            }
-            // Preserve side effects for other packages that might have side effects
-            if (id.includes('node_modules')) {
-              // Be conservative with node_modules - many have side effects
-              return true;
-            }
             // For source files, allow tree shaking
-            return false;
+            return true;
           },
           propertyReadSideEffects: false,
           tryCatchDeoptimization: false,

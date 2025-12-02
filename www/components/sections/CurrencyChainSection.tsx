@@ -127,7 +127,7 @@ const POPULAR_TOKENS: Record<number, Token[]> = {
 interface CurrencyChainSectionProps {
   recipientChainId: number;
   recipientTokenAddress: string;
-  onChainChange: (chainId: number, tokenAddress: string) => void;
+  onChainChange: (chainId: number, tokenAddress: string, tokenSymbol: string) => void;
 }
 
 export function CurrencyChainSection({
@@ -136,7 +136,7 @@ export function CurrencyChainSection({
   onChainChange,
 }: CurrencyChainSectionProps) {
   const [selectedChain, setSelectedChain] = useState<Chain>(
-    CHAINS.find((c) => c.id === recipientChainId) || CHAINS[1],
+    CHAINS.find((c) => c.id === recipientChainId) || CHAINS[0],
   );
   
   // Initialize selectedToken from props
@@ -163,7 +163,7 @@ export function CurrencyChainSection({
       prevRecipientChainId.current = recipientChainId;
       prevRecipientTokenAddress.current = recipientTokenAddress;
 
-      const chain = CHAINS.find((c) => c.id === recipientChainId) || CHAINS[1];
+      const chain = CHAINS.find((c) => c.id === recipientChainId) || CHAINS[0];
       const tokens = POPULAR_TOKENS[chain.id] || [];
       const defaultToken = tokens.find((t) =>
         t.address === recipientTokenAddress
@@ -178,20 +178,21 @@ export function CurrencyChainSection({
           setCustomTokenAddress("");
         });
         // Call callback after state updates are scheduled
-        onChainChange(chain.id, defaultToken.address);
+        onChainChange(chain.id, defaultToken.address, defaultToken.symbol);
       }
     }
   }, [recipientChainId, recipientTokenAddress, onChainChange]);
 
   useEffect(() => {
     if (selectedToken && !useCustomToken) {
-      onChainChange(selectedChain.id, selectedToken.address);
+      onChainChange(selectedChain.id, selectedToken.address, selectedToken.symbol);
     }
   }, [selectedToken, useCustomToken, selectedChain.id]);
 
   useEffect(() => {
     if (useCustomToken && customTokenAddress) {
-      onChainChange(selectedChain.id, customTokenAddress);
+      // For custom tokens, we don't know the symbol
+      onChainChange(selectedChain.id, customTokenAddress, "");
     }
   }, [useCustomToken, customTokenAddress, selectedChain.id]);
 
@@ -204,7 +205,7 @@ export function CurrencyChainSection({
         setSelectedToken(tokens[0]);
         setUseCustomToken(false);
         setCustomTokenAddress("");
-        onChainChange(chain.id, tokens[0].address);
+        onChainChange(chain.id, tokens[0].address, tokens[0].symbol);
       }
     }
   };
@@ -324,7 +325,7 @@ export function CurrencyChainSection({
                     if (!e.target.checked) {
                       setCustomTokenAddress("");
                       if (selectedToken) {
-                        onChainChange(selectedChain.id, selectedToken.address);
+                        onChainChange(selectedChain.id, selectedToken.address, selectedToken.symbol);
                       }
                     }
                   }}
@@ -350,7 +351,8 @@ export function CurrencyChainSection({
                       e.target.value &&
                       /^0x[a-fA-F0-9]{40}$/.test(e.target.value)
                     ) {
-                      onChainChange(selectedChain.id, e.target.value);
+                      // For custom tokens, we don't know the symbol
+                      onChainChange(selectedChain.id, e.target.value, "");
                     }
                   }}
                   placeholder="0x..."

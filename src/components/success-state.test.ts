@@ -248,19 +248,16 @@ describe("success-state", () => {
           // Render success state content
           const renderedContent = renderSuccessState(transactionData);
           
-          // Property validation: Rendered content should contain the amount
           assert(
           contentContainsAmount(renderedContent, testCase.amount),
           `Rendered success state should contain amount. Content: ${renderedContent}, Amount: ${testCase.amount}`
           );
           
-          // Property validation: Rendered content should contain the recipient address
           assert(
           contentContainsRecipient(renderedContent, testCase.recipientAddress, testCase.recipientName),
           `Rendered success state should contain recipient. Content: ${renderedContent}, Recipient: ${testCase.recipientAddress}, Name: ${testCase.recipientName ?? 'N/A'}`
           );
           
-          // Property validation: If token symbol is provided, it should also be in the content
         if (testCase.tokenSymbol) {
             assert(
             renderedContent.includes(testCase.tokenSymbol),
@@ -268,7 +265,6 @@ describe("success-state", () => {
             );
           }
           
-          // Property validation: If recipient name is provided, it should be in the content
         if (testCase.recipientName) {
             assert(
             renderedContent.includes(testCase.recipientName),
@@ -279,7 +275,6 @@ describe("success-state", () => {
     });
     
     it("should contain amount in various formats", () => {
-      // Additional test: Verify amount is present regardless of format
       const testCases = [
         { amount: "100", tokenSymbol: "USDC", recipientAddress: "0x1234567890123456789012345678901234567890" },
         { amount: "50.5", tokenSymbol: "ETH", recipientAddress: "0xabcdefabcdefabcdefabcdefabcdefabcdefabcd" },
@@ -296,7 +291,6 @@ describe("success-state", () => {
           
           const renderedContent = renderSuccessState(transactionData);
           
-          // Property validation: Amount should be present in content
           assert(
           renderedContent.includes(testCase.amount),
           `Rendered success state should contain amount in any format. Content: ${renderedContent}, Amount: ${testCase.amount}`
@@ -305,7 +299,6 @@ describe("success-state", () => {
     });
     
     it("should contain recipient address in various formats", () => {
-      // Additional test: Verify recipient address is present regardless of format
       const testCases = [
         {
           amount: "100",
@@ -333,7 +326,6 @@ describe("success-state", () => {
           
           const renderedContent = renderSuccessState(transactionData);
           
-          // Property validation: Recipient address should be present in content
           assert(
           renderedContent.includes(testCase.recipientAddress),
           `Rendered success state should contain recipient address. Content: ${renderedContent}, Address: ${testCase.recipientAddress}`
@@ -342,7 +334,6 @@ describe("success-state", () => {
     });
     
     it("should contain both amount and recipient even with minimal data", () => {
-      // Additional test: Verify property holds with minimal required data
       const testCases = [
         { amount: "100", recipientAddress: "0x1234567890123456789012345678901234567890" },
         { amount: "1", recipientAddress: "0xabcdefabcdefabcdefabcdefabcdefabcdefabcd" },
@@ -358,7 +349,6 @@ describe("success-state", () => {
           
           const renderedContent = renderSuccessState(transactionData);
           
-          // Property validation: Both amount and recipient should be present even with minimal data
           assert(
           contentContainsAmount(renderedContent, testCase.amount),
           `Rendered success state should contain amount even with minimal data. Content: ${renderedContent}, Amount: ${testCase.amount}`
@@ -372,7 +362,6 @@ describe("success-state", () => {
     });
     
     it("should contain amount and recipient with all optional fields", () => {
-      // Additional test: Verify property holds with all optional fields present
       const testCases = [
         {
           amount: "100",
@@ -401,25 +390,21 @@ describe("success-state", () => {
           
           const renderedContent = renderSuccessState(transactionData);
           
-          // Property validation: Amount should be present
           assert(
           contentContainsAmount(renderedContent, testCase.amount),
           `Rendered success state should contain amount with all fields. Content: ${renderedContent}, Amount: ${testCase.amount}`
           );
           
-          // Property validation: Recipient should be present
           assert(
           contentContainsRecipient(renderedContent, testCase.recipientAddress, testCase.recipientName),
           `Rendered success state should contain recipient with all fields. Content: ${renderedContent}, Recipient: ${testCase.recipientAddress}, Name: ${testCase.recipientName}`
           );
           
-          // Property validation: Token symbol should be present
           assert(
           renderedContent.includes(testCase.tokenSymbol),
           `Rendered success state should contain token symbol. Content: ${renderedContent}, Token: ${testCase.tokenSymbol}`
           );
           
-          // Property validation: Recipient name should be present
           assert(
           renderedContent.includes(testCase.recipientName),
           `Rendered success state should contain recipient name. Content: ${renderedContent}, Name: ${testCase.recipientName}`
@@ -462,7 +447,6 @@ describe("success-state", () => {
           // Render success state content
           const renderedContent = renderSuccessState(transactionData);
           
-          // Property validation: Rendered content should contain donate again button
           assert(
             contentContainsDonateAgainButton(renderedContent),
             `Rendered success state should contain donate again button. Content: ${renderedContent}`
@@ -471,7 +455,6 @@ describe("success-state", () => {
     });
     
     it("should contain donate again button with minimal transaction data", () => {
-      // Additional test: Verify button is present even with minimal data
       const testCases = [
         { amount: "100", recipientAddress: "0x1234567890123456789012345678901234567890" },
         { amount: "1", recipientAddress: "0xabcdefabcdefabcdefabcdefabcdefabcdefabcd" },
@@ -486,7 +469,6 @@ describe("success-state", () => {
           
           const renderedContent = renderSuccessState(transactionData);
           
-          // Property validation: Button should be present even with minimal data
           assert(
             contentContainsDonateAgainButton(renderedContent),
             `Rendered success state should contain donate again button even with minimal data. Content: ${renderedContent}`
@@ -495,7 +477,6 @@ describe("success-state", () => {
     });
     
     it("should contain donate again button with all optional fields", () => {
-      // Additional test: Verify button is present with all optional fields
       const testCases = [
         {
           amount: "100",
@@ -519,7 +500,6 @@ describe("success-state", () => {
           
           const renderedContent = renderSuccessState(transactionData);
           
-          // Property validation: Button should be present with all fields
           assert(
             contentContainsDonateAgainButton(renderedContent),
             `Rendered success state should contain donate again button with all fields. Content: ${renderedContent}`
@@ -528,7 +508,6 @@ describe("success-state", () => {
     });
     
     it("should contain donate again button regardless of transaction amount format", () => {
-      // Additional test: Verify button is present regardless of amount format
       const testCases = [
         { amount: "100", recipientAddress: "0x1234567890123456789012345678901234567890" },
         { amount: "50.5", recipientAddress: "0xabcdefabcdefabcdefabcdefabcdefabcdefabcd" },
@@ -544,7 +523,6 @@ describe("success-state", () => {
           
           const renderedContent = renderSuccessState(transactionData);
           
-          // Property validation: Button should be present regardless of amount format
           assert(
             contentContainsDonateAgainButton(renderedContent),
           `Rendered success state should contain donate again button regardless of amount format. Content: ${renderedContent}, Amount: ${testCase.amount}`
@@ -586,7 +564,6 @@ describe("success-state", () => {
           // Render success message
         const successMessage = renderSuccessMessage(transactionData, testCase.customMessage);
           
-          // Property validation: Success message should contain the amount
           assert(
           successMessageContainsAmount(successMessage, testCase.amount),
           `Success message should contain amount. Message: ${successMessage}, Amount: ${testCase.amount}`
@@ -595,7 +572,6 @@ describe("success-state", () => {
     });
     
     it("should include amount in success message with various amount formats", () => {
-      // Additional test: Verify amount is included regardless of format
       const testCases = [
         { amount: "100", tokenSymbol: "USDC", recipientAddress: "0x1234567890123456789012345678901234567890" },
         { amount: "50.5", tokenSymbol: "ETH", recipientAddress: "0xabcdefabcdefabcdefabcdefabcdefabcdefabcd" },
@@ -613,7 +589,6 @@ describe("success-state", () => {
           // Render success message
           const successMessage = renderSuccessMessage(transactionData);
           
-          // Property validation: Success message should contain the amount in any format
           assert(
           successMessageContainsAmount(successMessage, testCase.amount),
           `Success message should contain amount in any format. Message: ${successMessage}, Amount: ${testCase.amount}`
@@ -622,7 +597,6 @@ describe("success-state", () => {
     });
     
     it("should include amount in success message with custom message template", () => {
-      // Additional test: Verify amount is included even with custom message templates
       const testCases = [
         { amount: "100", customMessage: "Thank you! You donated {amount}", recipientAddress: "0x1234567890123456789012345678901234567890" },
         { amount: "50", customMessage: "Donation {amount} received!", recipientAddress: "0xabcdefabcdefabcdefabcdefabcdefabcdefabcd" },
@@ -638,7 +612,6 @@ describe("success-state", () => {
           // Render success message with custom template
         const successMessage = renderSuccessMessage(transactionData, testCase.customMessage);
           
-          // Property validation: Success message should contain the amount
           assert(
           successMessageContainsAmount(successMessage, testCase.amount),
           `Success message should contain amount even with custom template. Message: ${successMessage}, Amount: ${testCase.amount}, Template: ${testCase.customMessage}`
@@ -647,7 +620,6 @@ describe("success-state", () => {
     });
     
     it("should include amount in success message with minimal transaction data", () => {
-      // Additional test: Verify amount is included even with minimal data
       const testCases = [
         { amount: "100", recipientAddress: "0x1234567890123456789012345678901234567890" },
         { amount: "1", recipientAddress: "0xabcdefabcdefabcdefabcdefabcdefabcdefabcd" },
@@ -663,7 +635,6 @@ describe("success-state", () => {
           // Render success message
           const successMessage = renderSuccessMessage(transactionData);
           
-          // Property validation: Success message should contain the amount even with minimal data
           assert(
           successMessageContainsAmount(successMessage, testCase.amount),
           `Success message should contain amount even with minimal data. Message: ${successMessage}, Amount: ${testCase.amount}`
@@ -672,7 +643,6 @@ describe("success-state", () => {
     });
     
     it("should include amount in success message with all optional fields", () => {
-      // Additional test: Verify amount is included with all optional fields present
       const testCases = [
         {
           amount: "100",
@@ -692,7 +662,6 @@ describe("success-state", () => {
           // Render success message with all fields
         const successMessage = renderSuccessMessage(transactionData, testCase.customMessage);
           
-          // Property validation: Success message should contain the amount
           assert(
           successMessageContainsAmount(successMessage, testCase.amount),
           `Success message should contain amount with all fields. Message: ${successMessage}, Amount: ${testCase.amount}`
@@ -735,7 +704,6 @@ describe("success-state", () => {
           // Render success state content
           const renderedContent = renderSuccessState(transactionData);
           
-          // Property validation: Rendered content should contain both token symbol and chain name
           assert(
           contentContainsTokenAndChain(renderedContent, testCase.tokenSymbol, testCase.chainName),
           `Rendered success state should contain both token symbol and chain name. Content: ${renderedContent}, Token: ${testCase.tokenSymbol}, Chain: ${testCase.chainName}`
@@ -744,7 +712,6 @@ describe("success-state", () => {
     });
     
     it("should display token and chain information with minimal transaction data", () => {
-      // Additional test: Verify property holds with minimal required data
       const testCases = [
         {
           amount: "100",
@@ -765,7 +732,6 @@ describe("success-state", () => {
           
           const renderedContent = renderSuccessState(transactionData);
           
-          // Property validation: Both token symbol and chain name should be present even with minimal data
           assert(
           contentContainsTokenAndChain(renderedContent, testCase.tokenSymbol, testCase.chainName),
           `Rendered success state should contain token and chain even with minimal data. Content: ${renderedContent}, Token: ${testCase.tokenSymbol}, Chain: ${testCase.chainName}`
@@ -774,7 +740,6 @@ describe("success-state", () => {
     });
     
     it("should display token and chain information with all optional fields", () => {
-      // Additional test: Verify property holds with all optional fields present
       const testCases = [
         {
           amount: "100",
@@ -798,7 +763,6 @@ describe("success-state", () => {
           
           const renderedContent = renderSuccessState(transactionData);
           
-          // Property validation: Both token symbol and chain name should be present with all fields
           assert(
           contentContainsTokenAndChain(renderedContent, testCase.tokenSymbol, testCase.chainName),
           `Rendered success state should contain token and chain with all fields. Content: ${renderedContent}, Token: ${testCase.tokenSymbol}, Chain: ${testCase.chainName}`
@@ -807,7 +771,6 @@ describe("success-state", () => {
     });
     
     it("should display token and chain information with various token symbol formats", () => {
-      // Additional test: Verify property holds with various token symbol formats
       const testCases = [
         { amount: "100", tokenSymbol: "USDC", chainName: "Ethereum", recipientAddress: "0x1234567890123456789012345678901234567890" },
         { amount: "50", tokenSymbol: "eth", chainName: "Polygon", recipientAddress: "0xabcdefabcdefabcdefabcdefabcdefabcdefabcd" },
@@ -825,7 +788,6 @@ describe("success-state", () => {
           
           const renderedContent = renderSuccessState(transactionData);
           
-          // Property validation: Token symbol should be present regardless of format
           assert(
           contentContainsTokenAndChain(renderedContent, testCase.tokenSymbol, testCase.chainName),
           `Rendered success state should contain token and chain with various token formats. Content: ${renderedContent}, Token: ${testCase.tokenSymbol}, Chain: ${testCase.chainName}`
@@ -834,7 +796,6 @@ describe("success-state", () => {
     });
     
     it("should display token and chain information with various chain name formats", () => {
-      // Additional test: Verify property holds with various chain name formats
       const testCases = [
         { amount: "100", tokenSymbol: "USDC", chainName: "Ethereum", recipientAddress: "0x1234567890123456789012345678901234567890" },
         { amount: "50", tokenSymbol: "ETH", chainName: "Ethereum Mainnet", recipientAddress: "0xabcdefabcdefabcdefabcdefabcdefabcdefabcd" },
@@ -852,7 +813,6 @@ describe("success-state", () => {
           
           const renderedContent = renderSuccessState(transactionData);
           
-          // Property validation: Chain name should be present regardless of format
           assert(
           contentContainsTokenAndChain(renderedContent, testCase.tokenSymbol, testCase.chainName),
           `Rendered success state should contain token and chain with various chain name formats. Content: ${renderedContent}, Token: ${testCase.tokenSymbol}, Chain: ${testCase.chainName}`
@@ -897,7 +857,6 @@ describe("success-state", () => {
           // Render success state content
           const renderedContent = renderSuccessState(transactionData);
           
-          // Property validation: Rendered content should contain the transaction hash
           assert(
           contentContainsTransactionHash(renderedContent, testCase.transactionHash),
           `Rendered success state should contain transaction hash when provided. Content: ${renderedContent}, Hash: ${testCase.transactionHash}`
@@ -906,7 +865,6 @@ describe("success-state", () => {
     });
     
     it("should display transaction hash with minimal transaction data", () => {
-      // Additional test: Verify property holds with minimal required data
       const testCases = [
         {
           amount: "100",
@@ -923,7 +881,6 @@ describe("success-state", () => {
           
           const renderedContent = renderSuccessState(transactionData);
           
-          // Property validation: Transaction hash should be present even with minimal data
           assert(
           contentContainsTransactionHash(renderedContent, testCase.transactionHash),
           `Rendered success state should contain transaction hash even with minimal data. Content: ${renderedContent}, Hash: ${testCase.transactionHash}`
@@ -932,7 +889,6 @@ describe("success-state", () => {
     });
     
     it("should display transaction hash with all optional fields", () => {
-      // Additional test: Verify property holds with all optional fields present
       const testCases = [
         {
           amount: "100",
@@ -956,7 +912,6 @@ describe("success-state", () => {
           
           const renderedContent = renderSuccessState(transactionData);
           
-          // Property validation: Transaction hash should be present with all fields
           assert(
           contentContainsTransactionHash(renderedContent, testCase.transactionHash),
           `Rendered success state should contain transaction hash with all fields. Content: ${renderedContent}, Hash: ${testCase.transactionHash}`
@@ -965,7 +920,6 @@ describe("success-state", () => {
     });
     
     it("should display transaction hash with various hash formats", () => {
-      // Additional test: Verify property holds with various transaction hash formats
       const testCases = [
         {
           amount: "100",
@@ -992,7 +946,6 @@ describe("success-state", () => {
           
           const renderedContent = renderSuccessState(transactionData);
           
-          // Property validation: Transaction hash should be present regardless of format
           assert(
           contentContainsTransactionHash(renderedContent, testCase.transactionHash),
           `Rendered success state should contain transaction hash in any format. Content: ${renderedContent}, Hash: ${testCase.transactionHash}`
@@ -1051,7 +1004,6 @@ describe("success-state", () => {
           // Render success state content
           const renderedContent = renderSuccessState(transactionData);
           
-          // Property validation: Rendered content should contain a clickable link to block explorer
           assert(
           contentContainsBlockExplorerLink(renderedContent, testCase.transactionHash, normalizedExplorerUrl),
           `Rendered success state should contain a clickable link to block explorer. Content: ${renderedContent}, Hash: ${testCase.transactionHash}, Explorer URL: ${normalizedExplorerUrl}`
@@ -1072,7 +1024,6 @@ describe("success-state", () => {
     });
     
     it("should render link with correct URL format for various explorer URLs", () => {
-      // Additional test: Verify property holds with various block explorer URL formats
       const testCases = [
         {
           amount: "100",
@@ -1098,7 +1049,6 @@ describe("success-state", () => {
           
           const renderedContent = renderSuccessState(transactionData);
           
-          // Property validation: Link should be present regardless of URL format
           assert(
           contentContainsBlockExplorerLink(renderedContent, testCase.transactionHash, normalizedExplorerUrl),
           `Rendered success state should contain block explorer link with any URL format. Content: ${renderedContent}, Hash: ${testCase.transactionHash}, Explorer URL: ${normalizedExplorerUrl}`
@@ -1142,7 +1092,6 @@ describe("success-state", () => {
           // Render success state content
           const renderedContent = renderSuccessState(transactionData);
           
-          // Property validation: Rendered content should contain the timestamp
           assert(
           contentContainsTimestamp(renderedContent, testCase.timestamp),
           `Rendered success state should contain timestamp when provided. Content: ${renderedContent}, Timestamp: ${testCase.timestamp}`
@@ -1186,7 +1135,6 @@ describe("success-state", () => {
           // Render success message with custom message
         const successMessage = renderSuccessMessage(transactionData, testCase.customMessage);
           
-          // Property validation: Custom message should appear in the rendered message
           // The custom message should be present (possibly with amount interpolation)
           // We check that the custom message text appears, accounting for possible amount interpolation
         const customMessageTrimmed = testCase.customMessage.trim();
@@ -1205,7 +1153,6 @@ describe("success-state", () => {
     });
     
     it("should use custom success message with various message formats", () => {
-      // Additional test: Verify property holds with various custom message formats
       const defaultMessage = "Thank you for your donation!";
       
       const testCases = [
@@ -1223,7 +1170,6 @@ describe("success-state", () => {
           // Render success message with custom message
         const successMessage = renderSuccessMessage(transactionData, testCase.customMessage);
           
-          // Property validation: Custom message should appear in rendered message
         const customMessageTrimmed = testCase.customMessage.trim();
           const messageContainsCustom = successMessage.includes(customMessageTrimmed) ||
                                        customMessageTrimmed.split(/\{?\{?amount\}?\}?/).some(part => {
@@ -1239,7 +1185,6 @@ describe("success-state", () => {
     });
     
     it("should use default message when custom message is not provided", () => {
-      // Additional test: Verify default message is used when no custom message is provided
       const defaultMessage = "Thank you for your donation!";
       
       const testCases = [
@@ -1257,7 +1202,6 @@ describe("success-state", () => {
           // Render success message without custom message (undefined)
           const successMessage = renderSuccessMessage(transactionData, undefined);
           
-          // Property validation: Default message should appear when custom message is not provided
           // The default message should be present (possibly with amount appended)
           assert(
             successMessage.includes(defaultMessage),
@@ -1267,7 +1211,6 @@ describe("success-state", () => {
     });
     
     it("should use custom message even with minimal transaction data", () => {
-      // Additional test: Verify property holds with minimal transaction data
       const defaultMessage = "Thank you for your donation!";
       
       const testCases = [
@@ -1285,7 +1228,6 @@ describe("success-state", () => {
           // Render success message with custom message
         const successMessage = renderSuccessMessage(transactionData, testCase.customMessage);
           
-          // Property validation: Custom message should appear even with minimal data
         const customMessageTrimmed = testCase.customMessage.trim();
           const messageContainsCustom = successMessage.includes(customMessageTrimmed) ||
                                        customMessageTrimmed.split(/\{?\{?amount\}?\}?/).some(part => {
@@ -1342,7 +1284,6 @@ describe("success-state", () => {
         // Render success state with custom button text
         const renderedContent = renderSuccessStateWithButtonText(transactionData, testCase.donateAgainText);
         
-        // Property validation: Button should display the custom text
         assert(
           buttonTextMatches(renderedContent, testCase.donateAgainText),
           `Button should display custom text "${testCase.donateAgainText}". Content: ${renderedContent}`
@@ -1387,7 +1328,6 @@ describe("success-state", () => {
         
         const renderedContent = renderSuccessStateWithButtonText(transactionData, testCase.donateAgainText);
         
-        // Property validation: Button should display "Make Another Donation"
         assert(
           buttonTextMatches(renderedContent, "Make Another Donation"),
           `Button should display "Make Another Donation". Content: ${renderedContent}`
@@ -1426,7 +1366,6 @@ describe("success-state", () => {
         
         const renderedContent = renderSuccessStateWithButtonText(transactionData, testCase.donateAgainText);
         
-        // Property validation: Button should display "Donate More"
         assert(
           buttonTextMatches(renderedContent, "Donate More"),
           `Button should display "Donate More". Content: ${renderedContent}`
@@ -1463,7 +1402,6 @@ describe("success-state", () => {
         // Render without custom button text (undefined)
         const renderedContent = renderSuccessStateWithButtonText(transactionData, undefined);
         
-        // Property validation: Button should display default "Donate Again"
         assert(
           buttonTextMatches(renderedContent, "Donate Again"),
           `Button should display default "Donate Again" when custom text is not provided. Content: ${renderedContent}`
@@ -1472,7 +1410,6 @@ describe("success-state", () => {
     });
     
     it("should display custom button text with minimal transaction data", () => {
-      // Additional test: Verify property holds with minimal transaction data
       const testCases = [
         {
           amount: "100",
@@ -1494,7 +1431,6 @@ describe("success-state", () => {
         
         const renderedContent = renderSuccessStateWithButtonText(transactionData, testCase.donateAgainText);
         
-        // Property validation: Button should display custom text even with minimal data
         assert(
           buttonTextMatches(renderedContent, testCase.donateAgainText),
           `Button should display custom text even with minimal data. Content: ${renderedContent}, Custom: ${testCase.donateAgainText}`
@@ -1503,7 +1439,6 @@ describe("success-state", () => {
     });
     
     it("should display custom button text with all optional fields", () => {
-      // Additional test: Verify property holds with all optional fields present
       const testCases = [
         {
           amount: "100",
@@ -1528,7 +1463,6 @@ describe("success-state", () => {
         
         const renderedContent = renderSuccessStateWithButtonText(transactionData, testCase.donateAgainText);
         
-        // Property validation: Button should display custom text with all fields
         assert(
           buttonTextMatches(renderedContent, testCase.donateAgainText),
           `Button should display custom text with all fields. Content: ${renderedContent}, Custom: ${testCase.donateAgainText}`
@@ -1537,7 +1471,6 @@ describe("success-state", () => {
     });
     
     it("should display custom button text with various text formats", () => {
-      // Additional test: Verify property holds with various button text formats
       const testCases = [
         {
           amount: "100",
@@ -1569,7 +1502,6 @@ describe("success-state", () => {
         
         const renderedContent = renderSuccessStateWithButtonText(transactionData, testCase.donateAgainText);
         
-        // Property validation: Button should display custom text in any format
         assert(
           buttonTextMatches(renderedContent, testCase.donateAgainText),
           `Button should display custom text in any format. Content: ${renderedContent}, Custom: ${testCase.donateAgainText}`
@@ -1613,7 +1545,6 @@ describe("success-state", () => {
         // Render success message without custom message (undefined)
         const successMessage = renderSuccessMessage(transactionData, testCase.customMessage);
         
-        // Property validation: Default success message should be used when custom message is not provided
         assert(
           successMessage.includes(defaultSuccessMessage),
           `Default success message should be used when custom message is not provided. Rendered: ${successMessage}, Default: ${defaultSuccessMessage}`
@@ -1653,13 +1584,11 @@ describe("success-state", () => {
         const colorsString = testCase.colorsString ?? "";
         const parsedColors = parseConfettiColors(colorsString);
         
-        // Property validation: Default confetti colors should be used when custom colors not provided
         assert(
           parsedColors.length === defaultConfettiColors.length,
           `Default confetti colors should be used when custom colors not provided. Expected length: ${defaultConfettiColors.length}, Got: ${parsedColors.length}, Colors: ${testCase.colorsString ?? "undefined"}`
         );
         
-        // Property validation: All default colors should be present
         defaultConfettiColors.forEach(defaultColor => {
           assert(
             parsedColors.includes(defaultColor),
@@ -1703,7 +1632,6 @@ describe("success-state", () => {
         // Render without custom button text (undefined)
         const renderedContent = renderSuccessStateWithButtonText(transactionData, testCase.donateAgainText);
         
-        // Property validation: Default button text should be used when custom text is not provided
         assert(
           buttonTextMatches(renderedContent, defaultButtonText),
           `Default button text should be used when custom text is not provided. Content: ${renderedContent}, Default: ${defaultButtonText}`
@@ -1835,7 +1763,14 @@ describe("success-state", () => {
           return content;
         };
         
-        const testCases = [
+        const testCases: Array<{
+          amount: string;
+          tokenSymbol?: string;
+          chainName?: string;
+          recipientAddress: string;
+          timestamp?: number;
+          transactionHash?: string;
+        }> = [
           {
             amount: "100",
             tokenSymbol: "USDC",
@@ -1863,61 +1798,51 @@ describe("success-state", () => {
           
           const renderedContent = renderSuccessStateWithAria(transactionData);
           
-          // Test: Success message should have role="alert"
           assert(
             renderedContent.includes('role="alert"'),
             `Success message should have role="alert". Content: ${renderedContent}`
           );
           
-          // Test: Success message should have aria-live="polite"
           assert(
             renderedContent.includes('aria-live="polite"'),
             `Success message should have aria-live="polite". Content: ${renderedContent}`
           );
           
-          // Test: Success message should have aria-atomic="true"
           assert(
             renderedContent.includes('aria-atomic="true"'),
             `Success message should have aria-atomic="true". Content: ${renderedContent}`
           );
           
-          // Test: Transaction summary should have role="region"
           assert(
             renderedContent.includes('role="region"'),
             `Transaction summary should have role="region". Content: ${renderedContent}`
           );
           
-          // Test: Transaction summary should have aria-label
           assert(
             renderedContent.includes('aria-label="Transaction details"'),
             `Transaction summary should have aria-label. Content: ${renderedContent}`
           );
           
-          // Test: Amount should have aria-labelledby
           assert(
             renderedContent.includes('aria-labelledby="amount-label"'),
             `Amount should have aria-labelledby. Content: ${renderedContent}`
           );
           
-          // Test: Amount should have aria-label
           assert(
             renderedContent.includes('aria-label="Donation amount:'),
             `Amount should have aria-label. Content: ${renderedContent}`
           );
           
-          // Test: Donate again button should have aria-label
           assert(
             renderedContent.includes('aria-label="Donate again"'),
             `Donate again button should have aria-label. Content: ${renderedContent}`
           );
           
-          // Test: Donate again button should have aria-describedby
           assert(
             renderedContent.includes('aria-describedby="success-message"'),
             `Donate again button should have aria-describedby. Content: ${renderedContent}`
           );
           
-          // Test: Network should have ARIA attributes if chain name is provided
           if (testCase.chainName) {
             assert(
               renderedContent.includes('aria-labelledby="network-label"'),
@@ -1929,7 +1854,6 @@ describe("success-state", () => {
             );
           }
           
-          // Test: Transaction hash should have ARIA attributes if provided
           if (testCase.transactionHash) {
             assert(
               renderedContent.includes('aria-labelledby="transaction-label"'),
@@ -1941,7 +1865,6 @@ describe("success-state", () => {
             );
           }
           
-          // Test: Timestamp should have ARIA attributes if provided
           if (testCase.timestamp) {
             assert(
               renderedContent.includes('aria-labelledby="timestamp-label"'),
@@ -1956,7 +1879,6 @@ describe("success-state", () => {
       });
       
       it("should have proper ARIA relationships between labels and values", () => {
-        // Additional test: Verify ARIA relationships (aria-labelledby) are correct
         const renderSuccessStateWithAria = (transactionData: TransactionData): string => {
           let content = "";
           content += `<div class="success-message" id="success-message" role="alert" aria-live="polite">Message</div>`;
@@ -1979,7 +1901,6 @@ describe("success-state", () => {
         
         const renderedContent = renderSuccessStateWithAria(transactionData);
         
-        // Test: aria-labelledby should reference existing IDs
         assert(
           renderedContent.includes('id="amount-label"') && renderedContent.includes('aria-labelledby="amount-label"'),
           `aria-labelledby should reference existing ID. Content: ${renderedContent}`
@@ -1990,7 +1911,6 @@ describe("success-state", () => {
           `aria-labelledby should reference existing ID. Content: ${renderedContent}`
         );
         
-        // Test: aria-describedby should reference existing ID
         assert(
           renderedContent.includes('id="success-message"') && renderedContent.includes('aria-describedby="success-message"'),
           `aria-describedby should reference existing ID. Content: ${renderedContent}`
@@ -2044,25 +1964,21 @@ describe("success-state", () => {
         
         const navigationResult = simulateKeyboardNavigation();
         
-        // Test: Button should be focusable
         assert(
           navigationResult.buttonIsFocusable,
           `Donate again button should be focusable for keyboard navigation`
         );
         
-        // Test: Enter key should work
         assert(
           navigationResult.enterKeyWorks,
           `Enter key should trigger button action`
         );
         
-        // Test: Space key should work
         assert(
           navigationResult.spaceKeyWorks,
           `Space key should trigger button action`
         );
         
-        // Test: Tab key should work
         assert(
           navigationResult.tabKeyWorks,
           `Tab key should allow navigation to button`
@@ -2070,7 +1986,6 @@ describe("success-state", () => {
       });
       
       it("should have proper tabindex for focus management", () => {
-        // Additional test: Verify focus management attributes
         const renderSuccessStateWithFocus = (): string => {
           // Success message should have tabindex="-1" to allow programmatic focus
           // but not be in tab order
@@ -2080,13 +1995,11 @@ describe("success-state", () => {
         
         const renderedContent = renderSuccessStateWithFocus();
         
-        // Test: Success message should have tabindex="-1" for programmatic focus
         assert(
           renderedContent.includes('tabindex="-1"'),
           `Success message should have tabindex="-1" for programmatic focus. Content: ${renderedContent}`
         );
         
-        // Test: Button should not have tabindex (defaults to 0, which is correct)
         // Button elements are naturally focusable, so no tabindex needed
         assert(
           renderedContent.includes('<button'),
@@ -2122,14 +2035,12 @@ describe("success-state", () => {
         for (const testCase of testCases) {
           const result = checkReducedMotion(testCase.prefersReducedMotion);
           
-          // Test: When prefers-reduced-motion is true, animation should not run
           if (testCase.prefersReducedMotion) {
             assert(
               !result.animationShouldRun,
               `Animation should not run when prefers-reduced-motion is true. PrefersReducedMotion: ${testCase.prefersReducedMotion}`
             );
           } else {
-            // Test: When prefers-reduced-motion is false, animation should run
             assert(
               result.animationShouldRun,
               `Animation should run when prefers-reduced-motion is false. PrefersReducedMotion: ${testCase.prefersReducedMotion}`
@@ -2139,7 +2050,6 @@ describe("success-state", () => {
       });
       
       it("should handle reduced motion preference changes", () => {
-        // Additional test: Verify reduced motion preference changes are handled
         let prefersReducedMotion = false;
         let animationRunning = false;
         
@@ -2163,7 +2073,6 @@ describe("success-state", () => {
           }
         };
         
-        // Test: Start animation when reduced motion is false
         prefersReducedMotion = false;
         startAnimation();
         assert(
@@ -2171,14 +2080,12 @@ describe("success-state", () => {
           `Animation should start when prefers-reduced-motion is false`
         );
         
-        // Test: Stop animation when reduced motion preference changes to true
         handleReducedMotionChange(true);
         assert(
           !animationRunning,
           `Animation should stop when prefers-reduced-motion changes to true`
         );
         
-        // Test: Animation should not start when reduced motion is true
         prefersReducedMotion = true;
         startAnimation();
         assert(
@@ -2188,7 +2095,6 @@ describe("success-state", () => {
       });
       
       it("should check reduced motion preference on component initialization", () => {
-        // Additional test: Verify reduced motion is checked on initialization
         const simulateComponentInit = (prefersReducedMotion: boolean): {
           checkedPreference: boolean;
           animationStarted: boolean;
@@ -2213,13 +2119,11 @@ describe("success-state", () => {
         for (const testCase of testCases) {
           const result = simulateComponentInit(testCase.prefersReducedMotion);
           
-          // Test: Preference should be checked
           assert(
             result.checkedPreference === testCase.prefersReducedMotion,
             `Preference should be checked on initialization. Expected: ${testCase.prefersReducedMotion}, Got: ${result.checkedPreference}`
           );
           
-          // Test: Animation should only start if reduced motion is not preferred
           assert(
             result.animationStarted === !testCase.prefersReducedMotion,
             `Animation should start only if reduced motion is not preferred. PrefersReducedMotion: ${testCase.prefersReducedMotion}, AnimationStarted: ${result.animationStarted}`
