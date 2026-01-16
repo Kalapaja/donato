@@ -64,6 +64,7 @@ export type TranslationKey =
   | "error.unsupportedNetwork"
   | "error.unsupportedToken"
   | "error.insufficientLiquidity"
+  | "error.insufficientFunds"
   | "error.slippageTooHigh"
   | "error.transactionRejected";
 

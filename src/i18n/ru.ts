@@ -74,6 +74,8 @@ export const ru: Translations = {
   "error.unsupportedToken": "Токен не поддерживается.",
   "error.insufficientLiquidity":
     "Недостаточно ликвидности для этого обмена.",
+  "error.insufficientFunds":
+    "Недостаточно средств в вашем кошельке.",
   "error.slippageTooHigh": "Слишком высокое проскальзывание для этого обмена.",
   "error.transactionRejected": "Транзакция отклонена пользователем.",
 };

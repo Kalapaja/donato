@@ -1,17 +1,5 @@
 import type { AcrossService } from "./AcrossService.ts";
-
-/**
- * Token interface representing a cryptocurrency token on a specific chain.
- */
-export interface Token {
-  chainId: number;
-  address: string;
-  symbol: string;
-  name: string;
-  decimals: number;
-  logoURI?: string;
-  priceUSD?: string;
-}
+import type { Token } from "./WalletService.ts";
 
 export interface Chain {
   id: number;

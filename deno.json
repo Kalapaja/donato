@@ -17,7 +17,8 @@
     "lint": "deno lint src/",
     "www": "deno task --unstable --quiet --config=./www/deno.json dev",
     "deploy": "deno task build:versioned && cd www && deno install && deno task build",
-    "www:install": "cd www && deno install"
+    "www:install": "cd www && deno install",
+    "test": "deno test --no-check -A"
   },
   "imports": {
     "@octokit/rest": "npm:@octokit/rest@21.0.2",

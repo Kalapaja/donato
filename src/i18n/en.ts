@@ -74,6 +74,8 @@ export const en: Translations = {
   "error.unsupportedToken": "Token is not supported.",
   "error.insufficientLiquidity":
     "Insufficient liquidity for this swap.",
+  "error.insufficientFunds":
+    "Insufficient funds in your wallet.",
   "error.slippageTooHigh": "Slippage is too high for this swap.",
   "error.transactionRejected": "Transaction was rejected by user.",
 };
