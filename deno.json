@@ -20,9 +20,6 @@
     "www:install": "cd www && deno install"
   },
   "imports": {
-    "@1inch/cross-chain-sdk": "npm:@1inch/cross-chain-sdk@1.0.0",
-    "@1inch/fusion-sdk": "npm:@1inch/fusion-sdk@2.0.0",
-    "@lifi/sdk": "npm:@lifi/sdk@3.13.2",
     "@octokit/rest": "npm:@octokit/rest@21.0.2",
     "@reown/appkit": "npm:@reown/appkit@1.8.12",
     "@reown/appkit-adapter-ethers": "npm:@reown/appkit-adapter-ethers@1.8.12",

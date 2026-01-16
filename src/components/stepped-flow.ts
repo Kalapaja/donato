@@ -1,8 +1,8 @@
 import { css, html, LitElement } from "lit";
 import { customElement, property, state } from "lit/decorators.js";
 import type { Token, WalletService, WalletAccount } from "../services/WalletService.ts";
-import type { Token as LiFiToken, Route } from "@lifi/sdk";
-import type { Chain, ChainService } from "../services/ChainService.ts";
+import type { AcrossQuote } from "../services/AcrossService.ts";
+import type { Token as ChainToken, Chain, ChainService } from "../services/ChainService.ts";
 import "./animated-step.ts";
 import "./amount-input.ts";
 import "./connect-wallet-button.ts";
@@ -37,7 +37,7 @@ export interface StepVisibility {
  * @property {string} amount - Current donation amount (default: "")
  * @property {boolean} isWalletConnected - Whether wallet is connected (default: false)
  * @property {Token|null} selectedToken - Currently selected token (default: null)
- * @property {Route|null} quote - Calculated quote from LiFi (default: null)
+ * @property {AcrossQuote|null} quote - Calculated quote from Across Protocol (default: null)
  * @property {boolean} isQuoteLoading - Whether quote is being calculated (default: false)
  * @property {WalletService} walletService - Wallet service instance (required for wallet connection)
  * 
@@ -71,9 +71,9 @@ export class SteppedFlow extends LitElement {
   @property({ type: Object })
   accessor selectedToken: Token | null = null;
 
-  /** Calculated quote from LiFi */
+  /** Calculated quote from Across Protocol */
   @property({ type: Object })
-  accessor quote: Route | null = null;
+  accessor quote: AcrossQuote | null = null;
 
   /** Whether quote is being calculated */
   @property({ type: Boolean, attribute: "is-quote-loading" })
@@ -97,7 +97,7 @@ export class SteppedFlow extends LitElement {
 
   /** Available tokens for selection */
   @property({ type: Array })
-  accessor availableTokens: LiFiToken[] = [];
+  accessor availableTokens: ChainToken[] = [];
 
   /** Available chains */
   @property({ type: Array })
@@ -416,7 +416,7 @@ export class SteppedFlow extends LitElement {
   /**
    * Handles token selection events from token-selector
    */
-  private handleTokenSelect(event: CustomEvent<LiFiToken>) {
+  private handleTokenSelect(event: CustomEvent<ChainToken>) {
     const token = event.detail;
     this.selectedToken = token;
     
@@ -509,16 +509,16 @@ export class SteppedFlow extends LitElement {
       return null;
     }
 
-    // Validate that fromAmount exists and is a valid value
-    if (!this.quote.fromAmount || this.quote.fromAmount === undefined) {
+    // Validate that inputAmount exists and is a valid value
+    if (!this.quote.inputAmount || this.quote.inputAmount === undefined) {
       return null;
     }
 
     try {
-      const fromAmount = BigInt(this.quote.fromAmount);
+      const inputAmount = BigInt(this.quote.inputAmount);
       const decimals = this.selectedToken.decimals;
       const divisor = BigInt(10 ** decimals);
-      const amount = Number(fromAmount) / Number(divisor);
+      const amount = Number(inputAmount) / Number(divisor);
       return amount.toFixed(6);
     } catch (error) {
       console.error("Failed to calculate user pay amount:", error);

@@ -55,7 +55,17 @@ export type TranslationKey =
   | "message.donationSuccess"
   | "message.invalidRecipient"
   | "message.initFailed"
-  | "message.walletConnectionFailed";
+  | "message.walletConnectionFailed"
+  // Error messages
+  | "error.networkConnection"
+  | "error.invalidParams"
+  | "error.routeNotFound"
+  | "error.serverUnavailable"
+  | "error.unsupportedNetwork"
+  | "error.unsupportedToken"
+  | "error.insufficientLiquidity"
+  | "error.slippageTooHigh"
+  | "error.transactionRejected";
 
 export type Translations = Record<TranslationKey, string>;
 

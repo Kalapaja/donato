@@ -3,6 +3,16 @@
 import Script from "next/script";
 import { useVersions } from "../lib/useVersions";
 
+const DEV_SCRIPT_URL = "http://localhost:3000/donation-widget.js";
+
+function handleScriptLoad(url: string): void {
+  console.log("Widget script loaded successfully:", url);
+}
+
+function handleScriptError(url: string, error: unknown): void {
+  console.error("Failed to load widget script:", url, error);
+}
+
 /**
  * Component that loads the widget script on the client side
  * - In development: loads from http://localhost:3000/donation-widget.js
@@ -11,51 +21,42 @@ import { useVersions } from "../lib/useVersions";
 export function WidgetScriptLoader() {
   const { manifest, isLoading } = useVersions();
 
-  // Check if we're in development mode
-  const isDevelopment = process.env.NODE_ENV === 'development' || 
-    (typeof window !== 'undefined' && window.location.hostname === 'localhost');
+  const isDevelopment =
+    process.env.NODE_ENV === "development" ||
+    (typeof window !== "undefined" && window.location.hostname === "localhost");
 
-  // Development: load from localhost
   if (isDevelopment) {
     return (
       <Script
         id="donation-widget-script"
-        src="http://localhost:3000/donation-widget.js"
+        src={DEV_SCRIPT_URL}
         strategy="afterInteractive"
-        onLoad={() => {
-          console.log("Widget script loaded successfully");
-        }}
-        onError={(e) => {
-          console.error("Failed to load widget script:", e);
-        }}
+        onLoad={() => handleScriptLoad(DEV_SCRIPT_URL)}
+        onError={(e) => handleScriptError(DEV_SCRIPT_URL, e)}
       />
     );
   }
 
-  // Production: load latest version from versions.json
-  if (!isLoading && manifest && manifest.latest) {
-    const latestVersion = manifest.versions[manifest.latest];
-    if (latestVersion) {
-      const scriptUrl = `/${latestVersion.file}`;
-      return (
-        <Script
-          id="donation-widget-script"
-          src={scriptUrl}
-          integrity={latestVersion.integrity}
-          crossOrigin="anonymous"
-          strategy="afterInteractive"
-          onLoad={() => {
-            console.log("Widget script loaded successfully:", scriptUrl);
-          }}
-          onError={(e) => {
-            console.error("Failed to load widget script:", scriptUrl, e);
-          }}
-        />
-      );
-    }
+  if (isLoading || !manifest?.latest) {
+    return null;
   }
 
-  // Loading state - don't render script yet
-  return null;
-}
+  const latestVersion = manifest.versions[manifest.latest];
+  if (!latestVersion) {
+    return null;
+  }
 
+  const scriptUrl = `/${latestVersion.file}`;
+
+  return (
+    <Script
+      id="donation-widget-script"
+      src={scriptUrl}
+      integrity={latestVersion.integrity}
+      crossOrigin="anonymous"
+      strategy="afterInteractive"
+      onLoad={() => handleScriptLoad(scriptUrl)}
+      onError={(e) => handleScriptError(scriptUrl, e)}
+    />
+  );
+}

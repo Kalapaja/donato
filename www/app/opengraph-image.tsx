@@ -1,19 +1,33 @@
 import { ImageResponse } from "next/og";
 import { siteConfig } from "../lib/site-config";
 
-// Required for static export
 export const dynamic = "force-static";
-
-// Image metadata
 export const alt = siteConfig.title;
-export const size = {
-  width: 1200,
-  height: 630,
-};
-
+export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
 
-// Image generation
+const FEATURES = ["Multiple Chains", "Easy Integration", "Customizable"] as const;
+
+function CheckIcon() {
+  return (
+    <svg
+      width="16"
+      height="16"
+      viewBox="0 0 16 16"
+      fill="none"
+      style={{ flexShrink: 0 }}
+    >
+      <path
+        d="M13.5 4L6 11.5L2.5 8"
+        stroke="#4ade80"
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+
 export default function Image() {
   return new ImageResponse(
     (
@@ -30,7 +44,6 @@ export default function Image() {
           fontFamily: "system-ui, -apple-system, sans-serif",
         }}
       >
-        {/* Main title */}
         <div
           style={{
             display: "flex",
@@ -45,7 +58,6 @@ export default function Image() {
           Donation Widget
         </div>
 
-        {/* Subtitle */}
         <div
           style={{
             display: "flex",
@@ -59,7 +71,6 @@ export default function Image() {
           Configuration Wizard
         </div>
 
-        {/* Description */}
         <div
           style={{
             display: "flex",
@@ -73,7 +84,6 @@ export default function Image() {
           Create a customizable cryptocurrency donation widget for your website
         </div>
 
-        {/* Features list */}
         <div
           style={{
             display: "flex",
@@ -84,66 +94,18 @@ export default function Image() {
             color: "#666666",
           }}
         >
-          <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-            <svg
-              width="16"
-              height="16"
-              viewBox="0 0 16 16"
-              fill="none"
-              style={{ flexShrink: 0 }}
+          {FEATURES.map((feature) => (
+            <div
+              key={feature}
+              style={{ display: "flex", alignItems: "center", gap: "8px" }}
             >
-              <path
-                d="M13.5 4L6 11.5L2.5 8"
-                stroke="#4ade80"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-            </svg>
-            <span>Multiple Chains</span>
-          </div>
-          <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-            <svg
-              width="16"
-              height="16"
-              viewBox="0 0 16 16"
-              fill="none"
-              style={{ flexShrink: 0 }}
-            >
-              <path
-                d="M13.5 4L6 11.5L2.5 8"
-                stroke="#4ade80"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-            </svg>
-            <span>Easy Integration</span>
-          </div>
-          <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-            <svg
-              width="16"
-              height="16"
-              viewBox="0 0 16 16"
-              fill="none"
-              style={{ flexShrink: 0 }}
-            >
-              <path
-                d="M13.5 4L6 11.5L2.5 8"
-                stroke="#4ade80"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-            </svg>
-            <span>Customizable</span>
-          </div>
+              <CheckIcon />
+              <span>{feature}</span>
+            </div>
+          ))}
         </div>
       </div>
     ),
-    {
-      ...size,
-    }
+    { ...size }
   );
 }
-

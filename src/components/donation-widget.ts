@@ -2,15 +2,15 @@ import { css, html, LitElement, type PropertyValues } from "lit";
 import { customElement, property, state } from "lit/decorators.js";
 import {
   ChainService,
-  LiFiService,
   ThemeService,
   toastService,
   WalletService,
   i18nService,
   t,
+  I18nError,
 } from "../services/index.ts";
+import { AcrossService, type AcrossQuote } from "../services/AcrossService.ts";
 import type { Token } from "../services/WalletService.ts";
-import type { Route } from "@lifi/sdk";
 import type { Theme, ThemeMode } from "../services/ThemeService.ts";
 import type { Address } from "viem";
 import type { Locale } from "../services/I18nService.ts";
@@ -46,9 +46,8 @@ export enum FlowStep {
  *
  * @attr {string} recipient - Recipient wallet address (required)
  * @attr {string} reown-project-id - Reown project ID (required)
- * @attr {string} lifi-api-key - LiFi API key (required)
- * @attr {number} recipient-chain-id - Chain ID where recipient will receive tokens (default: 42161 - Arbitrum)
- * @attr {string} recipient-token-address - Token address that recipient will receive (default: USDC on recipient chain)
+ * @attr {number} recipient-chain-id - Chain ID where recipient will receive tokens (default: 137 - Polygon)
+ * @attr {string} recipient-token-address - Token address that recipient will receive (default: USDC on Polygon)
  * @attr {string} recipient-token-symbol - Token symbol that recipient will receive (e.g., "USDC"). If not provided, will be looked up from ChainService
  * @attr {string} theme - Theme mode: 'light', 'dark', 'auto', or 'custom' (default: 'auto'). 'custom' mode hides theme toggle and uses CSS variables from parent.
  * @attr {string} success-message - Custom success message displayed after donation (default: "Thank you for your donation!")
@@ -65,9 +64,8 @@ export enum FlowStep {
  * <donation-widget
  *   recipient="0x742d35Cc6634C0532925a3b844Bc454e4438f44e"
  *   reown-project-id="YOUR_REOWN_PROJECT_ID"
- *   lifi-api-key="YOUR_LIFI_API_KEY"
- *   recipient-chain-id="42161"
- *   recipient-token-address="0xaf88d065e77c8cC2239327C5EDb3A432268e5831"
+ *   recipient-chain-id="137"
+ *   recipient-token-address="0x3c499c542cEF5E3811e1192ce70d8cC03d5c3359"
  *   recipient-token-symbol="USDC"
  *   theme="dark"
  *   success-message="Thank you for your generous donation!"
@@ -89,19 +87,14 @@ export class DonationWidget extends LitElement {
   @property({ type: String, attribute: "reown-project-id" })
   accessor reownProjectId: string = "";
 
-  /** LiFi API key (required) */
-  @property({ type: String, attribute: "lifi-api-key" })
-  accessor lifiApiKey: string = "";
-
   // Optional properties with defaults
-  /** Chain ID where recipient will receive tokens (default: 42161 - Arbitrum) */
+  /** Chain ID where recipient will receive tokens (default: 137 - Polygon) */
   @property({ type: Number, attribute: "recipient-chain-id" })
-  accessor recipientChainId: number = 42161;
+  accessor recipientChainId: number = AcrossService.POLYGON_CHAIN_ID;
 
-  /** Token address that recipient will receive (default: USDC on Arbitrum) */
+  /** Token address that recipient will receive (default: USDC on Polygon) */
   @property({ type: String, attribute: "recipient-token-address" })
-  accessor recipientTokenAddress: string =
-    "0xaf88d065e77c8cC2239327C5EDb3A432268e5831";
+  accessor recipientTokenAddress: string = AcrossService.POLYGON_USDC;
 
   /** Token symbol that recipient will receive (e.g., "USDC"). If not provided, will be looked up from ChainService */
   @property({ type: String, attribute: "recipient-token-symbol" })
@@ -151,7 +144,7 @@ export class DonationWidget extends LitElement {
   private accessor selectedToken: Token | null = null;
 
   @state()
-  private accessor quote: Route | null = null;
+  private accessor quote: AcrossQuote | null = null;
 
   @state()
   private accessor isQuoteLoading: boolean = false;
@@ -160,7 +153,7 @@ export class DonationWidget extends LitElement {
   private accessor isDonating: boolean = false;
 
   @state()
-  private accessor error: string | null = null;
+  private accessor error: string | I18nError | null = null;
 
   @state()
   private accessor isInitialized: boolean = false;
@@ -197,7 +190,7 @@ export class DonationWidget extends LitElement {
 
   // Services
   private walletService: WalletService;
-  private lifiService: LiFiService;
+  private acrossService: AcrossService;
   private chainService: ChainService;
   private themeService: ThemeService;
 
@@ -210,11 +203,10 @@ export class DonationWidget extends LitElement {
     // Initialize services
     this.walletService = new WalletService();
     this.themeService = new ThemeService();
-    this.lifiService = new LiFiService({
+    this.acrossService = new AcrossService({
       walletService: this.walletService,
-      apiKey: this.lifiApiKey,
     });
-    this.chainService = new ChainService(this.lifiService);
+    this.chainService = new ChainService(this.acrossService);
 
     // Initialize i18n service with translations
     if (!i18nService.isInitialized()) {
@@ -650,15 +642,10 @@ export class DonationWidget extends LitElement {
         this.walletService.setThemeMode(this.currentTheme);
       }
 
-      // Initialize LiFi service if API key is provided
-      if (this.lifiApiKey) {
-        this.lifiService.init();
-      }
-
-      // Always initialize chain service (works with or without LiFi API key)
+      // Initialize chain service (uses AcrossService for chain data enrichment)
       await this.chainService.init();
       
-      // Load available tokens (will use hardcoded tokens if LiFi is unavailable)
+      // Load available tokens from ChainService
       this.loadTokens();
 
       // Initialize flow step
@@ -727,7 +714,7 @@ export class DonationWidget extends LitElement {
       this.isLoadingTokens = true;
 
       try {
-        // Get tokens from chain service (will use hardcoded tokens if LiFi is unavailable)
+        // Get tokens from chain service
         this.availableTokens = this.chainService.getAllTokens();
       } catch (error) {
         console.error("Failed to load tokens:", error);
@@ -767,8 +754,7 @@ export class DonationWidget extends LitElement {
     // Revalidate configuration if any required property changed
     if (
       changedProperties.has("recipient") ||
-      changedProperties.has("reownProjectId") ||
-      changedProperties.has("lifiApiKey")
+      changedProperties.has("reownProjectId")
     ) {
       if (this.isInitialized) {
         const configStatus = this.validateRequiredAttributes();
@@ -814,17 +800,6 @@ export class DonationWidget extends LitElement {
         this.currentLocale = detectedLocale;
       }
     }
-
-    // Handle LiFi API key changes
-    if (changedProperties.has("lifiApiKey")) {
-      if (this.lifiApiKey) {
-        this.lifiService = new LiFiService({
-          walletService: this.walletService,
-          apiKey: this.lifiApiKey,
-        });
-        this.lifiService.init();
-      }
-    }
   }
 
     /**
@@ -858,16 +833,16 @@ export class DonationWidget extends LitElement {
         return "";
       }
 
-      // Validate that fromAmount exists and is a valid value
-      if (!this.quote.fromAmount || this.quote.fromAmount === undefined) {
+      // Validate that inputAmount exists and is a valid value
+      if (!this.quote.inputAmount || this.quote.inputAmount === undefined) {
         return "";
       }
 
       try {
-        const fromAmount = BigInt(this.quote.fromAmount);
+        const inputAmount = BigInt(this.quote.inputAmount);
         const decimals = this.selectedToken.decimals;
         const divisor = BigInt(10 ** decimals);
-        const amount = Number(fromAmount) / Number(divisor);
+        const amount = Number(inputAmount) / Number(divisor);
         // Format with up to 6 decimals, but remove trailing zeros
         const formatted = amount.toFixed(6).replace(/\.?0+$/, "");
         return `${formatted} ${this.selectedToken.symbol}`;
@@ -951,13 +926,6 @@ export class DonationWidget extends LitElement {
       configured.push("reownProjectId");
     } else {
       missing.push("reownProjectId");
-    }
-
-    // Check LiFi API key
-    if (this.lifiApiKey) {
-      configured.push("lifiApiKey");
-    } else {
-      missing.push("lifiApiKey");
     }
 
     return {
@@ -1062,37 +1030,19 @@ export class DonationWidget extends LitElement {
       this.handleDonate(new CustomEvent("donate", { detail: this.quote }));
     }
 
-    private async handleNetworkSwitch(event: CustomEvent<{ chainId: number }>) {
+    private handleNetworkSwitch(event: CustomEvent<{ chainId: number }>) {
       const newChainId = event.detail.chainId;
       console.log("Network switched to:", newChainId);
-      
+
       // Reload tokens for the new network
-      await this.reloadTokensForChain(newChainId);
+      this.reloadTokensForChain(newChainId);
     }
 
-    private async reloadTokensForChain(chainId: number) {
+    private reloadTokensForChain(_chainId: number) {
       this.isLoadingTokens = true;
 
       try {
-        // Try to refresh tokens from LiFi for the specific chain
-        if (this.lifiApiKey) {
-          try {
-            const chainTokens = await this.lifiService.getTokens([chainId]);
-            if (chainTokens && chainTokens.length > 0) {
-              // Update tokens: remove old tokens for this chain and add new ones
-              const otherChainTokens = this.availableTokens.filter(
-                (token) => token.chainId !== chainId
-              );
-              this.availableTokens = [...otherChainTokens, ...chainTokens];
-              return;
-            }
-          } catch (error) {
-            console.warn("Failed to fetch tokens from LiFi for chain:", chainId, error);
-          }
-        }
-
-        // Fallback: reload all tokens from chain service
-        // This will include hardcoded tokens if LiFi is unavailable
+        // Reload all tokens from chain service
         this.availableTokens = this.chainService.getAllTokens();
       } catch (error) {
         console.error("Failed to reload tokens for chain:", error);
@@ -1104,7 +1054,7 @@ export class DonationWidget extends LitElement {
 
     private handleQuoteUpdate(
       event: CustomEvent<
-        { quote: Route | null; loading: boolean; error: string | null; isDirectTransfer?: boolean }
+        { quote: AcrossQuote | null; loading: boolean; error: string | I18nError | null; isDirectTransfer?: boolean }
       >,
     ) {
       this.quote = event.detail.quote;
@@ -1120,10 +1070,10 @@ export class DonationWidget extends LitElement {
     }
 
     /**
-     * Handle route update
+     * Handle quote update from donation-form (for backward compatibility)
      */
-    private handleRouteUpdate(_event: CustomEvent<{ route: Route }>) {
-      // Route update handler (kept for potential future use)
+    private handleRouteUpdate(_event: CustomEvent<{ quote: AcrossQuote }>) {
+      // Quote update handler (kept for potential future use)
     }
 
     /**
@@ -1190,16 +1140,16 @@ export class DonationWidget extends LitElement {
       this.isDirectTransfer = false;
     }
 
-    private async handleDonate(event: CustomEvent<Route>) {
+    private async handleDonate(event: CustomEvent<AcrossQuote>) {
       this.isDonating = true;
       this.error = null;
 
       try {
-        const route = event.detail;
+        const quote = event.detail;
 
         if (this.isDirectTransfer && this.selectedToken) {
           // Execute direct token transfer (same token, same chain)
-          const amount = BigInt(route.fromAmount);
+          const amount = BigInt(quote.inputAmount);
           const toAddress = this.recipient as Address;
 
           console.log("Executing direct transfer:", {
@@ -1216,12 +1166,8 @@ export class DonationWidget extends LitElement {
 
           console.log("Direct transfer successful:", txHash);
         } else {
-          // Execute LiFi route for swap/bridge
-          await this.lifiService.executeRoute(route, {
-            onRouteUpdate: (updatedRoute: Route) => {
-              console.log("Route updated:", updatedRoute);
-            },
-          });
+          // Execute Across swap for cross-chain transfer
+          await this.acrossService.executeSwap(quote);
         }
 
         toastService.success(t("message.donationSuccess"));
@@ -1246,8 +1192,8 @@ export class DonationWidget extends LitElement {
         // Dispatch success event
         this.dispatchEvent(
           new CustomEvent("donation-completed", {
-            detail: { 
-              route,
+            detail: {
+              quote,
               amount: this.recipientAmount,
               token: this.selectedToken,
               recipient: this.recipient,
@@ -1262,20 +1208,37 @@ export class DonationWidget extends LitElement {
         this.isDirectTransfer = false;
       } catch (error) {
         console.error("Donation failed:", error);
-        const errorMessage = error instanceof Error
-          ? error.message
-          : "Donation failed";
-        this.error = errorMessage;
-        toastService.error(errorMessage);
 
-        // Dispatch error event
-        this.dispatchEvent(
-          new CustomEvent("donation-failed", {
-            detail: { error: errorMessage },
-            bubbles: true,
-            composed: true,
-          }),
-        );
+        // Preserve I18nError for type-safe translation, or extract message
+        if (error instanceof I18nError) {
+          this.error = error;
+          const translatedMessage = t(error.i18nKey);
+          toastService.error(translatedMessage);
+
+          // Dispatch error event with translated message
+          this.dispatchEvent(
+            new CustomEvent("donation-failed", {
+              detail: { error: translatedMessage },
+              bubbles: true,
+              composed: true,
+            }),
+          );
+        } else {
+          const errorMessage = error instanceof Error
+            ? error.message
+            : "Donation failed";
+          this.error = errorMessage;
+          toastService.error(errorMessage);
+
+          // Dispatch error event
+          this.dispatchEvent(
+            new CustomEvent("donation-failed", {
+              detail: { error: errorMessage },
+              bubbles: true,
+              composed: true,
+            }),
+          );
+        }
       } finally {
         this.isDonating = false;
       }
@@ -1331,7 +1294,7 @@ export class DonationWidget extends LitElement {
         ${this.error
           ? html`
             <div class="error-message" role="alert">
-              ${this.error}
+              ${this.error instanceof I18nError ? t(this.error.i18nKey) : this.error}
             </div>
           `
           : ""}
@@ -1466,7 +1429,7 @@ export class DonationWidget extends LitElement {
                 .recipientChainId="${this.recipientChainId}"
                 .recipientTokenAddress="${this.recipientTokenAddress}"
                 .walletService="${this.walletService}"
-                .lifiService="${this.lifiService}"
+                .acrossService="${this.acrossService}"
                 .chainService="${this.chainService}"
                 .toastService="${toastService}"
                 .selectedToken="${this.selectedToken}"

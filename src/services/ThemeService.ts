@@ -8,6 +8,7 @@ export class ThemeService {
   private themeMode: ThemeMode = "auto";
   private callbacks: Set<ThemeChangeCallback> = new Set();
   private mediaQuery: MediaQueryList | null = null;
+  private boundHandleSystemThemeChange: ((event: MediaQueryListEvent) => void) | null = null;
   private readonly STORAGE_KEY = "donation-widget-theme";
 
   /**
@@ -19,10 +20,8 @@ export class ThemeService {
     // Set up media query listener for system theme changes
     if (typeof globalThis !== "undefined" && globalThis.matchMedia) {
       this.mediaQuery = globalThis.matchMedia("(prefers-color-scheme: dark)");
-      this.mediaQuery.addEventListener(
-        "change",
-        this.handleSystemThemeChange.bind(this),
-      );
+      this.boundHandleSystemThemeChange = this.handleSystemThemeChange.bind(this);
+      this.mediaQuery.addEventListener("change", this.boundHandleSystemThemeChange);
     }
 
     // Load theme from localStorage or detect from system
@@ -120,13 +119,6 @@ export class ThemeService {
   }
 
   /**
-   * Get theme mode
-   */
-  getThemeMode(): ThemeMode {
-    return this.themeMode;
-  }
-
-  /**
    * Set theme explicitly
    */
   setTheme(theme: Theme): void {
@@ -167,14 +159,6 @@ export class ThemeService {
   }
 
   /**
-   * Toggle between light and dark themes
-   */
-  toggleTheme(): void {
-    const newTheme = this.currentTheme === "light" ? "dark" : "light";
-    this.setTheme(newTheme);
-  }
-
-  /**
    * Subscribe to theme changes
    */
   onThemeChanged(callback: ThemeChangeCallback): () => void {
@@ -199,35 +183,12 @@ export class ThemeService {
    * Clean up resources
    */
   destroy(): void {
-    if (this.mediaQuery) {
-      this.mediaQuery.removeEventListener(
-        "change",
-        this.handleSystemThemeChange.bind(this),
-      );
+    if (this.mediaQuery && this.boundHandleSystemThemeChange) {
+      this.mediaQuery.removeEventListener("change", this.boundHandleSystemThemeChange);
       this.mediaQuery = null;
+      this.boundHandleSystemThemeChange = null;
     }
     this.callbacks.clear();
-  }
-
-  /**
-   * Get theme class name for components
-   */
-  getThemeClassName(): string {
-    return this.currentTheme;
-  }
-
-  /**
-   * Check if current theme is dark
-   */
-  isDark(): boolean {
-    return this.currentTheme === "dark";
-  }
-
-  /**
-   * Check if current theme is light
-   */
-  isLight(): boolean {
-    return this.currentTheme === "light";
   }
 
   /**

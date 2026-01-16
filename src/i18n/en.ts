@@ -61,5 +61,20 @@ export const en: Translations = {
   "message.invalidRecipient": "Invalid recipient address format",
   "message.initFailed": "Failed to initialize widget",
   "message.walletConnectionFailed": "Failed to open wallet connection",
+
+  // Error messages
+  "error.networkConnection":
+    "Unable to connect to the server. Please check your internet connection.",
+  "error.invalidParams":
+    "Invalid request parameters. Please try a different amount or token.",
+  "error.routeNotFound": "Route not found. Please try a different token.",
+  "error.serverUnavailable":
+    "Server is temporarily unavailable. Please try again later.",
+  "error.unsupportedNetwork": "Network is not supported.",
+  "error.unsupportedToken": "Token is not supported.",
+  "error.insufficientLiquidity":
+    "Insufficient liquidity for this swap.",
+  "error.slippageTooHigh": "Slippage is too high for this swap.",
+  "error.transactionRejected": "Transaction was rejected by user.",
 };
 

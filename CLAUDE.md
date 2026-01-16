@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-Donato is an embeddable cryptocurrency donation widget built as a Web Component using Lit. It supports cross-chain donations via LiFi SDK, allowing donors to pay with any token on any supported chain while recipients receive their preferred token.
+Donato is an embeddable cryptocurrency donation widget built as a Web Component using Lit. It supports cross-chain donations via Across Protocol API, allowing donors to pay with any token on any supported chain while recipients receive USDC on Polygon.
 
 ## Development Commands
 
@@ -41,7 +41,7 @@ deno task build:release # Build versioned bundle with SRI hash
 ### Key Directories
 
 - `src/components/` - Lit Web Components (27 total)
-- `src/services/` - Business logic layer (WalletService, LiFiService, ChainService, ThemeService, I18nService)
+- `src/services/` - Business logic layer (WalletService, AcrossService, ChainService, ThemeService, I18nService)
 - `src/i18n/` - Translations (en, ru)
 - `www/` - Next.js configurator site (separate package.json, uses npm)
 - `scripts/` - Build automation and release scripts
@@ -51,7 +51,7 @@ deno task build:release # Build versioned bundle with SRI hash
 
 Business logic is separated from components into services:
 - **WalletService** - Wallet connection and token management via Reown AppKit
-- **LiFiService** - Cross-chain swap routing via LiFi SDK
+- **AcrossService** - Cross-chain swap routing via Across Protocol API
 - **ChainService** - Chain metadata (Ethereum, Arbitrum, Polygon, BSC, Optimism, Base)
 - **ThemeService** - Theme management with CSS variables
 - **I18nService** - Localization service
@@ -72,7 +72,7 @@ Version is tracked in `deno.json`. The release workflow:
 ## Key Technologies
 
 - **Runtime**: Deno 2.5+ (primary), Node.js for www/
-- **Widget**: Lit 3.3, ethers 6, viem, @reown/appkit, @lifi/sdk
+- **Widget**: Lit 3.3, ethers 6, viem, @reown/appkit
 - **Build**: Vite with custom versioning plugin (`vite-plugin-versioning.ts`)
 - **Configurator**: Next.js 16, React 19
 

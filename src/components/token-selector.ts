@@ -1,7 +1,7 @@
 import { css, html, LitElement } from "lit";
 import { customElement, property, state } from "lit/decorators.js";
-import type { Token } from "@lifi/sdk";
-import type { Chain } from "../services/ChainService.ts";
+import type { Token, Chain } from "../services/ChainService.ts";
+import { t, I18nError } from "../services/index.ts";
 
 // Import child components
 import "./token-list.ts";
@@ -21,7 +21,7 @@ export class TokenSelector extends LitElement {
   accessor isLoading: boolean = false;
 
   @property({ type: String })
-  accessor error: string | undefined;
+  accessor error: string | I18nError | undefined;
 
   @property({ type: Number })
   accessor currentChainId: number | null = null;
@@ -241,7 +241,7 @@ export class TokenSelector extends LitElement {
           `
           : this.error
           ? html`
-            <span class="error-text">${this.error}</span>
+            <span class="error-text">${this.error instanceof I18nError ? t(this.error.i18nKey) : this.error}</span>
           `
           : this.selectedToken
           ? html`
