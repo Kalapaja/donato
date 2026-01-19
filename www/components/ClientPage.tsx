@@ -11,7 +11,6 @@ const DEFAULT_CONFIG: Partial<WidgetConfig> = {
   recipientChainId: 1,
   recipientTokenAddress: "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
   reownProjectId: "",
-  lifiApiKey: "",
   theme: "auto",
 };
 
@@ -22,58 +21,44 @@ export function ClientPage() {
   useEffect(() => {
     const html = document.documentElement;
     const customThemeStyleId = "landing-page-custom-theme";
-    let customThemeStyle = document.getElementById(
-      customThemeStyleId,
-    ) as HTMLStyleElement;
-
+    const customThemeStyle = document.getElementById(customThemeStyleId) as HTMLStyleElement | null;
     const theme = config.theme || "auto";
 
-    // Remove both dark and light classes first
+    // Reset theme classes
     html.classList.remove("dark", "light");
 
-    if (theme === "light") {
-      // Light theme - add light class to override media query
-      html.classList.add("light");
-      // Remove custom theme styles if they exist
-      if (customThemeStyle) {
-        customThemeStyle.remove();
+    // Handle non-custom themes
+    if (theme !== "custom") {
+      if (theme === "light" || theme === "dark") {
+        html.classList.add(theme);
       }
-    } else if (theme === "dark") {
-      // Dark theme - add dark class
-      html.classList.add("dark");
-      // Remove custom theme styles if they exist
-      if (customThemeStyle) {
-        customThemeStyle.remove();
-      }
-    } else if (theme === "auto") {
-      // Auto theme - remove both classes, let media query handle it
-      html.classList.remove("dark", "light");
-      // Remove custom theme styles if they exist
-      if (customThemeStyle) {
-        customThemeStyle.remove();
-      }
-    } else if (theme === "custom" && config.themeCustom) {
-      // Custom theme - apply custom CSS variables to root
-      if (!customThemeStyle) {
-        customThemeStyle = document.createElement("style");
-        customThemeStyle.id = customThemeStyleId;
-        document.head.appendChild(customThemeStyle);
-      }
-
-      customThemeStyle.textContent = `
-        :root {
-          --color-background: ${config.themeCustom.background};
-          --color-foreground: ${config.themeCustom.foreground};
-          --color-primary: ${config.themeCustom.primary};
-          --color-secondary: ${config.themeCustom.secondary};
-          --color-accent: ${config.themeCustom.accent};
-          --color-border: ${config.themeCustom.border};
-          --color-muted: ${config.themeCustom.muted};
-          --color-muted-foreground: ${config.themeCustom.mutedForeground};
-          --radius: ${config.themeCustom.radius};
-        }
-      `;
+      customThemeStyle?.remove();
+      return;
     }
+
+    // Handle custom theme
+    if (!config.themeCustom) return;
+
+    const styleElement = customThemeStyle ?? (() => {
+      const el = document.createElement("style");
+      el.id = customThemeStyleId;
+      document.head.appendChild(el);
+      return el;
+    })();
+
+    styleElement.textContent = `
+      :root {
+        --color-background: ${config.themeCustom.background};
+        --color-foreground: ${config.themeCustom.foreground};
+        --color-primary: ${config.themeCustom.primary};
+        --color-secondary: ${config.themeCustom.secondary};
+        --color-accent: ${config.themeCustom.accent};
+        --color-border: ${config.themeCustom.border};
+        --color-muted: ${config.themeCustom.muted};
+        --color-muted-foreground: ${config.themeCustom.mutedForeground};
+        --radius: ${config.themeCustom.radius};
+      }
+    `;
   }, [config.theme, config.themeCustom]);
 
   return (

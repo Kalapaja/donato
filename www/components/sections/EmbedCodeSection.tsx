@@ -89,14 +89,6 @@ export function EmbedCodeSection({
       comments.push("⚠️ Replace YOUR_REOWN_PROJECT_ID with your ReOwn Project ID");
     }
 
-    // Optional: LiFi API Key
-    if (config.lifiApiKey) {
-      widgetAttributes.push(`lifi-api-key="${config.lifiApiKey}"`);
-    } else {
-      widgetAttributes.push(`lifi-api-key="YOUR_LIFI_API_KEY"`);
-      comments.push("⚠️ Replace YOUR_LIFI_API_KEY with your LiFi API Key");
-    }
-
     let styleAttr = "";
     if (config.theme === "custom" && config.themeCustom) {
       const styleParts = [

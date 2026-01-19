@@ -57,6 +57,9 @@ export class TokenCardsSection extends LitElement {
   @state()
   private accessor isLoadingBalances: boolean = false;
 
+  private loadBalancesDebounceTimer: ReturnType<typeof setTimeout> | null = null;
+  private lastLoadedChainId: number | null = null;
+
   static override styles = css`
     :host {
       display: block;
@@ -359,40 +362,55 @@ export class TokenCardsSection extends LitElement {
 
   override connectedCallback() {
     super.connectedCallback();
-    this.loadBalances();
+    this.scheduleLoadBalances();
+  }
+
+  override disconnectedCallback() {
+    super.disconnectedCallback();
+    if (this.loadBalancesDebounceTimer) {
+      clearTimeout(this.loadBalancesDebounceTimer);
+      this.loadBalancesDebounceTimer = null;
+    }
   }
 
   override updated(changedProperties: Map<string, unknown>) {
     super.updated(changedProperties);
-    
-    if (
-      changedProperties.has("tokens") ||
-      changedProperties.has("walletAddress") ||
-      changedProperties.has("walletService") ||
-      changedProperties.has("requiredAmount") ||
-      changedProperties.has("currentChainId")
-    ) {
-      // Reload balances when required amount changes to re-validate
-      if (changedProperties.has("requiredAmount")) {
-        // Trigger re-render for balance validation
-        this.requestUpdate();
-      } else if (changedProperties.has("currentChainId")) {
-        // Clear selected token if it doesn't match the new chain
-        if (this.selectedToken && this.currentChainId && this.selectedToken.chainId !== this.currentChainId) {
-          // Notify parent that token selection should be cleared
-          this.dispatchEvent(
-            new CustomEvent("token-selected", {
-              detail: null,
-              bubbles: true,
-              composed: true,
-            }),
-          );
-        }
-        this.loadBalances();
-      } else {
-        this.loadBalances();
+
+    // Handle currentChainId changes - clear token if needed
+    if (changedProperties.has("currentChainId")) {
+      if (this.selectedToken && this.currentChainId && this.selectedToken.chainId !== this.currentChainId) {
+        this.dispatchEvent(
+          new CustomEvent("token-selected", {
+            detail: null,
+            bubbles: true,
+            composed: true,
+          }),
+        );
       }
     }
+
+    // Only reload balances when essential properties change
+    if (
+      changedProperties.has("walletAddress") ||
+      changedProperties.has("walletService") ||
+      changedProperties.has("currentChainId")
+    ) {
+      this.scheduleLoadBalances();
+    }
+  }
+
+  /**
+   * Schedule balance loading with debounce to prevent excessive API calls
+   */
+  private scheduleLoadBalances() {
+    if (this.loadBalancesDebounceTimer) {
+      clearTimeout(this.loadBalancesDebounceTimer);
+    }
+
+    this.loadBalancesDebounceTimer = setTimeout(() => {
+      this.loadBalancesDebounceTimer = null;
+      this.loadBalances();
+    }, 300);
   }
 
   /**
@@ -422,46 +440,88 @@ export class TokenCardsSection extends LitElement {
   }
 
   /**
-   * Load balances for all tokens
+   * Load balances for tokens on the current chain using Multicall
    */
   private async loadBalances() {
+    // Skip if no chain selected - don't load balances for ALL tokens
+    if (!this.currentChainId) {
+      return;
+    }
+
+    // Skip if already loading
+    if (this.isLoadingBalances) {
+      return;
+    }
+
     const tokensToLoad = this.filteredTokens;
     if (!this.walletService || !this.walletAddress || tokensToLoad.length === 0) {
       this.tokenBalances.clear();
       return;
     }
 
+    // Skip if we already loaded balances for this chain
+    if (this.lastLoadedChainId === this.currentChainId && this.tokenBalances.size > 0) {
+      return;
+    }
+
     this.isLoadingBalances = true;
+    const chainIdBeingLoaded = this.currentChainId;
 
     try {
-      const balancePromises = tokensToLoad.map(async (token) => {
-        try {
-          const balance = await this.walletService!.getFormattedBalance(
-            token,
-            this.walletAddress!,
-          );
+      // Use batch multicall instead of individual requests
+      const balancesMap = await this.walletService.getBalancesBatch(
+        tokensToLoad,
+        this.walletAddress,
+      );
+
+      // Only update if chain hasn't changed during loading
+      if (this.currentChainId === chainIdBeingLoaded) {
+        const newBalances = new Map<string, string>();
+
+        for (const token of tokensToLoad) {
           const key = this.getTokenKey(token);
-          return { key, balance };
-        } catch (error) {
-          console.error(`Failed to get balance for ${token.symbol}:`, error);
-          const key = this.getTokenKey(token);
-          return { key, balance: "0" };
+          const balanceBigInt = balancesMap.get(token.address.toLowerCase()) || BigInt(0);
+          // Format balance
+          const balance = this.formatBalance(balanceBigInt, token.decimals);
+          newBalances.set(key, balance);
         }
-      });
 
-      const results = await Promise.all(balancePromises);
-      const newBalances = new Map<string, string>();
-      
-      for (const { key, balance } of results) {
-        newBalances.set(key, balance);
+        this.tokenBalances = newBalances;
+        this.lastLoadedChainId = chainIdBeingLoaded;
       }
-
-      this.tokenBalances = newBalances;
     } catch (error) {
       console.error("Failed to load token balances:", error);
     } finally {
       this.isLoadingBalances = false;
     }
+  }
+
+  /**
+   * Format balance from bigint to display string with appropriate decimal places
+   */
+  private formatBalance(balance: bigint, decimals: number): string {
+    if (balance === BigInt(0)) {
+      return "0";
+    }
+
+    const divisor = BigInt(10 ** decimals);
+    const integerPart = balance / divisor;
+    const fractionalPart = balance % divisor;
+
+    // Convert to number for display formatting
+    const fractionalStr = fractionalPart.toString().padStart(decimals, "0");
+    const fullNumber = parseFloat(`${integerPart}.${fractionalStr}`);
+
+    // Format with appropriate decimal places for display
+    if (fullNumber >= 1000) {
+      return fullNumber.toFixed(2);
+    } else if (fullNumber >= 1) {
+      return fullNumber.toFixed(2);
+    } else if (fullNumber > 0) {
+      return fullNumber.toFixed(4);
+    }
+
+    return "0";
   }
 
   /**
@@ -479,24 +539,6 @@ export class TokenCardsSection extends LitElement {
     return this.tokenBalances.get(key) || "0";
   }
 
-  /**
-   * Format balance for display
-   */
-  private formatBalance(balance: string): string {
-    const num = parseFloat(balance);
-    if (isNaN(num) || num === 0) {
-      return "0";
-    }
-    
-    // Format with appropriate decimal places
-    if (num >= 1000) {
-      return num.toFixed(2);
-    } else if (num >= 1) {
-      return num.toFixed(2);
-    } else {
-      return num.toFixed(4);
-    }
-  }
 
   /**
    * Get token initials for placeholder icon
@@ -624,8 +666,7 @@ export class TokenCardsSection extends LitElement {
       <div class="cards-container" role="listbox" aria-label="${t("token.selectionAriaLabel")}">
         ${tokensToRender.map((token) => {
           const isSelected = this.isTokenSelected(token);
-          const balance = this.getTokenBalance(token);
-          const formattedBalance = this.formatBalance(balance);
+          const formattedBalance = this.getTokenBalance(token);
           const isInsufficient = this.hasInsufficientBalance(token);
 
           return html`

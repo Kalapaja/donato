@@ -61,5 +61,22 @@ export const ru: Translations = {
   "message.invalidRecipient": "Неверный формат адреса получателя",
   "message.initFailed": "Не удалось инициализировать виджет",
   "message.walletConnectionFailed": "Не удалось открыть подключение кошелька",
+
+  // Error messages
+  "error.networkConnection":
+    "Не удалось связаться с сервером. Проверьте подключение к интернету.",
+  "error.invalidParams":
+    "Неверные параметры запроса. Попробуйте другую сумму или токен.",
+  "error.routeNotFound": "Маршрут не найден. Попробуйте другой токен.",
+  "error.serverUnavailable":
+    "Сервер временно недоступен. Попробуйте позже.",
+  "error.unsupportedNetwork": "Сеть не поддерживается.",
+  "error.unsupportedToken": "Токен не поддерживается.",
+  "error.insufficientLiquidity":
+    "Недостаточно ликвидности для этого обмена.",
+  "error.insufficientFunds":
+    "Недостаточно средств в вашем кошельке.",
+  "error.slippageTooHigh": "Слишком высокое проскальзывание для этого обмена.",
+  "error.transactionRejected": "Транзакция отклонена пользователем.",
 };
 

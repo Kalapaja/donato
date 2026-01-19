@@ -1,14 +1,17 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
   <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Donation Widget - Development</title>
     <style>
       body {
         margin: 0;
         padding: 20px;
-        font-family: system-ui, -apple-system, sans-serif;
+        font-family:
+          system-ui,
+          -apple-system,
+          sans-serif;
         background: oklch(98% 0 0);
         min-height: 100vh;
         display: flex;
@@ -41,12 +44,11 @@
 
       <!-- The donation widget will be rendered here -->
       <donation-widget
-        recipient="0x47ed7aebc3fd99156f455352f8edf820823a0d05"
-        recipient-chain-id="56"
-        recipient-token-address="0x55d398326f99059fF775485246999027B3197955"
+        recipient="0x9f794fc42d9b00d52c02a1cc84d3b78fddb5c210"
+        recipient-chain-id="137"
+        recipient-token-address="0x3c499c542cEF5E3811e1192ce70d8cC03d5c3359"
         default-amount="10"
         reown-project-id="%VITE_PROJECT_ID%"
-        lifi-api-key="%VITE_LIFI_API_KEY%"
         theme="auto"
       >
       </donation-widget>

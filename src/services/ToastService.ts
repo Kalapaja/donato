@@ -43,28 +43,6 @@ export class ToastService {
   }
 
   /**
-   * Show an info toast
-   */
-  info(message: string, duration?: number): string {
-    return this.show({
-      message,
-      type: "info",
-      duration,
-    });
-  }
-
-  /**
-   * Show a warning toast
-   */
-  warning(message: string, duration?: number): string {
-    return this.show({
-      message,
-      type: "warning",
-      duration,
-    });
-  }
-
-  /**
    * Show a toast notification
    */
   show(options: ToastOptions): string {
@@ -105,14 +83,6 @@ export class ToastService {
   }
 
   /**
-   * Dismiss all toasts
-   */
-  dismissAll(): void {
-    this.toasts = [];
-    this.notifyCallbacks();
-  }
-
-  /**
    * Get all active toasts
    */
   getToasts(): Toast[] {
@@ -150,54 +120,6 @@ export class ToastService {
    */
   private generateId(): string {
     return `toast-${++this.idCounter}-${Date.now()}`;
-  }
-
-  /**
-   * Clear all toasts and callbacks
-   */
-  clear(): void {
-    this.toasts = [];
-    this.callbacks.clear();
-  }
-
-  /**
-   * Get toast count
-   */
-  getCount(): number {
-    return this.toasts.length;
-  }
-
-  /**
-   * Check if there are any toasts
-   */
-  hasToasts(): boolean {
-    return this.toasts.length > 0;
-  }
-
-  /**
-   * Get toasts by type
-   */
-  getToastsByType(type: ToastType): Toast[] {
-    return this.toasts.filter((toast) => toast.type === type);
-  }
-
-  /**
-   * Update a toast message
-   */
-  update(id: string, message: string): void {
-    const toast = this.toasts.find((t) => t.id === id);
-
-    if (toast) {
-      toast.message = message;
-      this.notifyCallbacks();
-    }
-  }
-
-  /**
-   * Check if a toast exists
-   */
-  exists(id: string): boolean {
-    return this.toasts.some((toast) => toast.id === id);
   }
 }
 

@@ -1,7 +1,7 @@
 import { css, html, LitElement } from "lit";
 import { customElement, property, state } from "lit/decorators.js";
 import type { Token } from "../services/WalletService.ts";
-import type { Route } from "@lifi/sdk";
+import type { AcrossQuote } from "../services/AcrossService.ts";
 
 @customElement("amount-input")
 export class AmountInput extends LitElement {
@@ -18,7 +18,7 @@ export class AmountInput extends LitElement {
   accessor recipientToken: Token | null = null;
 
   @property({ type: Object })
-  accessor quote: Route | null = null;
+  accessor quote: AcrossQuote | null = null;
 
   @property({ type: Boolean })
   accessor isQuoteLoading: boolean = false;
@@ -173,17 +173,17 @@ export class AmountInput extends LitElement {
       return;
     }
 
-    // Validate that fromAmount exists and is a valid value
-    if (!this.quote.fromAmount || this.quote.fromAmount === undefined) {
+    // Validate that inputAmount exists and is a valid value
+    if (!this.quote.inputAmount || this.quote.inputAmount === undefined) {
       this.userPayAmount = null;
       return;
     }
 
     try {
-      const fromAmount = BigInt(this.quote.fromAmount);
+      const inputAmount = BigInt(this.quote.inputAmount);
       const decimals = this.selectedToken.decimals;
       const divisor = BigInt(10 ** decimals);
-      const amount = Number(fromAmount) / Number(divisor);
+      const amount = Number(inputAmount) / Number(divisor);
       this.userPayAmount = amount.toFixed(6);
     } catch (error) {
       console.error("Failed to calculate user pay amount:", error);
@@ -225,17 +225,9 @@ export class AmountInput extends LitElement {
   private getEstimatedGasCost(): string {
     if (!this.quote) return "0.00";
 
-    let totalGasCostUSD = 0;
-
-    for (const step of this.quote.steps) {
-      if (step.estimate?.gasCosts) {
-        for (const gasCost of step.estimate.gasCosts) {
-          totalGasCostUSD += parseFloat(gasCost.amountUSD || "0");
-        }
-      }
-    }
-
-    return totalGasCostUSD.toFixed(2);
+    // Use totalFeeUsd from AcrossQuote fees
+    const totalFee = parseFloat(this.quote.fees?.totalFeeUsd || "0");
+    return totalFee.toFixed(2);
   }
 
   override render() {

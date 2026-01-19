@@ -11,10 +11,9 @@ The landing page provides a step-by-step configuration wizard:
    donations, with optional WalletConnect verification
 2. **Network & Asset** - Select blockchain network and asset, with optional
    Etherscan Multichain Portfolio integration
-3. **LiFi API Key** - Optional API key registration for cross-chain swaps
-4. **ReOwn Project ID** - Optional Project ID for wallet connections (falls back
+3. **ReOwn Project ID** - Optional Project ID for wallet connections (falls back
    to browser extensions if omitted)
-5. **Theme Configuration** - Choose from preset themes (auto, light, dark) or
+4. **Theme Configuration** - Choose from preset themes (auto, light, dark) or
    create a custom theme with color wizard
 
 After configuration, the page shows:
@@ -202,9 +201,8 @@ www/
 │   └── steps/            # Individual step components
 │       ├── Step1Recipient.tsx
 │       ├── Step2CurrencyChain.tsx
-│       ├── Step3LiFi.tsx
-│       ├── Step4ReOwn.tsx
-│       └── Step5Theme.tsx
+│       ├── Step3ReOwn.tsx
+│       └── Step4Theme.tsx
 └── types/
     └── config.ts         # TypeScript types
 ```
@@ -213,10 +211,9 @@ www/
 
 1. User enters recipient address (with optional wallet verification)
 2. User selects chain and token (with optional portfolio check)
-3. User optionally enters LiFi API key
-4. User optionally enters ReOwn Project ID
-5. User selects or customizes theme
-6. Preview is shown and embed code is generated
+3. User optionally enters ReOwn Project ID
+4. User selects or customizes theme
+5. Preview is shown and embed code is generated
 
 ## Widget Integration
 

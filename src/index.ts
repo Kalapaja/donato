@@ -28,8 +28,8 @@ export {
 
 // Export services for advanced usage
 export {
+  AcrossService,
   ChainService,
-  LiFiService,
   ThemeService,
   toastService,
   WalletService,
@@ -41,6 +41,13 @@ export {
 export type { Token } from "./services/WalletService.ts";
 export type { Theme, ThemeMode } from "./services/ThemeService.ts";
 export type { Locale, TranslationKey, Translations } from "./services/I18nService.ts";
+export type {
+  AcrossConfig,
+  AcrossQuoteParams,
+  AcrossQuote,
+  AcrossFees,
+  TransactionData,
+} from "./services/AcrossService.ts";
 
 // Export translations
 export { translations } from "./i18n/index.ts";

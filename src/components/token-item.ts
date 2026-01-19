@@ -1,7 +1,6 @@
 import { css, html, LitElement } from "lit";
 import { customElement, property } from "lit/decorators.js";
-import type { Token } from "@lifi/sdk";
-import type { Chain } from "../services/ChainService.ts";
+import type { Token, Chain } from "../services/ChainService.ts";
 
 @customElement("token-item")
 export class TokenItem extends LitElement {

@@ -7,6 +7,9 @@ interface WidgetPreviewProps {
   config: WidgetConfig;
 }
 
+const WIDGET_WAIT_TIMEOUT = 10000;
+const CUSTOM_THEME_STYLE_ID = "donation-widget-custom-theme";
+
 export function WidgetPreview({ config }: WidgetPreviewProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const [isWidgetReady, setIsWidgetReady] = useState(false);
@@ -14,28 +17,31 @@ export function WidgetPreview({ config }: WidgetPreviewProps) {
 
   // Wait for custom element to be defined
   useEffect(() => {
-    async function waitForWidget() {
-      try {
-        // Check if custom element is already defined
-        if (customElements.get("donation-widget")) {
-          setIsWidgetReady(true);
-          return;
-        }
+    async function waitForWidget(): Promise<void> {
+      // Check if custom element is already defined
+      if (customElements.get("donation-widget")) {
+        setIsWidgetReady(true);
+        return;
+      }
 
-        // Wait for custom element to be defined (with timeout)
+      // Wait for custom element to be defined (with timeout)
+      const timeoutPromise = new Promise<never>((_, reject) =>
+        setTimeout(
+          () => reject(new Error("Timeout waiting for widget")),
+          WIDGET_WAIT_TIMEOUT
+        )
+      );
+
+      try {
         await Promise.race([
           customElements.whenDefined("donation-widget"),
-          new Promise((_, reject) =>
-            setTimeout(() => reject(new Error("Timeout waiting for widget")), 10000)
-          ),
+          timeoutPromise,
         ]);
         setIsWidgetReady(true);
         setError(null);
       } catch (err) {
         const errorMessage =
-          err instanceof Error
-            ? err.message
-            : "Failed to load widget script";
+          err instanceof Error ? err.message : "Failed to load widget script";
         setError(errorMessage);
         console.error("Error waiting for widget:", err);
       }
@@ -45,96 +51,98 @@ export function WidgetPreview({ config }: WidgetPreviewProps) {
   }, []);
 
   useEffect(() => {
-    if (!isWidgetReady || !containerRef.current) {
-      return;
+    if (!isWidgetReady || !containerRef.current) return;
+
+    const container = containerRef.current;
+    container.innerHTML = "";
+
+    const widget = document.createElement("donation-widget");
+
+    // Set required attributes
+    widget.setAttribute("recipient", config.recipient || "");
+    widget.setAttribute(
+      "recipient-chain-id",
+      config.recipientChainId?.toString() || "42161"
+    );
+    widget.setAttribute(
+      "recipient-token-address",
+      config.recipientTokenAddress || ""
+    );
+    widget.setAttribute("theme", config.theme || "auto");
+    widget.setAttribute("reown-project-id", config.reownProjectId || "");
+    widget.setAttribute("style", "max-width: 480px;");
+
+    // Set optional attributes
+    if (config.recipientTokenSymbol) {
+      widget.setAttribute("recipient-token-symbol", config.recipientTokenSymbol);
+    }
+    if (config.defaultAmount) {
+      widget.setAttribute("default-amount", config.defaultAmount);
+    }
+    if (config.headerTitle) {
+      widget.setAttribute("header-title", config.headerTitle);
+    }
+    if (config.locale) {
+      widget.setAttribute("locale", config.locale);
     }
 
-    renderWidget();
+    // Handle custom theme styles
+    const existingStyle = document.getElementById(
+      CUSTOM_THEME_STYLE_ID
+    ) as HTMLStyleElement | null;
 
-    function renderWidget() {
-      // Clear container
-      if (containerRef.current) {
-        containerRef.current.innerHTML = "";
-      }
+    if (config.theme === "custom" && config.themeCustom) {
+      const style = existingStyle ?? (() => {
+        const el = document.createElement("style");
+        el.id = CUSTOM_THEME_STYLE_ID;
+        document.head.appendChild(el);
+        return el;
+      })();
 
-      // Create widget element
-      if (containerRef.current) {
-        const widget = document.createElement("donation-widget");
-
-        // Always set attributes, even if empty - widget will show validation errors
-        widget.setAttribute("recipient", config.recipient || "");
-        widget.setAttribute(
-          "recipient-chain-id",
-          config.recipientChainId?.toString() || "42161",
-        );
-        widget.setAttribute(
-          "recipient-token-address",
-          config.recipientTokenAddress || "",
-        );
-        if (config.recipientTokenSymbol) {
-          widget.setAttribute(
-            "recipient-token-symbol",
-            config.recipientTokenSymbol,
-          );
+      style.textContent = `
+        donation-widget {
+          --color-background: ${config.themeCustom.background};
+          --color-foreground: ${config.themeCustom.foreground};
+          --color-primary: ${config.themeCustom.primary};
+          --color-secondary: ${config.themeCustom.secondary};
+          --color-accent: ${config.themeCustom.accent};
+          --color-border: ${config.themeCustom.border};
+          --color-muted: ${config.themeCustom.muted};
+          --color-muted-foreground: ${config.themeCustom.mutedForeground};
+          --radius: ${config.themeCustom.radius};
         }
-        widget.setAttribute("theme", config.theme || "auto");
-        widget.setAttribute("reown-project-id", config.reownProjectId || "");
-
-        if (config.lifiApiKey) {
-          widget.setAttribute("lifi-api-key", config.lifiApiKey);
-        }
-
-        if (config.defaultAmount) {
-          widget.setAttribute("default-amount", config.defaultAmount);
-        }
-
-        if (config.headerTitle) {
-          widget.setAttribute("header-title", config.headerTitle);
-        }
-
-        if (config.locale) {
-          widget.setAttribute("locale", config.locale);
-        }
-
-        widget.setAttribute("style", "max-width: 480px;");
-
-        // Apply custom theme styles if theme is custom
-        const styleId = "donation-widget-custom-theme";
-        const existingStyle = document.getElementById(
-          styleId,
-        ) as HTMLStyleElement;
-
-        if (config.theme === "custom" && config.themeCustom) {
-          let style = existingStyle;
-
-          if (!style) {
-            style = document.createElement("style");
-            style.id = styleId;
-            document.head.appendChild(style);
-          }
-
-          style.textContent = `
-            donation-widget {
-              --color-background: ${config.themeCustom.background};
-              --color-foreground: ${config.themeCustom.foreground};
-              --color-primary: ${config.themeCustom.primary};
-              --color-secondary: ${config.themeCustom.secondary};
-              --color-accent: ${config.themeCustom.accent};
-              --color-border: ${config.themeCustom.border};
-              --color-muted: ${config.themeCustom.muted};
-              --color-muted-foreground: ${config.themeCustom.mutedForeground};
-              --radius: ${config.themeCustom.radius};
-            }
-          `;
-        } else if (existingStyle) {
-          // Remove custom theme styles when not using custom theme
-          existingStyle.remove();
-        }
-
-        containerRef.current.appendChild(widget);
-      }
+      `;
+    } else {
+      existingStyle?.remove();
     }
+
+    container.appendChild(widget);
   }, [config, isWidgetReady]);
+
+  function renderContent(): React.ReactNode {
+    if (error) {
+      return (
+        <div className="flex items-center justify-center w-full h-full">
+          <div className="text-sm text-red-500">Error: {error}</div>
+        </div>
+      );
+    }
+
+    if (!isWidgetReady) {
+      return (
+        <div className="flex items-center justify-center w-full h-full">
+          <div
+            className="text-sm"
+            style={{ color: "var(--color-muted-foreground)" }}
+          >
+            Loading widget...
+          </div>
+        </div>
+      );
+    }
+
+    return null;
+  }
 
   return (
     <div className="w-full">
@@ -146,20 +154,7 @@ export function WidgetPreview({ config }: WidgetPreviewProps) {
           borderRadius: "calc(var(--radius) - 2px)",
         }}
       >
-        {!isWidgetReady && !error && (
-          <div className="flex items-center justify-center w-full h-full">
-            <div className="text-sm" style={{ color: "var(--color-muted-foreground)" }}>
-              Loading widget...
-            </div>
-          </div>
-        )}
-        {error && (
-          <div className="flex items-center justify-center w-full h-full">
-            <div className="text-sm text-red-500">
-              Error: {error}
-            </div>
-          </div>
-        )}
+        {renderContent()}
       </div>
     </div>
   );

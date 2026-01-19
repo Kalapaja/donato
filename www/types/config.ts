@@ -4,7 +4,6 @@ export interface WidgetConfig {
   recipientTokenAddress: string;
   recipientTokenSymbol: string;
   reownProjectId: string;
-  lifiApiKey: string;
   theme: string;
   defaultAmount?: string;
   headerTitle?: string;

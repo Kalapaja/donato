@@ -38,6 +38,7 @@ export class WalletService {
   private chainChangeCallbacks: Set<EventCallback<number>> = new Set();
   private disconnectCallbacks: Set<EventCallback<void>> = new Set();
   private initializedProjectId: string | null = null;
+  private unsubscribeState: (() => void) | null = null;
 
   private readonly supportedChains: ViemChain[] = [
     mainnet,
@@ -64,6 +65,11 @@ export class WalletService {
     // If already initialized with a different project ID, disconnect first
     if (this.appKit && this.initializedProjectId !== projectId) {
       console.warn("Reown project ID changed. Reinitializing AppKit...");
+      // Unsubscribe from state changes
+      if (this.unsubscribeState) {
+        this.unsubscribeState();
+        this.unsubscribeState = null;
+      }
       // Disconnect and clean up old instance
       this.appKit.disconnect().catch(() => {
         // Ignore errors during cleanup
@@ -117,7 +123,7 @@ export class WalletService {
           icons: ["https://avatars.githubusercontent.com/u/37784886"],
         },
         features: {
-          analytics: true,
+          analytics: false,
           email: false,
           socials: false,
           swaps: false,
@@ -145,11 +151,18 @@ export class WalletService {
   private setupEventListeners(): void {
     if (!this.appKit) return;
 
-    // Track previous chainId to detect chain changes
+    // Clean up previous subscription if exists
+    if (this.unsubscribeState) {
+      this.unsubscribeState();
+      this.unsubscribeState = null;
+    }
+
+    // Track previous state to detect actual changes
+    let previousAddress: string | null = null;
     let previousChainId: number | null = null;
 
-    // Subscribe to state changes
-    this.appKit.subscribeState((state) => {
+    // Subscribe to state changes and store unsubscribe function
+    this.unsubscribeState = this.appKit.subscribeState((state) => {
       const account = state.selectedNetworkId
         ? this.appKit?.getAddress()
         : null;
@@ -166,25 +179,38 @@ export class WalletService {
 
       if (account && chainId) {
         const address = account as Address;
-        const walletAccount: WalletAccount = { address, chainId };
-        
-        // Check if chain changed
-        const chainChanged = previousChainId !== null && previousChainId !== chainId;
-        
-        this.currentAccount = walletAccount;
-        this.notifyAccountChange(walletAccount);
-        this.updateWalletClient(address, chainId);
-        
-        // Notify chain change if chain actually changed
-        if (chainChanged) {
-          this.notifyChainChange(chainId);
+
+        // Check if anything actually changed
+        const addressChanged = previousAddress !== address;
+        const chainChanged = previousChainId !== chainId;
+
+        // Skip if nothing changed
+        if (!addressChanged && !chainChanged) {
+          return;
         }
-        
-        // Update previous chainId
+
+        const walletAccount: WalletAccount = { address, chainId };
+        this.currentAccount = walletAccount;
+
+        // Only notify and update if something changed
+        if (addressChanged || chainChanged) {
+          this.notifyAccountChange(walletAccount);
+        }
+
+        if (chainChanged) {
+          this.updateWalletClient(address, chainId);
+          if (previousChainId !== null) {
+            this.notifyChainChange(chainId);
+          }
+        }
+
+        // Update previous state
+        previousAddress = address;
         previousChainId = chainId;
       } else if (this.currentAccount) {
         this.currentAccount = null;
         this.walletClient = null;
+        previousAddress = null;
         previousChainId = null;
         this.notifyDisconnect();
       }
@@ -317,6 +343,9 @@ export class WalletService {
     }
   }
 
+  // Multicall3 contract address (same on all EVM chains)
+  private readonly MULTICALL3_ADDRESS = "0xcA11bde05977b3631167028862bE2a173976CA11";
+
   /**
    * Get token balance for an address
    */
@@ -340,11 +369,7 @@ export class WalletService {
       };
 
       // Native token (ETH, MATIC, etc.)
-      if (
-        token.address === "0x0000000000000000000000000000000000000000" ||
-        token.address.toLowerCase() ===
-          "0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee"
-      ) {
+      if (this.isNativeToken(token.address)) {
         const balance = await ethProvider.request({
           method: "eth_getBalance",
           params: [address, "latest"],
@@ -368,6 +393,235 @@ export class WalletService {
     } catch (error) {
       console.error("Failed to get balance:", error);
       return BigInt(0);
+    }
+  }
+
+  /**
+   * Get multiple token balances in a single RPC call using Multicall3
+   * @param tokens - Array of tokens to get balances for
+   * @param address - Wallet address
+   * @returns Map of token address (lowercase) to balance
+   */
+  async getBalancesBatch(tokens: Token[], address: Address): Promise<Map<string, bigint>> {
+    const results = new Map<string, bigint>();
+
+    if (!this.appKit || tokens.length === 0) {
+      return results;
+    }
+
+    try {
+      const provider = this.appKit.getWalletProvider();
+      if (!provider || typeof provider !== "object" || !("request" in provider)) {
+        throw new Error("Provider not available");
+      }
+
+      const ethProvider = provider as {
+        request: (args: { method: string; params?: unknown[] }) => Promise<unknown>;
+      };
+
+      // Separate native and ERC20 tokens
+      const nativeTokens = tokens.filter((t) => this.isNativeToken(t.address));
+      const erc20Tokens = tokens.filter((t) => !this.isNativeToken(t.address));
+
+      // Get native token balance (single call)
+      if (nativeTokens.length > 0) {
+        try {
+          const balance = await ethProvider.request({
+            method: "eth_getBalance",
+            params: [address, "latest"],
+          });
+          const nativeBalance = BigInt(balance as string);
+          // Set balance for all native token variations
+          for (const token of nativeTokens) {
+            results.set(token.address.toLowerCase(), nativeBalance);
+          }
+        } catch (error) {
+          console.error("Failed to get native balance:", error);
+          for (const token of nativeTokens) {
+            results.set(token.address.toLowerCase(), BigInt(0));
+          }
+        }
+      }
+
+      // Get ERC20 balances via Multicall3
+      if (erc20Tokens.length > 0) {
+        const erc20Balances = await this.multicallBalances(ethProvider, erc20Tokens, address);
+        for (const [tokenAddress, balance] of erc20Balances) {
+          results.set(tokenAddress, balance);
+        }
+      }
+
+      return results;
+    } catch (error) {
+      console.error("Failed to get balances batch:", error);
+      // Return zeros for all tokens on error
+      for (const token of tokens) {
+        results.set(token.address.toLowerCase(), BigInt(0));
+      }
+      return results;
+    }
+  }
+
+  /**
+   * Use Multicall3 to batch ERC20 balanceOf calls
+   */
+  private async multicallBalances(
+    ethProvider: { request: (args: { method: string; params?: unknown[] }) => Promise<unknown> },
+    tokens: Token[],
+    address: Address
+  ): Promise<Map<string, bigint>> {
+    const results = new Map<string, bigint>();
+
+    if (tokens.length === 0) {
+      return results;
+    }
+
+    try {
+      // Build multicall data
+      // aggregate3((address target, bool allowFailure, bytes callData)[])
+      // Function selector: 0x82ad56cb
+      const balanceOfSelector = "70a08231";
+      const paddedAddress = address.slice(2).toLowerCase().padStart(64, "0");
+
+      // Encode calls array for aggregate3
+      const calls = tokens.map((token) => ({
+        target: token.address,
+        allowFailure: true,
+        callData: `0x${balanceOfSelector}${paddedAddress}`,
+      }));
+
+      // Encode the aggregate3 call
+      const encodedCalls = this.encodeAggregate3Calls(calls);
+      const multicallData = `0x82ad56cb${encodedCalls}`;
+
+      const response = await ethProvider.request({
+        method: "eth_call",
+        params: [
+          {
+            to: this.MULTICALL3_ADDRESS,
+            data: multicallData,
+          },
+          "latest",
+        ],
+      });
+
+      // Decode response
+      const balances = this.decodeAggregate3Response(response as string, tokens.length);
+
+      for (let i = 0; i < tokens.length; i++) {
+        results.set(tokens[i].address.toLowerCase(), balances[i]);
+      }
+
+      return results;
+    } catch (error) {
+      console.error("Multicall failed, falling back to individual calls:", error);
+      // Fallback: return zeros (or could do individual calls)
+      for (const token of tokens) {
+        results.set(token.address.toLowerCase(), BigInt(0));
+      }
+      return results;
+    }
+  }
+
+  /**
+   * Encode calls for Multicall3 aggregate3 function
+   */
+  private encodeAggregate3Calls(calls: { target: string; allowFailure: boolean; callData: string }[]): string {
+    // ABI encode: (address target, bool allowFailure, bytes callData)[]
+    // Offset to array data (32 bytes)
+    let encoded = "0000000000000000000000000000000000000000000000000000000000000020";
+    // Array length
+    encoded += calls.length.toString(16).padStart(64, "0");
+
+    // Calculate offsets for each call's dynamic data
+    const headerSize = calls.length * 32; // Each call has 32 bytes offset
+    let currentOffset = headerSize;
+    const offsets: number[] = [];
+    const callsData: string[] = [];
+
+    for (const call of calls) {
+      offsets.push(currentOffset);
+
+      // Encode single call struct
+      // target (address) - 32 bytes
+      const targetEncoded = call.target.slice(2).toLowerCase().padStart(64, "0");
+      // allowFailure (bool) - 32 bytes
+      const allowFailureEncoded = call.allowFailure ? "0000000000000000000000000000000000000000000000000000000000000001" : "0000000000000000000000000000000000000000000000000000000000000000";
+      // callData offset within struct (always 96 = 0x60, as it comes after target + allowFailure + offset)
+      const callDataOffsetEncoded = "0000000000000000000000000000000000000000000000000000000000000060";
+      // callData length
+      const callDataBytes = call.callData.slice(2);
+      const callDataLength = (callDataBytes.length / 2).toString(16).padStart(64, "0");
+      // callData (padded to 32 bytes)
+      const callDataPadded = callDataBytes.padEnd(Math.ceil(callDataBytes.length / 64) * 64, "0");
+
+      const callEncoded = targetEncoded + allowFailureEncoded + callDataOffsetEncoded + callDataLength + callDataPadded;
+      callsData.push(callEncoded);
+
+      // Size of this call's data: 3 * 32 (target, allowFailure, offset) + 32 (length) + padded callData
+      currentOffset += 32 * 3 + 32 + (Math.ceil(callDataBytes.length / 64) * 32);
+    }
+
+    // Add offsets
+    for (const offset of offsets) {
+      encoded += offset.toString(16).padStart(64, "0");
+    }
+
+    // Add call data
+    for (const data of callsData) {
+      encoded += data;
+    }
+
+    return encoded;
+  }
+
+  /**
+   * Decode Multicall3 aggregate3 response
+   */
+  private decodeAggregate3Response(response: string, expectedCount: number): bigint[] {
+    const results: bigint[] = [];
+
+    try {
+      // Remove 0x prefix
+      const data = response.slice(2);
+
+      // Skip offset to array (32 bytes) and read array length
+      const arrayLength = parseInt(data.slice(64, 128), 16);
+
+      if (arrayLength !== expectedCount) {
+        console.warn(`Multicall response count mismatch: expected ${expectedCount}, got ${arrayLength}`);
+      }
+
+      // Read offsets for each result
+      const offsets: number[] = [];
+      for (let i = 0; i < arrayLength; i++) {
+        const offsetHex = data.slice(128 + i * 64, 128 + (i + 1) * 64);
+        offsets.push(parseInt(offsetHex, 16) * 2); // Convert to hex string position
+      }
+
+      // Decode each result (bool success, bytes returnData)
+      for (let i = 0; i < arrayLength; i++) {
+        const resultStart = 64 + offsets[i]; // 64 for initial offset
+        // success (bool) - 32 bytes
+        const success = data.slice(resultStart, resultStart + 64) !== "0000000000000000000000000000000000000000000000000000000000000000";
+        // returnData offset - 32 bytes (always 0x40 = 64)
+        // returnData length - 32 bytes
+        const returnDataLengthHex = data.slice(resultStart + 128, resultStart + 192);
+        const returnDataLength = parseInt(returnDataLengthHex, 16);
+
+        if (success && returnDataLength >= 32) {
+          // returnData starts after length
+          const balanceHex = data.slice(resultStart + 192, resultStart + 192 + 64);
+          results.push(BigInt("0x" + balanceHex));
+        } else {
+          results.push(BigInt(0));
+        }
+      }
+
+      return results;
+    } catch (error) {
+      console.error("Failed to decode multicall response:", error);
+      return new Array(expectedCount).fill(BigInt(0));
     }
   }
 
@@ -664,7 +918,7 @@ export class WalletService {
   }
 
   /**
-   * Get ethers signer (for LiFi SDK and other integrations)
+   * Get ethers signer (for external integrations)
    */
   getSigner(): unknown {
     if (!this.appKit) {
