@@ -30,6 +30,7 @@ npm-debug.log*
 
 tmp
 .kiro
+.claude
 .vite
 .idea
 

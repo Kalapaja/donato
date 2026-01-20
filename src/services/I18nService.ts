@@ -10,9 +10,14 @@ export type TranslationKey =
   | "widget.header.title"
   | "widget.loading"
   | "widget.footer.contact"
+  // Donation type toggle
+  | "donation.type.oneTime"
+  | "donation.type.monthly"
   // Amount section
   | "amount.tooltip"
   | "amount.helper"
+  | "amount.helper.subscription"
+  | "subscription.duration.estimate"
   | "amount.ariaLabel"
   | "amount.presetAriaLabel"
   // Wallet connection
@@ -30,8 +35,14 @@ export type TranslationKey =
   | "donate.processingAriaLabel"
   | "donate.calculatingAriaLabel"
   | "donate.disabledAriaLabel"
+  // Button states
+  | "button.processing"
+  | "button.calculating"
+  | "button.donate"
+  | "button.subscribe"
   // Success state
   | "success.defaultMessage"
+  | "success.subscription.message"
   | "success.donateAgain"
   | "success.youDonated"
   | "success.amount"
@@ -58,6 +69,7 @@ export type TranslationKey =
   | "message.walletConnectionFailed"
   // Error messages
   | "error.networkConnection"
+  | "error.networkSwitchFailed"
   | "error.invalidParams"
   | "error.routeNotFound"
   | "error.serverUnavailable"
@@ -66,7 +78,32 @@ export type TranslationKey =
   | "error.insufficientLiquidity"
   | "error.insufficientFunds"
   | "error.slippageTooHigh"
-  | "error.transactionRejected";
+  | "error.transactionRejected"
+  | "error.signatureRejected"
+  | "error.subscriptionFailed"
+  | "error.walletNotConnected"
+  | "error.switchToPolygon"
+  // Subscription overlay
+  | "subscription.overlay.title"
+  | "subscription.overlay.description"
+  | "subscription.overlay.hint"
+  // Subscription steps
+  | "subscription.step.switching"
+  | "subscription.step.switching.desc"
+  | "subscription.step.signing"
+  | "subscription.step.signing.desc"
+  | "subscription.step.building"
+  | "subscription.step.building.desc"
+  | "subscription.step.returning"
+  | "subscription.step.returning.desc"
+  | "subscription.step.quoting"
+  | "subscription.step.quoting.desc"
+  | "subscription.step.approving"
+  | "subscription.step.approving.desc"
+  | "subscription.step.subscribing"
+  | "subscription.step.subscribing.desc"
+  | "subscription.step.confirming"
+  | "subscription.step.confirming.desc";
 
 export type Translations = Record<TranslationKey, string>;
 

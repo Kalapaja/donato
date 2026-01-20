@@ -6,7 +6,10 @@ import type { ChainService } from "../services/ChainService.ts";
 import type { ToastService } from "../services/ToastService.ts";
 import { I18nError } from "../services/I18nError.ts";
 import { t } from "../services/I18nService.ts";
+import { AzothPayService, POLYGON_CHAIN_ID } from "../services/azoth-pay-service.ts";
 import type { Address } from "viem";
+import type { DonationType } from "./donation-type-toggle.ts";
+import type { SubscriptionStep } from "./subscription-explainer-overlay.ts";
 import "./amount-input.ts";
 import "./donate-button.ts";
 
@@ -43,6 +46,18 @@ export class DonationForm extends LitElement {
   @property({ type: Boolean })
   accessor disabled: boolean = false;
 
+  /** Current donation type (one-time or monthly subscription) */
+  @property({ type: String, attribute: "donation-type" })
+  accessor donationType: DonationType = "one-time";
+
+  /** Subscription target address (for monthly subscriptions) */
+  @property({ type: String, attribute: "subscription-target" })
+  accessor subscriptionTarget: string = "";
+
+  /** Project ID for AzothPay subscription */
+  @property({ type: Number, attribute: "project-id" })
+  accessor projectId: number = 0;
+
   /** External recipient amount (synced from parent widget) */
   @property({ type: String, attribute: "recipient-amount" })
   accessor externalRecipientAmount: string = "";
@@ -62,8 +77,9 @@ export class DonationForm extends LitElement {
   @state()
   private accessor quoteError: string | I18nError | null = null;
 
-  @state()
-  private accessor recipientTokenInfo: Token | null = null;
+  /** Recipient token info - passed from parent or loaded internally */
+  @property({ type: Object, attribute: false })
+  accessor recipientTokenInfo: Token | null = null;
 
   @state()
   private accessor isDirectTransfer: boolean = false;
@@ -90,7 +106,6 @@ export class DonationForm extends LitElement {
 
   override connectedCallback() {
     super.connectedCallback();
-    this.loadRecipientTokenInfo();
   }
 
   override disconnectedCallback() {
@@ -184,16 +199,6 @@ export class DonationForm extends LitElement {
       const toAmountInSmallestUnit =
         (recipientAmountNum * Math.pow(10, recipientTokenDecimals)).toString();
 
-      console.log("Calculating quote:", {
-        recipientAmount: this.recipientAmount,
-        toAmountInSmallestUnit,
-        selectedToken: this.selectedToken.symbol,
-        tokenDecimals: this.selectedToken.decimals,
-        recipientToken: this.recipientTokenInfo.symbol,
-        recipientTokenDecimals,
-        recipientChain: this.recipientChainId,
-      });
-
       // Check if this is a same-token transfer (no swap needed)
       const isSameToken = AcrossService.isSameTokenTransfer(
         this.selectedToken.chainId,
@@ -204,38 +209,19 @@ export class DonationForm extends LitElement {
 
       if (isSameToken) {
         // Direct transfer - create a mock quote with 1:1 ratio
-        console.log("Same token detected, using direct transfer");
         this.isDirectTransfer = true;
-
-        // For direct transfer, inputAmount equals expectedOutputAmount (1:1 ratio)
-        const mockQuote: AcrossQuote = {
+        this.quote = {
           expectedOutputAmount: toAmountInSmallestUnit,
           minOutputAmount: toAmountInSmallestUnit,
           inputAmount: toAmountInSmallestUnit,
           expectedFillTime: 0,
-          fees: {
-            totalFeeUsd: "0",
-            bridgeFeeUsd: "0",
-            swapFeeUsd: "0",
-          },
-          swapTx: {
-            to: "",
-            data: "",
-            value: "0",
-          },
+          fees: { totalFeeUsd: "0", bridgeFeeUsd: "0", swapFeeUsd: "0" },
+          swapTx: { to: "", data: "", value: "0" },
           approvalTxns: [],
           originChainId: this.selectedToken.chainId,
           destinationChainId: this.recipientChainId,
         };
-
-        this.quote = mockQuote;
         this.userPayAmount = this.recipientAmount;
-
-        console.log("Direct transfer quote created:", {
-          inputAmount: mockQuote.inputAmount,
-          expectedOutputAmount: mockQuote.expectedOutputAmount,
-          isDirectTransfer: true,
-        });
       } else {
         // Use Across for swap/bridge
         const quote = await this.acrossService.getQuote({
@@ -247,12 +233,6 @@ export class DonationForm extends LitElement {
         });
         this.quote = quote;
 
-        console.log("Quote received:", {
-          inputAmount: quote.inputAmount,
-          expectedOutputAmount: quote.expectedOutputAmount,
-          expectedFillTime: quote.expectedFillTime,
-        });
-
         // Calculate user pay amount from quote
         if (quote.inputAmount) {
           const inputAmount = BigInt(quote.inputAmount);
@@ -260,9 +240,6 @@ export class DonationForm extends LitElement {
           const divisor = BigInt(10 ** decimals);
           const amount = Number(inputAmount) / Number(divisor);
           this.userPayAmount = amount.toFixed(6);
-          console.log("User pay amount calculated:", this.userPayAmount);
-        } else {
-          console.warn("Quote has no inputAmount");
         }
       }
 
@@ -308,7 +285,7 @@ export class DonationForm extends LitElement {
     }
   }
 
-  private async handleDonate() {
+  public async handleDonate() {
     if (!this.quote || !this.canDonate) {
       return;
     }
@@ -319,43 +296,80 @@ export class DonationForm extends LitElement {
     // Emit donation initiated event
     this.dispatchEvent(
       new CustomEvent("donation-initiated", {
-        detail: { quote: this.quote, isDirectTransfer: this.isDirectTransfer },
+        detail: {
+          quote: this.quote,
+          isDirectTransfer: this.isDirectTransfer,
+          isSubscription: this.donationType === "monthly",
+        },
         bubbles: true,
         composed: true,
       }),
     );
 
     try {
-      if (this.isDirectTransfer) {
+      // Route to appropriate handler based on donation type
+      if (this.donationType === "monthly") {
+        // Execute subscription flow for monthly donations
+        await this.handleSubscription();
+
+        // Show success notification for subscription
+        this.toastService.success(t("success.subscription.message"));
+
+        // Reset form after successful subscription
+        this.resetForm();
+      } else if (this.isDirectTransfer) {
         // Execute direct token transfer without Across
         await this.executeDirectTransfer();
+
+        // Show success notification
+        const tokenSymbol = this.recipientTokenInfo?.symbol || "tokens";
+        this.toastService.success(
+          `Successfully donated ${this.recipientAmount} ${tokenSymbol}!`,
+        );
+
+        // Emit donation completed event
+        this.dispatchEvent(
+          new CustomEvent("donation-completed", {
+            detail: {
+              amount: this.recipientAmount,
+              token: this.selectedToken,
+              recipient: this.recipient,
+              isDirectTransfer: this.isDirectTransfer,
+            },
+            bubbles: true,
+            composed: true,
+          }),
+        );
+
+        // Reset form
+        this.resetForm();
       } else {
         // Execute Across swap for cross-chain transfer
         await this.acrossService.executeSwap(this.quote);
+
+        // Show success notification
+        const tokenSymbol = this.recipientTokenInfo?.symbol || "tokens";
+        this.toastService.success(
+          `Successfully donated ${this.recipientAmount} ${tokenSymbol}!`,
+        );
+
+        // Emit donation completed event
+        this.dispatchEvent(
+          new CustomEvent("donation-completed", {
+            detail: {
+              amount: this.recipientAmount,
+              token: this.selectedToken,
+              recipient: this.recipient,
+              isDirectTransfer: this.isDirectTransfer,
+            },
+            bubbles: true,
+            composed: true,
+          }),
+        );
+
+        // Reset form
+        this.resetForm();
       }
-
-      // Show success notification
-      const tokenSymbol = this.recipientTokenInfo?.symbol || "tokens";
-      this.toastService.success(
-        `Successfully donated ${this.recipientAmount} ${tokenSymbol}!`,
-      );
-
-      // Emit donation completed event
-      this.dispatchEvent(
-        new CustomEvent("donation-completed", {
-          detail: {
-            amount: this.recipientAmount,
-            token: this.selectedToken,
-            recipient: this.recipient,
-            isDirectTransfer: this.isDirectTransfer,
-          },
-          bubbles: true,
-          composed: true,
-        }),
-      );
-
-      // Reset form
-      this.resetForm();
     } catch (error) {
       console.error("Donation failed:", error);
 
@@ -377,6 +391,7 @@ export class DonationForm extends LitElement {
             error: errorMessage,
             originalError: error,
             isDirectTransfer: this.isDirectTransfer,
+            isSubscription: this.donationType === "monthly",
           },
           bubbles: true,
           composed: true,
@@ -397,22 +412,165 @@ export class DonationForm extends LitElement {
       throw new Error("Missing token or quote information");
     }
 
-    const amount = BigInt(this.quote.inputAmount);
-    const toAddress = this.recipient as Address;
-
-    console.log("Executing direct transfer:", {
-      token: this.selectedToken.symbol,
-      amount: amount.toString(),
-      to: toAddress,
-    });
-
-    const txHash = await this.walletService.transferToken(
+    await this.walletService.transferToken(
       this.selectedToken,
-      toAddress,
-      amount,
+      this.recipient as Address,
+      BigInt(this.quote.inputAmount),
     );
+  }
 
-    console.log("Direct transfer successful:", txHash);
+  /**
+   * Emit subscription progress event
+   * Used by the subscription explainer overlay to show current step
+   */
+  private emitSubscriptionProgress(step: SubscriptionStep): void {
+    this.dispatchEvent(
+      new CustomEvent("subscription-progress", {
+        detail: { step },
+        bubbles: true,
+        composed: true,
+      }),
+    );
+  }
+
+  /**
+   * Handle subscription flow for monthly donations
+   * This method orchestrates the complete subscription creation process:
+   * 1. Validate quote exists and is valid
+   * 2. Store original chain ID for later
+   * 3. Switch to Polygon for signing (required by MetaMask)
+   * 4. Get subscription signature from AzothPayService
+   * 5. Build subscription actions
+   * 6. Switch back to original chain
+   * 7. Get quote with actions from Across
+   * 8. Execute approval transactions if present
+   * 9. Execute the main swap transaction
+   * 10. Dispatch subscription-created event
+   */
+  private async handleSubscription(): Promise<void> {
+    // Step 1: Validate quote exists
+    if (!this.quote || !this.selectedToken) {
+      throw new I18nError("error.invalidParams");
+    }
+
+    const account = this.walletService.getAccount();
+    if (!account.address || !account.chainId) {
+      throw new I18nError("error.walletNotConnected");
+    }
+
+    // Step 2: Store original chain ID and token data before any chain switching
+    // Chain switches can trigger component updates that reset selectedToken
+    const originalChainId = account.chainId;
+    const userAddress = account.address;
+    const originToken = {
+      chainId: this.selectedToken.chainId,
+      address: this.selectedToken.address,
+      symbol: this.selectedToken.symbol,
+    };
+    const monthlyAmount = this.recipientAmount;
+    const target = (this.subscriptionTarget || this.recipient) as Address;
+    const projectIdBigInt = BigInt(this.projectId);
+
+    // Calculate output amount (USDC) - this is what Across API expects with tradeType: "minOutput"
+    // NOT quote.inputAmount which is how much user pays in input token
+    const recipientTokenDecimals = this.recipientTokenInfo?.decimals ?? 6;
+    const outputAmount = (parseFloat(monthlyAmount) * Math.pow(10, recipientTokenDecimals)).toString();
+
+    const azothPayService = AzothPayService.getInstance();
+
+    try {
+      // Switch to Polygon for EIP-712 signature (MetaMask requires matching chainId)
+      this.emitSubscriptionProgress("switching");
+      await this.walletService.switchChain(POLYGON_CHAIN_ID);
+
+      // Get subscription signature from AzothPayService on Polygon
+      this.emitSubscriptionProgress("signing");
+      const signatureData = await azothPayService.getSubscriptionSignature(
+        {
+          userAddress,
+          subscriptionTarget: target,
+          monthlyAmountUsd: monthlyAmount,
+          projectId: projectIdBigInt,
+        },
+        this.walletService,
+      );
+
+      // Build subscription actions
+      this.emitSubscriptionProgress("building");
+      const actions = this.acrossService.buildSubscriptionActions(signatureData);
+
+      // Switch back to original chain for Across deposit
+      this.emitSubscriptionProgress("returning");
+      await this.walletService.switchChain(originalChainId);
+
+      // Get quote with actions from Across (use outputAmount for tradeType: "minOutput")
+      this.emitSubscriptionProgress("quoting");
+      const quoteWithActions = await this.acrossService.getQuoteWithActions(
+        {
+          originChainId: originToken.chainId,
+          inputToken: originToken.address,
+          inputAmount: outputAmount,
+          depositor: userAddress,
+          recipient: this.recipient,
+        },
+        actions,
+      );
+
+      // Execute approval transactions if present
+      if (quoteWithActions.approvalTxns && quoteWithActions.approvalTxns.length > 0) {
+        this.emitSubscriptionProgress("approving");
+        for (const approvalTx of quoteWithActions.approvalTxns) {
+          if (!approvalTx.to || !approvalTx.data) {
+            continue;
+          }
+          await this.walletService.sendTransaction({
+            to: approvalTx.to as Address,
+            data: approvalTx.data as `0x${string}`,
+            value: approvalTx.value ? BigInt(approvalTx.value) : BigInt(0),
+          });
+        }
+      }
+
+      // Execute the main swap transaction
+      this.emitSubscriptionProgress("subscribing");
+      const txHash = await this.walletService.sendTransaction({
+        to: quoteWithActions.swapTx.to as Address,
+        data: quoteWithActions.swapTx.data as `0x${string}`,
+        value: quoteWithActions.swapTx.value ? BigInt(quoteWithActions.swapTx.value) : BigInt(0),
+      });
+
+      this.emitSubscriptionProgress("confirming");
+
+      // Dispatch subscription-created event with stored values
+      this.dispatchEvent(
+        new CustomEvent("subscription-created", {
+          detail: {
+            transactionHash: txHash,
+            monthlyAmountUsd: monthlyAmount,
+            subscriptionTarget: target,
+            projectId: this.projectId,
+            originChainId: originalChainId,
+            originToken,
+          },
+          bubbles: true,
+          composed: true,
+        }),
+      );
+    } catch (error) {
+
+      // If we're on a different chain than the original, try to switch back
+      const currentAccount = this.walletService.getAccount();
+      if (currentAccount.chainId && currentAccount.chainId !== originalChainId) {
+        try {
+          await this.walletService.switchChain(originalChainId);
+        } catch (switchError) {
+          console.warn("Failed to switch back to original chain:", switchError);
+        }
+      }
+
+      // Re-throw the error for upstream handling
+      throw error;
+    }
   }
 
   private resetForm() {
@@ -449,14 +607,18 @@ export class DonationForm extends LitElement {
 
   private get donateButtonText(): string {
     if (this.isDonating) {
-      return "Processing...";
+      return t("button.processing");
     }
 
     if (this.isQuoteLoading) {
-      return "Calculating...";
+      return t("button.calculating");
     }
 
-    return "Donate";
+    if (this.donationType === "monthly") {
+      return t("button.subscribe");
+    }
+
+    return t("button.donate");
   }
 
   protected override updated(changedProperties: Map<string, unknown>) {
@@ -466,39 +628,30 @@ export class DonationForm extends LitElement {
     if (changedProperties.has("externalRecipientAmount")) {
       if (this.externalRecipientAmount !== this.recipientAmount) {
         this.recipientAmount = this.externalRecipientAmount;
-        // Clear quote if amount is cleared
         if (!this.recipientAmount || parseFloat(this.recipientAmount) <= 0) {
           this.quote = null;
           this.userPayAmount = null;
           this.quoteError = null;
           this.isQuoteLoading = false;
-          // Emit quote update with null quote
           this.dispatchEvent(
             new CustomEvent("quote-updated", {
-              detail: {
-                quote: null,
-                loading: false,
-                error: null,
-              },
+              detail: { quote: null, loading: false, error: null },
               bubbles: true,
               composed: true,
             }),
           );
         } else if (this.selectedToken) {
-          // Trigger quote calculation when amount changes externally and token is selected
           this.debouncedQuoteCalculation();
         }
       }
     }
 
     // Reload recipient token info when recipient chain or token changes
-    if (
-      changedProperties.has("recipientChainId") ||
-      changedProperties.has("recipientTokenAddress")
-    ) {
-      this.loadRecipientTokenInfo();
-      // Recalculate quote with new recipient token
-      if (this.recipientAmount && this.selectedToken) {
+    if (changedProperties.has("recipientChainId") || changedProperties.has("recipientTokenAddress")) {
+      if (this.chainService) {
+        this.loadRecipientTokenInfo();
+      }
+      if (this.recipientAmount && this.selectedToken && this.recipientTokenInfo) {
         this.calculateQuote();
       }
     }
@@ -506,6 +659,13 @@ export class DonationForm extends LitElement {
     // Recalculate quote when selected token changes
     if (changedProperties.has("selectedToken") && this.recipientAmount) {
       this.calculateQuote();
+    }
+
+    // Recalculate quote when recipientTokenInfo becomes available
+    if (changedProperties.has("recipientTokenInfo") && this.recipientTokenInfo) {
+      if (this.recipientAmount && this.selectedToken) {
+        this.calculateQuote();
+      }
     }
   }
 

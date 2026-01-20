@@ -1,14 +1,16 @@
 import { css, html, LitElement } from "lit";
 import { customElement, property } from "lit/decorators.js";
 import { t } from "../services/index.ts";
+import type { DonationType } from "./donation-type-toggle.ts";
 
 /**
  * AmountSection - Component for displaying large centered amount input
  * 
  * @element amount-section
- * 
+ *
  * @attr {string} value - Current amount value
  * @attr {string} currencySymbol - Currency symbol to display (default: "$")
+ * @attr {DonationType} donationType - Current donation type (default: "one-time")
  * 
  * @fires amount-change - Fired when amount value changes
  * @fires preset-selected - Fired when preset button is clicked
@@ -30,6 +32,9 @@ export class AmountSection extends LitElement {
 
   @property({ type: String, attribute: "currency-symbol" })
   accessor currencySymbol: string = "$";
+
+  @property({ type: String, attribute: "donation-type" })
+  accessor donationType: DonationType = "one-time";
 
   private readonly presets = [10, 25, 50, 100];
 
@@ -309,6 +314,8 @@ export class AmountSection extends LitElement {
 
   override render() {
     const displayValue = this.value || "";
+    const helperTextKey =
+      this.donationType === "monthly" ? "amount.helper.subscription" : "amount.helper";
 
     return html`
       <div class="amount-section">
@@ -346,7 +353,7 @@ export class AmountSection extends LitElement {
         </div>
 
         <p id="amount-helper" class="helper-text">
-          ${t("amount.helper")}
+          ${t(helperTextKey)}
         </p>
 
         <div class="preset-buttons">

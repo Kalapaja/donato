@@ -1,6 +1,7 @@
 import { css, html, LitElement } from "lit";
 import { customElement, property, state } from "lit/decorators.js";
 import type { Token, Chain } from "../services/ChainService.ts";
+import { getChainNameFromList } from "../services/ChainService.ts";
 import { t, I18nError } from "../services/index.ts";
 
 // Import child components
@@ -195,34 +196,51 @@ export class TokenSelector extends LitElement {
   }
 
   private getChainName(chainId: number): string {
-    const chain = this.chains.find((c) => c.id === chainId);
-    if (chain?.name) {
-      return chain.name;
-    }
-
-    // Known chain names as fallback
-    const knownChains: Record<number, string> = {
-      1: "Ethereum",
-      42161: "Arbitrum",
-      137: "Polygon",
-      56: "BNB Chain",
-      10: "Optimism",
-      8453: "Base",
-      43114: "Avalanche",
-      250: "Fantom",
-    };
-
-    return knownChains[chainId] || `Network ${chainId}`;
+    return getChainNameFromList(chainId, this.chains);
   }
 
   private get filteredTokens(): Token[] {
-    // If no chain is selected, show all tokens
     if (this.currentChainId === null) {
       return this.tokens;
     }
-
-    // Filter tokens by current chain
     return this.tokens.filter((token) => token.chainId === this.currentChainId);
+  }
+
+  private renderButtonContent() {
+    if (this.isLoading) {
+      return html`<span class="loading-text">Loading tokens...</span>`;
+    }
+
+    if (this.error) {
+      const errorText = this.error instanceof I18nError ? t(this.error.i18nKey) : this.error;
+      return html`<span class="error-text">${errorText}</span>`;
+    }
+
+    if (this.selectedToken) {
+      return html`
+        <div class="button-content">
+          ${this.selectedToken.logoURI
+            ? html`
+              <img
+                class="token-logo"
+                src="${this.selectedToken.logoURI}"
+                alt="${this.selectedToken.symbol}"
+                @error="${(e: Event) => {
+                  const img = e.target as HTMLImageElement;
+                  img.style.display = "none";
+                }}"
+              />
+            `
+            : html`<div class="token-logo"></div>`}
+          <div class="token-info">
+            <span class="token-symbol">${this.selectedToken.symbol}</span>
+            <span class="token-chain">${this.getChainName(this.selectedToken.chainId)}</span>
+          </div>
+        </div>
+      `;
+    }
+
+    return html`<span class="placeholder">Select a token</span>`;
   }
 
   override render() {
@@ -235,44 +253,7 @@ export class TokenSelector extends LitElement {
         aria-expanded="${this.isOpen}"
         aria-haspopup="listbox"
       >
-        ${this.isLoading
-          ? html`
-            <span class="loading-text">Loading tokens...</span>
-          `
-          : this.error
-          ? html`
-            <span class="error-text">${this.error instanceof I18nError ? t(this.error.i18nKey) : this.error}</span>
-          `
-          : this.selectedToken
-          ? html`
-            <div class="button-content">
-              ${this.selectedToken.logoURI
-                ? html`
-                  <img
-                    class="token-logo"
-                    src="${this.selectedToken.logoURI}"
-                    alt="${this.selectedToken.symbol}"
-                    @error="${(e: Event) => {
-                      const img = e.target as HTMLImageElement;
-                      img.style.display = "none";
-                    }}"
-                  />
-                `
-                : html`
-                  <div class="token-logo"></div>
-                `}
-              <div class="token-info">
-                <span class="token-symbol">${this.selectedToken.symbol}</span>
-                <span class="token-chain">${this.getChainName(
-                  this.selectedToken.chainId,
-                )}</span>
-              </div>
-            </div>
-          `
-          : html`
-            <span class="placeholder">Select a token</span>
-          `}
-
+        ${this.renderButtonContent()}
         <svg
           class="chevron ${this.isOpen ? "open" : ""}"
           fill="none"
@@ -291,8 +272,7 @@ export class TokenSelector extends LitElement {
 
       ${this.isOpen
         ? html`
-          <div class="dropdown" role="listbox" @click="${this
-            .handleDropdownClick}">
+          <div class="dropdown" role="listbox" @click="${this.handleDropdownClick}">
             <token-list
               .tokens="${this.filteredTokens}"
               .chains="${this.chains}"

@@ -16,6 +16,33 @@ export interface Chain {
   logoURI?: string;
 }
 
+/**
+ * Known chain names as fallback when chain is not in the provided list.
+ * Exported for use by components that receive chains as a property.
+ */
+export const KNOWN_CHAIN_NAMES: Record<number, string> = {
+  1: "Ethereum",
+  42161: "Arbitrum",
+  137: "Polygon",
+  56: "BNB Chain",
+  10: "Optimism",
+  8453: "Base",
+  43114: "Avalanche",
+  250: "Fantom",
+};
+
+/**
+ * Get chain name from a list of chains with fallback to known chain names.
+ * Useful for components that receive chains as a property.
+ */
+export function getChainNameFromList(chainId: number, chains: Chain[]): string {
+  const chain = chains.find((c) => c.id === chainId);
+  if (chain?.name) {
+    return chain.name;
+  }
+  return KNOWN_CHAIN_NAMES[chainId] || `Network ${chainId}`;
+}
+
 export class ChainService {
   private acrossService?: AcrossService;
   private chains: Chain[] = [];
@@ -194,7 +221,6 @@ export class ChainService {
    * Get chain name by ID
    */
   getChainName(chainId: number): string {
-    const chain = this.getChain(chainId);
-    return chain?.name || `Chain ${chainId}`;
+    return getChainNameFromList(chainId, this.chains);
   }
 }

@@ -21,7 +21,9 @@ import { t } from "../services/index.ts";
  * @attr {string} donate-again-text - Custom text for donate again button (optional, default: "Donate Again")
  * @attr {boolean} confetti-enabled - Whether confetti animation is enabled (optional, default: true)
  * @attr {string} confetti-colors - Comma-separated list of hex colors for confetti (optional)
- * 
+ * @attr {boolean} is-subscription - Whether this is a subscription success (optional, default: false)
+ * @attr {string} monthly-amount - Monthly subscription amount in USD (optional)
+ *
  * @fires donate-again - Fired when user clicks the "donate again" button
  * 
  * @example
@@ -77,6 +79,14 @@ export class SuccessState extends LitElement {
   /** Comma-separated list of hex colors for confetti (optional) */
   @property({ type: String, attribute: "confetti-colors" })
   accessor confettiColors: string = "";
+
+  /** Whether this is a subscription success (optional, default: false) */
+  @property({ type: Boolean, attribute: "is-subscription" })
+  accessor isSubscription: boolean = false;
+
+  /** Monthly subscription amount in USD (optional) */
+  @property({ type: String, attribute: "monthly-amount" })
+  accessor monthlyAmount: string = "";
 
   static override styles = css`
     :host {
@@ -302,6 +312,24 @@ export class SuccessState extends LitElement {
    * Render success message with amount interpolation (returns string for text content)
    */
   private renderSuccessMessage(): string {
+    // For subscriptions, use the subscription-specific message
+    if (this.isSubscription) {
+      const subscriptionMessage = this.successMessage || t("success.subscription.message");
+
+      // If monthlyAmount is provided, include it in the message
+      if (this.monthlyAmount) {
+        // Replace {amount} placeholder if present
+        if (subscriptionMessage.includes("{amount}") || subscriptionMessage.includes("{{amount}}")) {
+          return subscriptionMessage.replace(/\{?\{?amount\}?\}?/g, `$${this.monthlyAmount}`);
+        }
+        // Otherwise append the amount info
+        return `${subscriptionMessage} $${this.monthlyAmount}/month`;
+      }
+
+      return subscriptionMessage;
+    }
+
+    // Standard donation message
     let message = this.successMessage || t("success.defaultMessage");
 
     // Interpolate amount if present in message template
@@ -327,7 +355,46 @@ export class SuccessState extends LitElement {
    */
   private renderSuccessMessageHtml() {
     const message = this.renderSuccessMessage();
-    
+
+    // For subscriptions, highlight the monthly amount
+    if (this.isSubscription && this.monthlyAmount) {
+      const amountText = `$${this.monthlyAmount}/month`;
+      const parts = message.split(amountText);
+
+      if (parts.length === 1) {
+        // Try without "/month" suffix
+        const simpleAmountText = `$${this.monthlyAmount}`;
+        const simpleParts = message.split(simpleAmountText);
+
+        if (simpleParts.length === 1) {
+          return html`${message}`;
+        }
+
+        return html`
+          ${simpleParts.map((part, index) => {
+            if (index === simpleParts.length - 1) {
+              return html`${part}`;
+            }
+            return html`
+              ${part}<span class="success-message-amount">${simpleAmountText}</span>
+            `;
+          })}
+        `;
+      }
+
+      return html`
+        ${parts.map((part, index) => {
+          if (index === parts.length - 1) {
+            return html`${part}`;
+          }
+          return html`
+            ${part}<span class="success-message-amount">${amountText}</span>
+          `;
+        })}
+      `;
+    }
+
+    // Standard donation amount highlighting
     if (!this.amount) {
       return html`${message}`;
     }
@@ -338,7 +405,7 @@ export class SuccessState extends LitElement {
 
     // Split message by amount text to highlight it
     const parts = message.split(amountText);
-    
+
     if (parts.length === 1) {
       // Amount not found in message, return as-is
       return html`${message}`;
@@ -387,12 +454,14 @@ export class SuccessState extends LitElement {
           <!-- Amount and Token -->
           <div class="transaction-detail">
             <span class="transaction-detail-label" id="amount-label">${t("success.amount")}</span>
-            <span 
+            <span
               class="transaction-detail-value"
               aria-labelledby="amount-label"
-              aria-label="Donation amount: ${this.amount} ${this.tokenSymbol}"
+              aria-label="${this.isSubscription ? `Monthly subscription: $${this.monthlyAmount}/month` : `Donation amount: ${this.amount} ${this.tokenSymbol}`}"
             >
-              ${this.amount} ${this.tokenSymbol}
+              ${this.isSubscription && this.monthlyAmount
+                ? `$${this.monthlyAmount}/month`
+                : `${this.amount} ${this.tokenSymbol}`}
             </span>
           </div>
 

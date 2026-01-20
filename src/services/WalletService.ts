@@ -9,9 +9,14 @@ import {
 } from "viem";
 import { arbitrum, base, bsc, mainnet, optimism, polygon } from "viem/chains";
 import { createAppKit } from "@reown/appkit";
-import { EthersAdapter } from "@reown/appkit-adapter-ethers";
+import { WagmiAdapter } from "@reown/appkit-adapter-wagmi";
 import type { AppKit } from "@reown/appkit";
 import { BrowserProvider, type Eip1193Provider } from "ethers";
+import {
+  switchChain as wagmiSwitchChain,
+  getWalletClient as wagmiGetWalletClient,
+  type Config as WagmiConfig,
+} from "@wagmi/core";
 
 export interface WalletAccount {
   address: Address;
@@ -32,6 +37,8 @@ type EventCallback<T> = (data: T) => void;
 
 export class WalletService {
   private appKit: AppKit | null = null;
+  private wagmiAdapter: WagmiAdapter | null = null;
+  private wagmiConfig: WagmiConfig | null = null;
   private walletClient: WalletClient | null = null;
   private currentAccount: WalletAccount | null = null;
   private accountChangeCallbacks: Set<EventCallback<WalletAccount>> = new Set();
@@ -101,11 +108,15 @@ export class WalletService {
         throw new Error("No networks configured");
       }
 
-      // Create AppKit instance with Ethers adapter
-      const ethersAdapter = new EthersAdapter();
+      // Create WagmiAdapter for proper chain switching support
+      this.wagmiAdapter = new WagmiAdapter({
+        projectId,
+        networks: this.supportedChains,
+      });
+      this.wagmiConfig = this.wagmiAdapter.wagmiConfig;
 
       this.appKit = createAppKit({
-        adapters: [ethersAdapter],
+        adapters: [this.wagmiAdapter],
         projectId,
         networks: networks as unknown as Parameters<
           typeof createAppKit
@@ -314,11 +325,50 @@ export class WalletService {
   }
 
   /**
-   * Switch to a different network
+   * Get a wallet client configured for a specific chain.
+   * Call this after switchChain to get a fresh client for the target chain.
+   */
+  getWalletClientForChain(chainId: number): WalletClient | null {
+    if (!this.appKit || !this.currentAccount) {
+      return null;
+    }
+
+    try {
+      const provider = this.appKit.getWalletProvider();
+      if (!provider || typeof provider !== "object" || !("request" in provider)) {
+        return null;
+      }
+
+      const chain = this.getViemChain(chainId);
+      if (!chain) {
+        return null;
+      }
+
+      return createWalletClient({
+        account: this.currentAccount.address,
+        chain,
+        transport: custom(provider as Parameters<typeof custom>[0]),
+      });
+    } catch (error) {
+      console.error("Failed to create wallet client for chain:", chainId, error);
+      return null;
+    }
+  }
+
+  /**
+   * Switch to a different network and wait for the switch to complete
+   * Uses wagmi's switchChain for proper integration with AppKit state
    */
   async switchChain(chainId: number): Promise<void> {
-    if (!this.appKit) {
+    if (!this.wagmiConfig) {
       throw new Error("Wallet not connected");
+    }
+
+    // Check if already on the target chain
+    const currentChainId = this.getAccount()?.chainId;
+    if (currentChainId === chainId) {
+      console.log(`Already on chain ${chainId}, skipping switch`);
+      return;
     }
 
     try {
@@ -328,18 +378,48 @@ export class WalletService {
         throw new Error(`Unsupported chain ID: ${chainId}`);
       }
 
-      // Switch network using chainId (AppKit accepts number as caipNetworkId)
-      await this.appKit.switchNetwork(
-        chainId as unknown as Parameters<typeof this.appKit.switchNetwork>[0],
-      );
+      console.log(`Switching from chain ${currentChainId} to ${chainId} via wagmi...`);
 
-      // Update wallet client with new chain
+      // Use wagmi's switchChain which properly waits for the switch to complete
+      // and updates the internal state
+      await wagmiSwitchChain(this.wagmiConfig, { chainId });
+
+      console.log(`Successfully switched to chain ${chainId}`);
+
+      // Update internal state after successful switch
       if (this.currentAccount) {
+        this.currentAccount = { ...this.currentAccount, chainId };
         this.updateWalletClient(this.currentAccount.address, chainId);
       }
     } catch (error: unknown) {
       console.error("Failed to switch chain:", error);
+
+      // Check for user rejection
+      if (error && typeof error === "object" && "code" in error &&
+          ((error as { code: number }).code === 4001 || (error as { code: number }).code === -32000)) {
+        throw new Error("Chain switch was rejected by user");
+      }
+
       throw new Error(`Failed to switch to network ${chainId}`);
+    }
+  }
+
+  /**
+   * Get a wagmi wallet client for a specific chain (async version)
+   * This uses wagmi's getWalletClient which properly handles chain-specific clients
+   */
+  async getWalletClientForChainAsync(chainId: number): Promise<WalletClient | null> {
+    if (!this.wagmiConfig) {
+      console.error("wagmiConfig not available");
+      return null;
+    }
+
+    try {
+      const client = await wagmiGetWalletClient(this.wagmiConfig, { chainId });
+      return client as WalletClient;
+    } catch (error) {
+      console.error("Failed to get wallet client for chain:", chainId, error);
+      return null;
     }
   }
 
@@ -687,6 +767,83 @@ export class WalletService {
       }
 
       throw new Error("Failed to sign message. Please try again.");
+    }
+  }
+
+  /**
+   * Sign EIP-712 typed data
+   * @param domain - The EIP-712 domain
+   * @param types - The type definitions
+   * @param primaryType - The primary type name
+   * @param message - The message data to sign
+   * @returns The signature as a hex string
+   */
+  async signTypedData<
+    TTypes extends Record<string, Array<{ name: string; type: string }>>,
+    TPrimaryType extends keyof TTypes
+  >(params: {
+    domain: {
+      name?: string;
+      version?: string;
+      chainId?: number;
+      verifyingContract?: Address;
+      salt?: `0x${string}`;
+    };
+    types: TTypes;
+    primaryType: TPrimaryType;
+    message: Record<string, unknown>;
+  }, chainId?: number): Promise<`0x${string}`> {
+    console.log("[WalletService] signTypedData called:", { chainId, hasCurrentAccount: !!this.currentAccount });
+
+    if (!this.currentAccount) {
+      throw new Error("Wallet not connected");
+    }
+
+    // Get wallet client for specific chain if chainId is provided
+    // Use async wagmi wallet client for proper chain-specific signing
+    let walletClient: WalletClient | null;
+    if (chainId) {
+      walletClient = await this.getWalletClientForChainAsync(chainId);
+    } else {
+      walletClient = this.walletClient;
+    }
+
+    console.log("[WalletService] walletClient obtained:", { hasWalletClient: !!walletClient, chainId });
+
+    if (!walletClient) {
+      throw new Error("Wallet client not available");
+    }
+
+    try {
+      console.log("[WalletService] Requesting signature from wallet...");
+      // Using type assertion to work around viem's strict EIP-712 typing
+      // The types are validated at runtime by the wallet
+      const signature = await walletClient.signTypedData({
+        account: this.currentAccount.address,
+        domain: params.domain,
+        types: params.types,
+        primaryType: params.primaryType,
+        message: params.message,
+      // deno-lint-ignore no-explicit-any
+      } as any);
+
+      return signature;
+    } catch (error: unknown) {
+      console.error("Failed to sign typed data:", error);
+
+      // Check for user rejection (error code 4001)
+      if (
+        error instanceof Error &&
+        (error.message?.includes("User rejected") ||
+          error.message?.includes("user rejected") ||
+          (error as { code?: number }).code === 4001)
+      ) {
+        const rejectionError = new Error("Signature was rejected by user");
+        (rejectionError as { code?: number }).code = 4001;
+        throw rejectionError;
+      }
+
+      throw new Error("Failed to sign data. Please try again.");
     }
   }
 

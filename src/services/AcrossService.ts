@@ -1,5 +1,12 @@
+import type { Address } from "viem";
 import type { WalletService } from "./WalletService.ts";
 import { I18nError, type ErrorKey } from "./I18nError.ts";
+import type { SubscriptionSignatureData } from "./azoth-pay-service.ts";
+import {
+  AZOTH_PAY_ADDRESS,
+  MULTICALL_HANDLER_ADDRESS,
+  POLYGON_USDC_ADDRESS,
+} from "../constants/azoth-pay.ts";
 
 /**
  * Configuration for AcrossService
@@ -74,6 +81,36 @@ export interface AcrossToken {
   name: string;
   decimals: number;
   logoURI?: string;
+}
+
+/**
+ * Argument for an Across action
+ * Can be either a static value or dynamically populated by Across
+ */
+export interface AcrossActionArg {
+  /** The argument value (string, boolean, or nested object for tuples) */
+  value: string | boolean | Record<string, unknown>;
+  /** If true, Across will populate this with the actual received token amount */
+  populateDynamically: boolean;
+  /** Token address for balance-based dynamic population */
+  balanceSourceToken?: Address;
+}
+
+/**
+ * An action to be executed on the destination chain via MulticallHandler
+ * Actions are executed atomically after the cross-chain transfer completes
+ */
+export interface AcrossAction {
+  /** Contract address to call */
+  target: Address;
+  /** Human-readable function signature (e.g., "function approve(address spender, uint256 value)") */
+  functionSignature: string;
+  /** Array of arguments for the function call */
+  args: AcrossActionArg[];
+  /** ETH value to send with the call (usually "0") */
+  value: string;
+  /** Whether this is a native ETH transfer (not a contract call) */
+  isNativeTransfer: boolean;
 }
 
 /**
@@ -675,5 +712,211 @@ export class AcrossService {
       message.includes("user cancelled") ||
       message.includes("user canceled")
     );
+  }
+
+  /**
+   * Build subscription actions for MulticallHandler
+   *
+   * Creates an array of three actions that will be executed atomically
+   * on the destination chain (Polygon) after the cross-chain transfer:
+   *
+   * 1. Approve USDC to AzothPay contract
+   * 2. Deposit USDC for the user into AzothPay balance
+   * 3. Execute bySig to create the subscription
+   *
+   * @param signatureData - Subscription signature data from AzothPayService
+   * @returns Array of 3 AcrossAction objects in execution order
+   */
+  buildSubscriptionActions(signatureData: SubscriptionSignatureData): AcrossAction[] {
+    // Action 1: Approve USDC to AzothPay
+    // The amount will be dynamically populated by Across with the actual received amount
+    const approveAction: AcrossAction = {
+      target: POLYGON_USDC_ADDRESS,
+      functionSignature: "function approve(address spender, uint256 value)",
+      args: [
+        {
+          value: AZOTH_PAY_ADDRESS,
+          populateDynamically: false,
+        },
+        {
+          value: "0",
+          populateDynamically: true,
+          balanceSourceToken: POLYGON_USDC_ADDRESS,
+        },
+      ],
+      value: "0",
+      isNativeTransfer: false,
+    };
+
+    // Action 2: Deposit USDC for user into AzothPay
+    // The amount will be dynamically populated, user address is static
+    const depositForAction: AcrossAction = {
+      target: AZOTH_PAY_ADDRESS,
+      functionSignature: "function depositFor(uint256 amount, address to, bool isPermit2)",
+      args: [
+        {
+          value: "0",
+          populateDynamically: true,
+          balanceSourceToken: POLYGON_USDC_ADDRESS,
+        },
+        {
+          value: signatureData.userAddress,
+          populateDynamically: false,
+        },
+        {
+          value: false,
+          populateDynamically: false,
+        },
+      ],
+      value: "0",
+      isNativeTransfer: false,
+    };
+
+    // Action 3: Execute bySig to create the subscription
+    // All values are static from the signature data
+    const bySigAction: AcrossAction = {
+      target: AZOTH_PAY_ADDRESS,
+      functionSignature: "function bySig(address signer, (uint256 traits, bytes data) sig, bytes signature)",
+      args: [
+        {
+          value: signatureData.userAddress,
+          populateDynamically: false,
+        },
+        {
+          value: {
+            traits: signatureData.traits.toString(),
+            data: signatureData.subscribeData,
+          },
+          populateDynamically: false,
+        },
+        {
+          value: signatureData.signature,
+          populateDynamically: false,
+        },
+      ],
+      value: "0",
+      isNativeTransfer: false,
+    };
+
+    return [approveAction, depositForAction, bySigAction];
+  }
+
+  /**
+   * Get a quote with actions for subscription flow
+   *
+   * Similar to getQuote, but sends actions to be executed on the destination chain.
+   * The recipient is automatically set to MULTICALL_HANDLER_ADDRESS, which will
+   * execute the actions atomically after the cross-chain transfer.
+   *
+   * @param params - Quote parameters (recipient will be overridden to MulticallHandler)
+   * @param actions - Array of actions to execute on destination chain
+   * @returns Quote with swap transaction and optional approval transactions
+   */
+  async getQuoteWithActions(
+    params: AcrossQuoteParams,
+    actions: AcrossAction[]
+  ): Promise<AcrossQuote> {
+    // Validate input parameters
+    if (!params.inputAmount || params.inputAmount === "0") {
+      throw new I18nError("error.invalidParams");
+    }
+
+    // Validate inputAmount is a valid positive integer string
+    if (!/^\d+$/.test(params.inputAmount) || BigInt(params.inputAmount) <= 0n) {
+      throw new I18nError("error.invalidParams");
+    }
+
+    // Validate addresses
+    if (!this.isValidAddress(params.depositor)) {
+      throw new I18nError("error.invalidParams");
+    }
+
+    if (!this.isValidAddress(params.recipient)) {
+      throw new I18nError("error.invalidParams");
+    }
+
+    if (!this.isValidAddress(params.inputToken)) {
+      throw new I18nError("error.invalidParams");
+    }
+
+    // Validate chain ID is a positive number
+    if (!Number.isInteger(params.originChainId) || params.originChainId <= 0) {
+      throw new I18nError("error.invalidParams");
+    }
+
+    // Validate actions array
+    if (!actions || actions.length === 0) {
+      throw new I18nError("error.invalidParams");
+    }
+
+    // Build query parameters - recipient is MULTICALL_HANDLER for action execution
+    const queryParams = new URLSearchParams({
+      tradeType: "minOutput",
+      amount: params.inputAmount,
+      inputToken: params.inputToken,
+      outputToken: AcrossService.POLYGON_USDC,
+      originChainId: params.originChainId.toString(),
+      destinationChainId: AcrossService.POLYGON_CHAIN_ID.toString(),
+      depositor: params.depositor,
+      recipient: MULTICALL_HANDLER_ADDRESS,
+    });
+
+    const url = `${this.baseUrl}/swap/approval?${queryParams.toString()}`;
+
+    try {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), this.FETCH_TIMEOUT);
+
+      let response: Response;
+      try {
+        response = await fetch(url, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ actions }),
+          signal: controller.signal,
+        });
+      } finally {
+        clearTimeout(timeoutId);
+      }
+
+      if (!response.ok) {
+        await this.handleApiError(response);
+      }
+
+      let rawData: unknown;
+      try {
+        rawData = await response.json();
+      } catch (jsonError) {
+        console.error("Failed to parse JSON response from Across API:", jsonError);
+        throw new I18nError("error.networkConnection");
+      }
+
+      // Type cast after successful parsing
+      const data = rawData as Record<string, unknown>;
+
+      // Parse API response into AcrossQuote object
+      const quote: AcrossQuote = {
+        expectedOutputAmount: (data.expectedOutputAmount as string) || "0",
+        minOutputAmount: (data.minOutputAmount as string) || "0",
+        inputAmount: (data.inputAmount as string) || params.inputAmount,
+        expectedFillTime: (data.expectedFillTime as number) || 0,
+        fees: this.parseFees(data.fees),
+        swapTx: this.parseTransactionData(data.swapTx),
+        approvalTxns: this.parseApprovalTransactions(data.approvalTxns),
+        depositId: data.id as string | undefined,
+        originChainId: params.originChainId,
+        destinationChainId: AcrossService.POLYGON_CHAIN_ID,
+      };
+
+      return quote;
+    } catch (error) {
+      // Re-throw if already a handled error (including i18n keys)
+      if (error instanceof Error) {
+        throw error;
+      }
+      throw new I18nError("error.networkConnection");
+    }
   }
 }

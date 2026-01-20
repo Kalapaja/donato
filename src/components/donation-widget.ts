@@ -15,6 +15,7 @@ import type { Theme, ThemeMode } from "../services/ThemeService.ts";
 import type { Address } from "viem";
 import type { Locale } from "../services/I18nService.ts";
 import { translations } from "../i18n/index.ts";
+import type { DonationType } from "./donation-type-toggle.ts";
 
 // Import child components
 import "./amount-section.ts";
@@ -25,7 +26,10 @@ import "./donation-form.ts";
 import "./success-state.ts";
 import "./theme-toggle.ts";
 import "./toast-container.ts";
+import "./donation-type-toggle.ts";
+import "./subscription-explainer-overlay.ts";
 import type { ToastContainer } from "./toast-container.ts";
+import type { SubscriptionStep } from "./subscription-explainer-overlay.ts";
 
 /**
  * Flow step enum for donation widget state machine
@@ -55,8 +59,12 @@ export enum FlowStep {
  * @attr {boolean} confetti-enabled - Whether confetti animation is enabled (default: true)
  * @attr {string} confetti-colors - Comma-separated list of hex colors for confetti (e.g., "#ff0000,#00ff00,#0000ff")
  * @attr {string} default-amount - Default donation amount to pre-fill (e.g., "25")
+ * @attr {boolean} subscription-disabled - When true, hides the donation type toggle and disables subscriptions (default: false)
+ * @attr {string} subscription-target - Target address for subscriptions. If not set, uses recipient address
+ * @attr {number} project-id - Project ID for AzothPay subscription (default: 0)
  *
  * @fires donation-completed - Fired when donation succeeds
+ * @fires subscription-created - Fired when subscription is created successfully
  * @fires donation-failed - Fired when donation fails
  *
  * @example
@@ -133,6 +141,19 @@ export class DonationWidget extends LitElement {
   @property({ type: String, attribute: "locale" })
   accessor locale: string = "";
 
+  // Subscription properties
+  /** When true, hides the donation type toggle and disables subscriptions */
+  @property({ type: Boolean, attribute: "subscription-disabled" })
+  accessor subscriptionDisabled: boolean = false;
+
+  /** Target address for subscriptions. If not set, uses recipient address */
+  @property({ type: String, attribute: "subscription-target" })
+  accessor subscriptionTarget: string = "";
+
+  /** Project ID for AzothPay subscription */
+  @property({ type: Number, attribute: "project-id" })
+  accessor projectId: number = 0;
+
   // Internal state
   @state()
   private accessor currentLocale: Locale = "en";
@@ -171,6 +192,9 @@ export class DonationWidget extends LitElement {
   private accessor isLoadingTokens: boolean = false;
 
   @state()
+  private accessor recipientTokenInfo: Token | null = null;
+
+  @state()
   private accessor showSuccessState: boolean = false;
 
   @state()
@@ -179,10 +203,37 @@ export class DonationWidget extends LitElement {
     tokenSymbol: string;
     chainName: string;
     timestamp: number;
+    isSubscription?: boolean;
+    monthlyAmount?: string;
   } | null = null;
 
   @state()
   private accessor isDirectTransfer: boolean = false;
+
+  // Subscription state
+  @state()
+  private accessor donationType: DonationType = "one-time";
+
+  @state()
+  private accessor isSubscriptionFlow: boolean = false;
+
+  @state()
+  private accessor subscriptionMonthlyAmount: string = "";
+
+  // Subscription explainer overlay state
+  @state()
+  private accessor showSubscriptionOverlay: boolean = false;
+
+  @state()
+  private accessor subscriptionProgressStep: SubscriptionStep = "idle";
+
+  /**
+   * Get the effective subscription target address.
+   * Returns subscriptionTarget if set, otherwise falls back to recipient.
+   */
+  get effectiveSubscriptionTarget(): Address {
+    return (this.subscriptionTarget || this.recipient) as Address;
+  }
 
   // Flow state
   @state()
@@ -262,6 +313,7 @@ export class DonationWidget extends LitElement {
       box-sizing: border-box;
       container-type: inline-size;
       container-name: donation-widget;
+      position: relative;
     }
 
     :host(.dark) .widget-container {
@@ -716,6 +768,14 @@ export class DonationWidget extends LitElement {
       try {
         // Get tokens from chain service
         this.availableTokens = this.chainService.getAllTokens();
+
+        // Load recipient token info
+        this.recipientTokenInfo = this.chainService.getToken(
+          this.recipientChainId,
+          this.recipientTokenAddress
+        ) || null;
+
+        console.log("[donation-widget] loadTokens: recipientTokenInfo loaded:", this.recipientTokenInfo?.symbol);
       } catch (error) {
         console.error("Failed to load tokens:", error);
         // Fallback to empty array if something goes wrong
@@ -798,6 +858,13 @@ export class DonationWidget extends LitElement {
       if (detectedLocale !== this.currentLocale) {
         i18nService.setLocale(detectedLocale);
         this.currentLocale = detectedLocale;
+      }
+    }
+
+    // Handle subscriptionTarget changes - validate if provided
+    if (changedProperties.has("subscriptionTarget")) {
+      if (this.subscriptionTarget && !this.isValidAddress(this.subscriptionTarget)) {
+        console.warn("Invalid subscription target address:", this.subscriptionTarget);
       }
     }
   }
@@ -955,6 +1022,26 @@ export class DonationWidget extends LitElement {
     }
 
     /**
+     * Handle donation type toggle change
+     */
+    private handleDonationTypeChange(event: CustomEvent<{ type: DonationType }>) {
+      this.donationType = event.detail.type;
+      this.isSubscriptionFlow = event.detail.type === "monthly";
+    }
+
+    /**
+     * Handle subscription progress update
+     * Shows overlay when subscription process starts and updates the current step
+     */
+    private handleSubscriptionProgress(event: CustomEvent<{ step: SubscriptionStep }>) {
+      this.subscriptionProgressStep = event.detail.step;
+      // Show overlay when subscription process starts (any non-idle step)
+      if (event.detail.step !== "idle") {
+        this.showSubscriptionOverlay = true;
+      }
+    }
+
+    /**
      * Handle wallet connect click - wallet-connect-card already handles opening modal
      * This handler is for any additional logic needed
      */
@@ -1018,16 +1105,21 @@ export class DonationWidget extends LitElement {
     }
 
     /**
-     * Handle donate button click - trigger transaction
+     * Handle donate button click - trigger transaction via donation-form
      */
     private handleDonateClick() {
       if (!this.quote || this.isDonating) {
         return;
       }
 
-      // Trigger donation - use existing handleDonate which executes the transaction
-      // donation-form handles quote calculation and emits donation-completed when done
-      this.handleDonate(new CustomEvent("donate", { detail: this.quote }));
+      // Find donation-form and trigger its donate handler
+      // donation-form has the logic for both regular donations and subscriptions
+      const donationForm = this.shadowRoot?.querySelector("donation-form") as HTMLElement & { handleDonate?: () => void };
+      if (donationForm && typeof donationForm.handleDonate === "function") {
+        donationForm.handleDonate();
+      } else {
+        console.error("donation-form not found or handleDonate not available");
+      }
     }
 
     private handleNetworkSwitch(event: CustomEvent<{ chainId: number }>) {
@@ -1077,6 +1169,26 @@ export class DonationWidget extends LitElement {
     }
 
     /**
+     * Handle donation initiated event from donation-form
+     */
+    private handleDonationInitiated() {
+      this.isDonating = true;
+      this.error = null;
+    }
+
+    /**
+     * Handle donation failed event from donation-form
+     */
+    private handleDonationFailed(event: CustomEvent<{ error: string }>) {
+      this.isDonating = false;
+      this.error = event.detail.error;
+
+      // Hide subscription overlay on failure
+      this.showSubscriptionOverlay = false;
+      this.subscriptionProgressStep = "idle";
+    }
+
+    /**
      * Handle donation completed event from donation-form
      */
     private handleDonationCompleted(event: CustomEvent<{
@@ -1085,6 +1197,9 @@ export class DonationWidget extends LitElement {
       recipient: string;
     }>) {
       const { amount, token, recipient } = event.detail;
+
+      // Reset donating state
+      this.isDonating = false;
 
       if (!token) {
         console.warn("Donation completed but no token information available");
@@ -1123,6 +1238,49 @@ export class DonationWidget extends LitElement {
     }
 
     /**
+     * Handle subscription created event from donation-form
+     */
+    private handleSubscriptionCreated(event: CustomEvent<{
+      transactionHash: string;
+      monthlyAmountUsd: string;
+      subscriptionTarget: string;
+      projectId: number;
+      originChainId: number;
+      originToken: Token | null;
+    }>) {
+      const { monthlyAmountUsd } = event.detail;
+
+      // Reset donating state
+      this.isDonating = false;
+
+      // Hide subscription overlay
+      this.showSubscriptionOverlay = false;
+      this.subscriptionProgressStep = "idle";
+
+      // Get chain name for Polygon (destination chain for subscriptions)
+      const chainName = this.chainService.getChainName(AcrossService.POLYGON_CHAIN_ID);
+
+      // Set success data with subscription information
+      this.successData = {
+        amount: monthlyAmountUsd,
+        tokenSymbol: "USDC",
+        chainName,
+        timestamp: Date.now(),
+        isSubscription: true,
+        monthlyAmount: monthlyAmountUsd,
+      };
+
+      // Store subscription monthly amount for state tracking
+      this.subscriptionMonthlyAmount = monthlyAmountUsd;
+
+      // Show success state
+      this.showSuccessState = true;
+
+      // Re-dispatch subscription-created event for external listeners (already bubbles from donation-form)
+      // The event from donation-form already bubbles with composed: true, so external listeners will receive it
+    }
+
+    /**
      * Handle donate again button click
      */
     private handleDonateAgain() {
@@ -1138,6 +1296,11 @@ export class DonationWidget extends LitElement {
       this.isDonating = false;
       this.isQuoteLoading = false;
       this.isDirectTransfer = false;
+
+      // Reset subscription state
+      this.donationType = "one-time";
+      this.isSubscriptionFlow = false;
+      this.subscriptionMonthlyAmount = "";
     }
 
     private async handleDonate(event: CustomEvent<AcrossQuote>) {
@@ -1307,10 +1470,14 @@ export class DonationWidget extends LitElement {
                 chain-name="${this.successData.chainName}"
                 timestamp="${this.successData.timestamp}"
                 recipient-address="${this.recipient}"
-                success-message="${this.successMessage || t("success.defaultMessage")}"
+                success-message="${this.successData.isSubscription
+                  ? (this.successMessage || t("success.subscription.message"))
+                  : (this.successMessage || t("success.defaultMessage"))}"
                 donate-again-text="${this.donateAgainText || t("success.donateAgain")}"
                 ?confetti-enabled="${this.confettiEnabled}"
                 confetti-colors="${this.confettiColors}"
+                ?is-subscription="${this.successData.isSubscription || false}"
+                monthly-amount="${this.successData.monthlyAmount || ""}"
                 @donate-again="${this.handleDonateAgain}"
               ></success-state>
             `
@@ -1319,8 +1486,16 @@ export class DonationWidget extends LitElement {
               <amount-section
                 value="${this.recipientAmount}"
                 currency-symbol="${this.recipientTokenSymbol || this.getRecipientTokenSymbol()}"
+                donation-type="${this.donationType}"
                 @amount-change="${this.handleAmountChange}"
               ></amount-section>
+
+              <!-- DonationTypeToggle: Toggle between one-time and monthly donations -->
+              <donation-type-toggle
+                .value="${this.donationType}"
+                ?disabled="${this.subscriptionDisabled}"
+                @donation-type-changed="${this.handleDonationTypeChange}"
+              ></donation-type-toggle>
 
               <!-- WalletConnectCard: Show when wallet not connected (always visible) -->
               ${!this.isWalletConnected()
@@ -1413,7 +1588,7 @@ export class DonationWidget extends LitElement {
                       <donate-button
                         .amount="${this.getEquivalentAmount().split(" ")[0] || ""}"
                         .tokenSymbol="${this.selectedToken.symbol}"
-                        ?disabled="${!isFullyConfigured || this.isDonating || this.isQuoteLoading}"
+                        ?disabled="${!isFullyConfigured || this.isDonating || this.isQuoteLoading || !this.quote}"
                         ?loading="${this.isDonating}"
                         ?calculating="${this.isQuoteLoading}"
                         @donate-click="${this.handleDonateClick}"
@@ -1428,6 +1603,7 @@ export class DonationWidget extends LitElement {
                 .recipient="${this.recipient}"
                 .recipientChainId="${this.recipientChainId}"
                 .recipientTokenAddress="${this.recipientTokenAddress}"
+                .recipientTokenInfo="${this.recipientTokenInfo}"
                 .walletService="${this.walletService}"
                 .acrossService="${this.acrossService}"
                 .chainService="${this.chainService}"
@@ -1435,13 +1611,25 @@ export class DonationWidget extends LitElement {
                 .selectedToken="${this.selectedToken}"
                 .isDonating="${this.isDonating}"
                 .disabled="${!isFullyConfigured}"
+                donation-type="${this.donationType}"
+                subscription-target="${this.effectiveSubscriptionTarget}"
+                project-id="${this.projectId}"
                 recipient-amount="${this.recipientAmount}"
                 @amount-changed="${this.handleAmountChange}"
                 @quote-updated="${this.handleQuoteUpdate}"
                 @route-update="${this.handleRouteUpdate}"
+                @donation-initiated="${this.handleDonationInitiated}"
                 @donation-completed="${this.handleDonationCompleted}"
-                @donate="${this.handleDonate}"
+                @donation-failed="${this.handleDonationFailed}"
+                @subscription-created="${this.handleSubscriptionCreated}"
+                @subscription-progress="${this.handleSubscriptionProgress}"
               ></donation-form>
+
+              <!-- Subscription Explainer Overlay -->
+              <subscription-explainer-overlay
+                ?visible="${this.showSubscriptionOverlay}"
+                current-step="${this.subscriptionProgressStep}"
+              ></subscription-explainer-overlay>
             `}
 
         <div class="footer">
@@ -1490,6 +1678,13 @@ export class DonationWidget extends LitElement {
         isInitialized: this.isInitialized,
         isDonating: this.isDonating,
         error: this.error,
+        // Subscription state
+        donationType: this.donationType,
+        isSubscriptionFlow: this.isSubscriptionFlow,
+        subscriptionDisabled: this.subscriptionDisabled,
+        subscriptionTarget: this.subscriptionTarget,
+        effectiveSubscriptionTarget: this.effectiveSubscriptionTarget,
+        projectId: this.projectId,
       };
     }
 
@@ -1504,6 +1699,10 @@ export class DonationWidget extends LitElement {
       this.isDonating = false;
       this.showSuccessState = false;
       this.successData = null;
+      // Reset subscription state
+      this.donationType = "one-time";
+      this.isSubscriptionFlow = false;
+      this.subscriptionMonthlyAmount = "";
     }
   }
 
