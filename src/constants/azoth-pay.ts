@@ -4,7 +4,7 @@ import type { Address } from "viem";
  * AzothPay contract address on Polygon
  */
 export const AZOTH_PAY_ADDRESS: Address =
-  "0x574DeD69a731B5e19e1dD6861D1Cc33cfE7dB45c";
+  "0x2D69c25c7d37FdEC82C39c90fD0F3D2460ccBa9A";
 
 /**
  * MulticallHandler contract address for Across Protocol on Polygon
@@ -109,6 +109,19 @@ export const AZOTH_ABI = [
       { name: "signature", type: "bytes" },
     ],
     outputs: [],
+  },
+  {
+    name: "subscriptions",
+    type: "function",
+    stateMutability: "view",
+    inputs: [
+      { name: "from", type: "address" },
+      { name: "to", type: "address" },
+    ],
+    outputs: [
+      { name: "", type: "bool" },
+      { name: "encodedRates", type: "uint256" },
+    ],
   },
 ] as const;
 

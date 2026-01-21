@@ -17,6 +17,7 @@ export const en: Translations = {
   "amount.tooltip": "Any token, any chain — auto-converted",
   "amount.helper": "How much would you like to donate?",
   "amount.helper.subscription": "Monthly subscription amount",
+  "subscription.duration.estimate": "Estimated duration based on deposit",
   "amount.ariaLabel": "Donation amount",
   "amount.presetAriaLabel": "Set amount to {currency}{amount}",
 
@@ -118,5 +119,55 @@ export const en: Translations = {
   "subscription.step.subscribing.desc": "Please confirm the transaction",
   "subscription.step.confirming": "Waiting for Confirmation",
   "subscription.step.confirming.desc": "Transaction submitted, waiting for confirmation",
+
+  // Subscription setup screen
+  "subscription.setup.title": "How Subscriptions Work",
+  "subscription.setup.subtitle": "Your subscription uses streaming payments on Polygon",
+  "subscription.setup.step1.title": "Sign Permission",
+  "subscription.setup.step1.description": "You'll sign a message authorizing the subscription. This doesn't send any transaction.",
+  "subscription.setup.step2.title": "Make Deposit",
+  "subscription.setup.step2.description": "Funds are deposited to your AzothPay balance. You control these funds.",
+  "subscription.setup.step3.title": "Start Streaming",
+  "subscription.setup.step3.description": "Payments stream automatically each second from your balance.",
+  "subscription.setup.depositLabel": "How many months to deposit?",
+  "subscription.setup.month": "month",
+  "subscription.setup.months": "months",
+  "subscription.setup.monthlyPayment": "Monthly payment",
+  "subscription.setup.totalDeposit": "Total deposit",
+  "subscription.setup.refundNotice": "Unused funds can be withdrawn anytime through Papaya Finance.",
+  "subscription.setup.back": "Back",
+  "subscription.setup.continue": "Continue",
+
+  // Subscription progress screen
+  "subscription.progress.title": "Creating Subscription",
+  "subscription.progress.subtitle": "Please follow the prompts in your wallet",
+  "subscription.progress.monthlyAmount": "Monthly",
+  "subscription.progress.depositAmount": "Deposit",
+  "subscription.progress.retry": "Try Again",
+  "subscription.progress.switching": "Switching to Polygon",
+  "subscription.progress.switching.desc": "Subscriptions work on the Polygon network",
+  "subscription.progress.signing": "Signing Permission",
+  "subscription.progress.signing.desc": "This signature authorizes the subscription without sending a transaction",
+  "subscription.progress.building": "Preparing Transaction",
+  "subscription.progress.building.desc": "Building the cross-chain transfer data",
+  "subscription.progress.returning": "Switching Back",
+  "subscription.progress.returning.desc": "Returning to your original network to pay",
+  "subscription.progress.quoting": "Getting Quote",
+  "subscription.progress.quoting.desc": "Calculating the best conversion rate",
+  "subscription.progress.approving": "Approving Token",
+  "subscription.progress.approving.desc": "Allow the protocol to use your tokens for the swap",
+  "subscription.progress.subscribing": "Confirming Transaction",
+  "subscription.progress.subscribing.desc": "This transaction will create your subscription",
+  "subscription.progress.confirming": "Waiting for Confirmation",
+  "subscription.progress.confirming.desc": "Transaction submitted, waiting for blockchain confirmation",
+
+  // Success screen - subscription management
+  "success.subscription.manageText": "Manage your subscription anytime",
+  "success.subscription.manageLink": "Open Papaya Finance",
+  "success.subscription.cancelHint": "You can cancel and withdraw remaining funds at any time",
+
+  // Existing subscription indicator
+  "subscription.existing.message": "Already subscribed (${amount}/mo)",
+  "subscription.existing.manage": "Manage on Papaya Finance",
 };
 

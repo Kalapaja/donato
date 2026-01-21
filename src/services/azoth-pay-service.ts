@@ -46,6 +46,16 @@ export interface SubscriptionSignatureData {
 }
 
 /**
+ * Information about an existing subscription
+ */
+export interface ExistingSubscriptionInfo {
+  /** Whether a subscription exists */
+  exists: boolean;
+  /** Human-readable monthly amount (e.g., "10.00") */
+  monthlyAmount: string;
+}
+
+/**
  * Parameters required to create a subscription signature
  */
 export interface SubscriptionParams {
@@ -158,6 +168,61 @@ export class AzothPayService {
     });
 
     return Number(result);
+  }
+
+  /**
+   * Check if an existing subscription exists between two addresses
+   *
+   * Reads the subscriptions mapping from the AzothPay contract and decodes
+   * the subscription rate to calculate the monthly amount.
+   *
+   * @param fromAddress - The subscriber's wallet address
+   * @param toAddress - The subscription recipient's address
+   * @returns ExistingSubscriptionInfo containing exists flag and monthly amount
+   */
+  async checkExistingSubscription(
+    fromAddress: Address,
+    toAddress: Address
+  ): Promise<ExistingSubscriptionInfo> {
+    try {
+      // Read subscription data from contract
+      const result = await this.publicClient.readContract({
+        address: AZOTH_PAY_ADDRESS,
+        abi: AZOTH_ABI,
+        functionName: "subscriptions",
+        args: [fromAddress, toAddress],
+      });
+
+      const [exists, encodedRates] = result as [boolean, bigint];
+
+      if (!exists) {
+        return { exists: false, monthlyAmount: "0" };
+      }
+
+      // Get decimals for proper formatting
+      const decimals = await this.getDecimals();
+
+      // Extract rate from encodedRates (lower 96 bits contain the rate per second)
+      // The rate is stored in the lower 96 bits of the encodedRates uint256
+      const rateMask = (1n << 96n) - 1n;
+      const ratePerSecond = encodedRates & rateMask;
+
+      // Convert rate/second to monthly amount
+      // monthlyAmount = ratePerSecond * SECONDS_PER_MONTH / 10^decimals
+      const monthlyAmountRaw = ratePerSecond * SECONDS_PER_MONTH;
+      const divisor = 10n ** BigInt(decimals);
+      const monthlyAmountWhole = monthlyAmountRaw / divisor;
+      const monthlyAmountFraction = monthlyAmountRaw % divisor;
+
+      // Format with 2 decimal places
+      const fractionStr = monthlyAmountFraction.toString().padStart(decimals, "0").slice(0, 2);
+      const monthlyAmount = `${monthlyAmountWhole}.${fractionStr}`;
+
+      return { exists: true, monthlyAmount };
+    } catch (error) {
+      console.error("Failed to check existing subscription:", error);
+      return { exists: false, monthlyAmount: "0" };
+    }
   }
 
   /**

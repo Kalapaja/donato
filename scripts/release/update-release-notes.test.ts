@@ -27,27 +27,28 @@ Deno.test("update-release-notes - generates embed code correctly", () => {
   const version = "1.0.0";
   const integrity = "sha384-abc123";
   const cdnDomain = "cdn.example.com";
-  
+
   const embedCode = `\`\`\`html
-<script 
+<script
   src="https://${cdnDomain}/donation-widget.v${version}.js"
   integrity="${integrity}"
   crossorigin="anonymous"
 ></script>
 
+<!-- Recipients receive USDC on Polygon -->
 <donation-widget
   recipient="0x..."
-  recipient-chain-id="1"
-  recipient-token-address="0x..."
+  reown-project-id="YOUR_PROJECT_ID"
   theme="light"
 ></donation-widget>
 \`\`\``;
-  
+
   // Verify structure
   assertEquals(embedCode.includes(version), true);
   assertEquals(embedCode.includes(integrity), true);
   assertEquals(embedCode.includes(cdnDomain), true);
   assertEquals(embedCode.includes('crossorigin="anonymous"'), true);
+  assertEquals(embedCode.includes('reown-project-id'), true);
 });
 
 Deno.test("update-release-notes - calculates file size correctly", () => {

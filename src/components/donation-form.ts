@@ -9,7 +9,7 @@ import { t } from "../services/I18nService.ts";
 import { AzothPayService, POLYGON_CHAIN_ID } from "../services/azoth-pay-service.ts";
 import type { Address } from "viem";
 import type { DonationType } from "./donation-type-toggle.ts";
-import type { SubscriptionStep } from "./subscription-explainer-overlay.ts";
+import type { SubscriptionStep } from "./subscription-progress-screen.ts";
 import "./amount-input.ts";
 import "./donate-button.ts";
 
@@ -17,13 +17,6 @@ import "./donate-button.ts";
 export class DonationForm extends LitElement {
   @property({ type: String })
   accessor recipient!: string;
-
-  @property({ type: Number })
-  accessor recipientChainId: number = 42161;
-
-  @property({ type: String })
-  accessor recipientTokenAddress: string =
-    "0xaf88d065e77c8cC2239327C5EDb3A432268e5831";
 
   @property({ type: Object })
   accessor walletService!: WalletService;
@@ -104,10 +97,6 @@ export class DonationForm extends LitElement {
     }
   `;
 
-  override connectedCallback() {
-    super.connectedCallback();
-  }
-
   override disconnectedCallback() {
     super.disconnectedCallback();
     if (this.quoteDebounceTimer !== null) {
@@ -117,9 +106,10 @@ export class DonationForm extends LitElement {
 
   private loadRecipientTokenInfo() {
     try {
+      // Always use Polygon USDC as recipient token
       const tokenInfo = this.chainService.getToken(
-        this.recipientChainId,
-        this.recipientTokenAddress,
+        POLYGON_CHAIN_ID,
+        AcrossService.POLYGON_USDC,
       );
       this.recipientTokenInfo = tokenInfo || null;
     } catch (error) {
@@ -200,11 +190,12 @@ export class DonationForm extends LitElement {
         (recipientAmountNum * Math.pow(10, recipientTokenDecimals)).toString();
 
       // Check if this is a same-token transfer (no swap needed)
+      // Always compare against Polygon USDC as recipient
       const isSameToken = AcrossService.isSameTokenTransfer(
         this.selectedToken.chainId,
         this.selectedToken.address,
-        this.recipientChainId,
-        this.recipientTokenAddress,
+        POLYGON_CHAIN_ID,
+        AcrossService.POLYGON_USDC,
       );
 
       if (isSameToken) {
@@ -219,7 +210,7 @@ export class DonationForm extends LitElement {
           swapTx: { to: "", data: "", value: "0" },
           approvalTxns: [],
           originChainId: this.selectedToken.chainId,
-          destinationChainId: this.recipientChainId,
+          destinationChainId: POLYGON_CHAIN_ID,
         };
         this.userPayAmount = this.recipientAmount;
       } else {
@@ -309,51 +300,21 @@ export class DonationForm extends LitElement {
     try {
       // Route to appropriate handler based on donation type
       if (this.donationType === "monthly") {
-        // Execute subscription flow for monthly donations
         await this.handleSubscription();
-
-        // Show success notification for subscription
         this.toastService.success(t("success.subscription.message"));
-
-        // Reset form after successful subscription
-        this.resetForm();
-      } else if (this.isDirectTransfer) {
-        // Execute direct token transfer without Across
-        await this.executeDirectTransfer();
-
-        // Show success notification
-        const tokenSymbol = this.recipientTokenInfo?.symbol || "tokens";
-        this.toastService.success(
-          `Successfully donated ${this.recipientAmount} ${tokenSymbol}!`,
-        );
-
-        // Emit donation completed event
-        this.dispatchEvent(
-          new CustomEvent("donation-completed", {
-            detail: {
-              amount: this.recipientAmount,
-              token: this.selectedToken,
-              recipient: this.recipient,
-              isDirectTransfer: this.isDirectTransfer,
-            },
-            bubbles: true,
-            composed: true,
-          }),
-        );
-
-        // Reset form
-        this.resetForm();
       } else {
-        // Execute Across swap for cross-chain transfer
-        await this.acrossService.executeSwap(this.quote);
+        // Execute transfer (direct or via Across)
+        if (this.isDirectTransfer) {
+          await this.executeDirectTransfer();
+        } else {
+          await this.acrossService.executeSwap(this.quote);
+        }
 
-        // Show success notification
         const tokenSymbol = this.recipientTokenInfo?.symbol || "tokens";
         this.toastService.success(
           `Successfully donated ${this.recipientAmount} ${tokenSymbol}!`,
         );
 
-        // Emit donation completed event
         this.dispatchEvent(
           new CustomEvent("donation-completed", {
             detail: {
@@ -366,25 +327,18 @@ export class DonationForm extends LitElement {
             composed: true,
           }),
         );
-
-        // Reset form
-        this.resetForm();
       }
+
+      this.resetForm();
     } catch (error) {
-      console.error("Donation failed:", error);
+      const errorMessage = error instanceof I18nError
+        ? t(error.i18nKey)
+        : error instanceof Error
+          ? error.message
+          : t("error.networkConnection");
 
-      // Handle error with user-friendly message
-      let errorMessage: string;
-      if (error instanceof I18nError) {
-        errorMessage = t(error.i18nKey);
-      } else {
-        errorMessage = error instanceof Error ? error.message : t("error.networkConnection");
-      }
-
-      // Show error notification
       this.toastService.error(errorMessage);
 
-      // Emit donation failed event
       this.dispatchEvent(
         new CustomEvent("donation-failed", {
           detail: {
@@ -398,7 +352,6 @@ export class DonationForm extends LitElement {
         }),
       );
     } finally {
-      // Reset donating state
       this.isDonating = false;
     }
   }
@@ -434,21 +387,10 @@ export class DonationForm extends LitElement {
   }
 
   /**
-   * Handle subscription flow for monthly donations
-   * This method orchestrates the complete subscription creation process:
-   * 1. Validate quote exists and is valid
-   * 2. Store original chain ID for later
-   * 3. Switch to Polygon for signing (required by MetaMask)
-   * 4. Get subscription signature from AzothPayService
-   * 5. Build subscription actions
-   * 6. Switch back to original chain
-   * 7. Get quote with actions from Across
-   * 8. Execute approval transactions if present
-   * 9. Execute the main swap transaction
-   * 10. Dispatch subscription-created event
+   * Handle subscription flow for monthly donations.
+   * Orchestrates: validation, chain switching, signature, approval, and swap execution.
    */
   private async handleSubscription(): Promise<void> {
-    // Step 1: Validate quote exists
     if (!this.quote || !this.selectedToken) {
       throw new I18nError("error.invalidParams");
     }
@@ -458,8 +400,7 @@ export class DonationForm extends LitElement {
       throw new I18nError("error.walletNotConnected");
     }
 
-    // Step 2: Store original chain ID and token data before any chain switching
-    // Chain switches can trigger component updates that reset selectedToken
+    // Store original state before chain switching (chain switches can reset selectedToken)
     const originalChainId = account.chainId;
     const userAddress = account.address;
     const originToken = {
@@ -471,19 +412,15 @@ export class DonationForm extends LitElement {
     const target = (this.subscriptionTarget || this.recipient) as Address;
     const projectIdBigInt = BigInt(this.projectId);
 
-    // Calculate output amount (USDC) - this is what Across API expects with tradeType: "minOutput"
-    // NOT quote.inputAmount which is how much user pays in input token
     const recipientTokenDecimals = this.recipientTokenInfo?.decimals ?? 6;
     const outputAmount = (parseFloat(monthlyAmount) * Math.pow(10, recipientTokenDecimals)).toString();
 
     const azothPayService = AzothPayService.getInstance();
 
     try {
-      // Switch to Polygon for EIP-712 signature (MetaMask requires matching chainId)
       this.emitSubscriptionProgress("switching");
       await this.walletService.switchChain(POLYGON_CHAIN_ID);
 
-      // Get subscription signature from AzothPayService on Polygon
       this.emitSubscriptionProgress("signing");
       const signatureData = await azothPayService.getSubscriptionSignature(
         {
@@ -495,15 +432,12 @@ export class DonationForm extends LitElement {
         this.walletService,
       );
 
-      // Build subscription actions
       this.emitSubscriptionProgress("building");
       const actions = this.acrossService.buildSubscriptionActions(signatureData);
 
-      // Switch back to original chain for Across deposit
       this.emitSubscriptionProgress("returning");
       await this.walletService.switchChain(originalChainId);
 
-      // Get quote with actions from Across (use outputAmount for tradeType: "minOutput")
       this.emitSubscriptionProgress("quoting");
       const quoteWithActions = await this.acrossService.getQuoteWithActions(
         {
@@ -516,13 +450,10 @@ export class DonationForm extends LitElement {
         actions,
       );
 
-      // Execute approval transactions if present
-      if (quoteWithActions.approvalTxns && quoteWithActions.approvalTxns.length > 0) {
+      if (quoteWithActions.approvalTxns?.length) {
         this.emitSubscriptionProgress("approving");
         for (const approvalTx of quoteWithActions.approvalTxns) {
-          if (!approvalTx.to || !approvalTx.data) {
-            continue;
-          }
+          if (!approvalTx.to || !approvalTx.data) continue;
           await this.walletService.sendTransaction({
             to: approvalTx.to as Address,
             data: approvalTx.data as `0x${string}`,
@@ -531,7 +462,6 @@ export class DonationForm extends LitElement {
         }
       }
 
-      // Execute the main swap transaction
       this.emitSubscriptionProgress("subscribing");
       const txHash = await this.walletService.sendTransaction({
         to: quoteWithActions.swapTx.to as Address,
@@ -541,7 +471,6 @@ export class DonationForm extends LitElement {
 
       this.emitSubscriptionProgress("confirming");
 
-      // Dispatch subscription-created event with stored values
       this.dispatchEvent(
         new CustomEvent("subscription-created", {
           detail: {
@@ -600,9 +529,7 @@ export class DonationForm extends LitElement {
   }
 
   private get recipientLabel(): string {
-    const tokenSymbol = this.recipientTokenInfo?.symbol || "tokens";
-    const chainName = this.chainService.getChainName(this.recipientChainId);
-    return `Recipient receives (${tokenSymbol} on ${chainName})`;
+    return "Recipient receives (USDC on Polygon)";
   }
 
   private get donateButtonText(): string {
@@ -646,18 +573,9 @@ export class DonationForm extends LitElement {
       }
     }
 
-    // Reload recipient token info when recipient chain or token changes
-    if (changedProperties.has("recipientChainId") || changedProperties.has("recipientTokenAddress")) {
-      if (this.chainService) {
-        this.loadRecipientTokenInfo();
-      }
-      if (this.recipientAmount && this.selectedToken && this.recipientTokenInfo) {
-        this.calculateQuote();
-      }
-    }
-
     // Recalculate quote when selected token changes
-    if (changedProperties.has("selectedToken") && this.recipientAmount) {
+    // But not during an active donation/subscription flow
+    if (changedProperties.has("selectedToken") && this.recipientAmount && !this.isDonating) {
       this.calculateQuote();
     }
 

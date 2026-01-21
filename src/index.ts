@@ -11,6 +11,8 @@ import "./components/donate-button.ts";
 import "./components/toast-notification.ts";
 import "./components/toast-container.ts";
 import "./components/donation-type-toggle.ts";
+import "./components/subscription-setup-screen.ts";
+import "./components/subscription-progress-screen.ts";
 
 // Export components for programmatic usage
 export {

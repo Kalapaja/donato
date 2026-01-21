@@ -161,16 +161,16 @@ function generateEmbedCode(
   cdnDomain: string
 ): string {
   return `\`\`\`html
-<script 
+<script
   src="https://${cdnDomain}/donation-widget.v${version}.js"
   integrity="${integrity}"
   crossorigin="anonymous"
 ></script>
 
+<!-- Recipients receive USDC on Polygon -->
 <donation-widget
   recipient="0x..."
-  recipient-chain-id="1"
-  recipient-token-address="0x..."
+  reown-project-id="YOUR_PROJECT_ID"
   theme="light"
 ></donation-widget>
 \`\`\``;
@@ -229,8 +229,10 @@ This protects your users from compromised or malicious CDN content.
 
 1. Copy the embed code above
 2. Replace \`${cdnDomain}\` with your actual domain
-3. Configure the widget attributes (recipient, chain, token, theme)
+3. Configure the widget attributes (recipient, reown-project-id, theme)
 4. Paste into your HTML
+
+**Note:** Recipients always receive USDC on Polygon network.
 
 For more information, visit the [documentation](https://github.com/${owner}/${repo}#readme).`;
 }

@@ -30,13 +30,13 @@ export function RecipientSection(
         className="block text-sm font-semibold mb-2"
         style={{ color: "var(--color-foreground)" }}
       >
-        Payout Address
+        Payout Address (Polygon)
       </label>
       <p
         className="text-sm mb-4"
         style={{ color: "var(--color-muted-foreground)" }}
       >
-        Enter the wallet address for receiving donations
+        All donations are received as USDC on Polygon network
       </p>
 
       <div className="space-y-2">

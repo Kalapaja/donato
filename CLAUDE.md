@@ -25,7 +25,9 @@ deno task build:dev     # Development build only
 deno task lint          # Lint src/ directory
 
 # Testing (Deno native test runner)
-deno test scripts/ --allow-read --allow-write --allow-env --allow-net
+deno task test          # Run all tests
+# Run specific test file:
+deno test src/services/AcrossService.test.ts --no-check -A
 
 # Release (automated via GitHub Actions on tag push)
 deno task build:release # Build versioned bundle with SRI hash
@@ -40,8 +42,9 @@ deno task build:release # Build versioned bundle with SRI hash
 
 ### Key Directories
 
-- `src/components/` - Lit Web Components (27 total)
-- `src/services/` - Business logic layer (WalletService, AcrossService, ChainService, ThemeService, I18nService)
+- `src/components/` - Lit Web Components with co-located tests (`.test.ts`)
+- `src/services/` - Business logic layer (singleton pattern)
+- `src/constants/` - Application constants including AzothPay contract addresses
 - `src/i18n/` - Translations (en, ru)
 - `www/` - Next.js configurator site (separate package.json, uses npm)
 - `scripts/` - Build automation and release scripts
@@ -49,12 +52,23 @@ deno task build:release # Build versioned bundle with SRI hash
 
 ### Service Layer Pattern
 
-Business logic is separated from components into services:
+Business logic is separated from components into services (singleton pattern):
 - **WalletService** - Wallet connection and token management via Reown AppKit
 - **AcrossService** - Cross-chain swap routing via Across Protocol API
 - **ChainService** - Chain metadata (Ethereum, Arbitrum, Polygon, BSC, Optimism, Base)
 - **ThemeService** - Theme management with CSS variables
-- **I18nService** - Localization service
+- **I18nService** - Localization service with `t(key)` helper
+- **ToastService** - Toast notification management
+- **AzothPayService** - Recurring subscription support with EIP-712 signatures
+
+### Main Widget Flow (State Machine)
+
+The `donation-widget.ts` component uses a flow-based state machine:
+```
+AMOUNT → WALLET → TOKEN → READY → PROCESSING → SUCCESS
+                           ↓
+                      SUBSCRIPTION_SETUP → SUBSCRIPTION_PROGRESS
+```
 
 ### Build Output
 
@@ -72,13 +86,20 @@ Version is tracked in `deno.json`. The release workflow:
 ## Key Technologies
 
 - **Runtime**: Deno 2.5+ (primary), Node.js for www/
-- **Widget**: Lit 3.3, ethers 6, viem, @reown/appkit
-- **Build**: Vite with custom versioning plugin (`vite-plugin-versioning.ts`)
+- **Widget**: Lit 3.3, ethers 6, viem 2.38, @reown/appkit 1.8
+- **Build**: Vite 7 with custom versioning plugin (`vite-plugin-versioning.ts`)
 - **Configurator**: Next.js 16, React 19
 
 ## Entry Points
 
 - `src/index.ts` - Widget exports and component registration
-- `src/components/donation-widget.ts` - Main widget component
+- `src/components/donation-widget.ts` - Main widget component (state machine)
+- `src/components/donation-form.ts` - Core donation form logic
 - `vite.config.ts` - Build configuration
 - `deno.json` - Task definitions and version
+
+## Important Constants
+
+- **Recipient Chain**: Polygon (chainId: 137)
+- **Recipient Token**: USDC (hardcoded)
+- **Supported Source Chains**: Ethereum (1), Arbitrum (42161), Polygon (137), BSC (56), Optimism (10), Base (8453)
