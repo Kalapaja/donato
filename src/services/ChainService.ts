@@ -1,5 +1,6 @@
 import type { AcrossService } from "./AcrossService.ts";
 import type { Token } from "./WalletService.ts";
+export type { Token };
 
 export interface Chain {
   id: number;
