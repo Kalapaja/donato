@@ -12,7 +12,7 @@ export type {
   AcrossToken,
 } from "./AcrossService.ts";
 
-export { ChainService } from "./ChainService.ts";
+export { ChainService, getChainNameFromList, KNOWN_CHAIN_NAMES } from "./ChainService.ts";
 export type { Chain } from "./ChainService.ts";
 
 export { ThemeService } from "./ThemeService.ts";
@@ -26,3 +26,17 @@ export type { Locale, TranslationKey, Translations } from "./I18nService.ts";
 
 export { I18nError } from "./I18nError.ts";
 export type { ErrorKey } from "./I18nError.ts";
+
+export { AzothPayService } from "./azoth-pay-service.ts";
+export type {
+  Eip712Domain,
+  SubscriptionSignatureData,
+  SubscriptionParams,
+} from "./azoth-pay-service.ts";
+export {
+  AZOTH_PAY_ADDRESS,
+  MULTICALL_HANDLER_ADDRESS,
+  POLYGON_USDC_ADDRESS,
+  POLYGON_CHAIN_ID,
+  SECONDS_PER_MONTH,
+} from "./azoth-pay-service.ts";

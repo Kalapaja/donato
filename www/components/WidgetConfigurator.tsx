@@ -1,10 +1,9 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState } from "react";
 import type { WidgetConfig } from "../types/config";
 import type { VersionEntry } from "../types/versions";
 import { RecipientSection } from "./sections/RecipientSection";
-import { CurrencyChainSection } from "./sections/CurrencyChainSection";
 import { ReOwnSection } from "./sections/ReOwnSection";
 import { ThemeSection } from "./sections/ThemeSection";
 import { LocaleSection } from "./sections/LocaleSection";
@@ -35,25 +34,8 @@ export function WidgetConfigurator({
     setVersionEntry(entry);
   }
 
-  const handleChainChange = useCallback(
-    (chainId: number, tokenAddress: string, tokenSymbol: string) => {
-      onConfigChange({
-        recipientChainId: chainId,
-        recipientTokenAddress: tokenAddress,
-        recipientTokenSymbol: tokenSymbol,
-      });
-    },
-    [onConfigChange]
-  );
-
   return (
     <div className="space-y-6">
-      <CurrencyChainSection
-        recipientChainId={config.recipientChainId || 1}
-        recipientTokenAddress={config.recipientTokenAddress || ""}
-        onChainChange={handleChainChange}
-      />
-
       <div>
         <label
           className="block text-sm font-semibold mb-2"
@@ -122,7 +104,7 @@ export function WidgetConfigurator({
                     ? "var(--color-background)"
                     : "var(--color-foreground)",
                   border: `1px solid ${isSelected ? "var(--color-primary)" : "var(--color-border)"}`,
-                  borderRadius: "20px",
+                  borderRadius: "var(--radius)",
                   cursor: "pointer",
                 }}
                 onMouseEnter={(e) => {
@@ -151,7 +133,7 @@ export function WidgetConfigurator({
                 background: "transparent",
                 color: "var(--color-muted-foreground)",
                 border: "1px dashed var(--color-border)",
-                borderRadius: "20px",
+                borderRadius: "var(--radius)",
                 cursor: "pointer",
               }}
               onMouseEnter={(e) => {

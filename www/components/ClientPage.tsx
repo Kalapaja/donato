@@ -8,8 +8,6 @@ import { useLocalStorageConfig } from "../lib/useLocalStorageConfig";
 
 const DEFAULT_CONFIG: Partial<WidgetConfig> = {
   recipient: "",
-  recipientChainId: 1,
-  recipientTokenAddress: "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
   reownProjectId: "",
   theme: "auto",
 };

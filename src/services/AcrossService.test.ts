@@ -1511,3 +1511,470 @@ Deno.test("cache - independent cache per service instance", async () => {
     restoreFetch();
   }
 });
+
+// ============================================================================
+// Tests for buildSubscriptionActions
+// ============================================================================
+
+import type { SubscriptionSignatureData } from "./azoth-pay-service.ts";
+import {
+  AZOTH_PAY_ADDRESS,
+  MULTICALL_HANDLER_ADDRESS,
+  POLYGON_USDC_ADDRESS,
+} from "../constants/azoth-pay.ts";
+
+/**
+ * Create mock subscription signature data for testing
+ */
+function createMockSignatureData(): SubscriptionSignatureData {
+  return {
+    signature: "0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef1c" as `0x${string}`,
+    traits: 12345678901234567890n,
+    subscribeData: "0xabcdef1234567890" as `0x${string}`,
+    userAddress: "0x742d35Cc6634C0532925a3b844Bc454e4438f44e" as `0x${string}`,
+  };
+}
+
+Deno.test("buildSubscriptionActions - returns 3 actions in correct order", () => {
+  const service = new AcrossService({
+    walletService: createMockWalletService() as never,
+  });
+
+  const signatureData = createMockSignatureData();
+  const actions = service.buildSubscriptionActions(signatureData);
+
+  // Should return exactly 3 actions
+  assertEquals(actions.length, 3, "Should return exactly 3 actions");
+
+  // Action 1: approve
+  assertEquals(
+    actions[0].functionSignature.includes("approve"),
+    true,
+    "First action should be approve"
+  );
+  assertEquals(
+    actions[0].target,
+    POLYGON_USDC_ADDRESS,
+    "Approve action should target USDC contract"
+  );
+
+  // Action 2: depositFor
+  assertEquals(
+    actions[1].functionSignature.includes("depositFor"),
+    true,
+    "Second action should be depositFor"
+  );
+  assertEquals(
+    actions[1].target,
+    AZOTH_PAY_ADDRESS,
+    "DepositFor action should target AzothPay contract"
+  );
+
+  // Action 3: bySig
+  assertEquals(
+    actions[2].functionSignature.includes("bySig"),
+    true,
+    "Third action should be bySig"
+  );
+  assertEquals(
+    actions[2].target,
+    AZOTH_PAY_ADDRESS,
+    "BySig action should target AzothPay contract"
+  );
+});
+
+Deno.test("buildSubscriptionActions - approve action uses populateDynamically=true for amount", () => {
+  const service = new AcrossService({
+    walletService: createMockWalletService() as never,
+  });
+
+  const signatureData = createMockSignatureData();
+  const actions = service.buildSubscriptionActions(signatureData);
+
+  const approveAction = actions[0];
+
+  // First arg (spender) should be static
+  assertEquals(
+    approveAction.args[0].populateDynamically,
+    false,
+    "Spender arg should not be dynamic"
+  );
+  assertEquals(
+    approveAction.args[0].value,
+    AZOTH_PAY_ADDRESS,
+    "Spender should be AzothPay address"
+  );
+
+  // Second arg (amount) should be dynamic
+  assertEquals(
+    approveAction.args[1].populateDynamically,
+    true,
+    "Amount arg should be dynamic"
+  );
+  assertEquals(
+    approveAction.args[1].balanceSourceToken,
+    POLYGON_USDC_ADDRESS,
+    "Balance source should be USDC"
+  );
+});
+
+Deno.test("buildSubscriptionActions - depositFor action uses populateDynamically=true for amount", () => {
+  const service = new AcrossService({
+    walletService: createMockWalletService() as never,
+  });
+
+  const signatureData = createMockSignatureData();
+  const actions = service.buildSubscriptionActions(signatureData);
+
+  const depositForAction = actions[1];
+
+  // First arg (amount) should be dynamic
+  assertEquals(
+    depositForAction.args[0].populateDynamically,
+    true,
+    "Amount arg should be dynamic"
+  );
+  assertEquals(
+    depositForAction.args[0].balanceSourceToken,
+    POLYGON_USDC_ADDRESS,
+    "Balance source should be USDC"
+  );
+
+  // Second arg (to) should be static user address
+  assertEquals(
+    depositForAction.args[1].populateDynamically,
+    false,
+    "To arg should not be dynamic"
+  );
+  assertEquals(
+    depositForAction.args[1].value,
+    signatureData.userAddress,
+    "To should be user address"
+  );
+
+  // Third arg (isPermit2) should be static false
+  assertEquals(
+    depositForAction.args[2].populateDynamically,
+    false,
+    "isPermit2 arg should not be dynamic"
+  );
+  assertEquals(
+    depositForAction.args[2].value,
+    false,
+    "isPermit2 should be false"
+  );
+});
+
+Deno.test("buildSubscriptionActions - bySig action uses static signature data", () => {
+  const service = new AcrossService({
+    walletService: createMockWalletService() as never,
+  });
+
+  const signatureData = createMockSignatureData();
+  const actions = service.buildSubscriptionActions(signatureData);
+
+  const bySigAction = actions[2];
+
+  // All args should be static (populateDynamically=false)
+  for (let i = 0; i < bySigAction.args.length; i++) {
+    assertEquals(
+      bySigAction.args[i].populateDynamically,
+      false,
+      `BySig arg ${i} should not be dynamic`
+    );
+  }
+
+  // First arg should be signer address
+  assertEquals(
+    bySigAction.args[0].value,
+    signatureData.userAddress,
+    "Signer should be user address"
+  );
+
+  // Second arg should be sig tuple with traits and data
+  const sigTuple = bySigAction.args[1].value as Record<string, unknown>;
+  assertEquals(
+    sigTuple.traits,
+    signatureData.traits.toString(),
+    "Traits should match signature data"
+  );
+  assertEquals(
+    sigTuple.data,
+    signatureData.subscribeData,
+    "Data should match subscribe data"
+  );
+
+  // Third arg should be the signature
+  assertEquals(
+    bySigAction.args[2].value,
+    signatureData.signature,
+    "Signature should match"
+  );
+});
+
+Deno.test("buildSubscriptionActions - all actions have correct common properties", () => {
+  const service = new AcrossService({
+    walletService: createMockWalletService() as never,
+  });
+
+  const signatureData = createMockSignatureData();
+  const actions = service.buildSubscriptionActions(signatureData);
+
+  for (const action of actions) {
+    assertEquals(
+      action.value,
+      "0",
+      "All actions should have value=0"
+    );
+    assertEquals(
+      action.isNativeTransfer,
+      false,
+      "All actions should not be native transfers"
+    );
+  }
+});
+
+// ============================================================================
+// Tests for getQuoteWithActions
+// ============================================================================
+
+Deno.test("getQuoteWithActions - sends POST request with actions in body", async () => {
+  let capturedBody: string | null = null;
+  let capturedMethod: string | null = null;
+  const mockResponse = createMockQuoteResponse();
+
+  const restoreFetch = stubFetch((_url: string, init?: RequestInit) => {
+    capturedMethod = init?.method || "GET";
+    capturedBody = init?.body as string || null;
+    return Promise.resolve(
+      new Response(JSON.stringify(mockResponse), {
+        status: 200,
+        headers: { "Content-Type": "application/json" },
+      })
+    );
+  });
+
+  try {
+    const service = new AcrossService({
+      walletService: createMockWalletService() as never,
+    });
+
+    const signatureData = createMockSignatureData();
+    const actions = service.buildSubscriptionActions(signatureData);
+
+    await service.getQuoteWithActions(
+      {
+        originChainId: 1,
+        inputToken: "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+        inputAmount: "100000000",
+        depositor: "0x742d35Cc6634C0532925a3b844Bc454e4438f44e",
+        recipient: "0x742d35Cc6634C0532925a3b844Bc454e4438f44e",
+      },
+      actions
+    );
+
+    assertEquals(capturedMethod, "POST", "Should use POST method");
+
+    const parsedBody = JSON.parse(capturedBody!);
+    assertEquals(
+      Array.isArray(parsedBody.actions),
+      true,
+      "Body should contain actions array"
+    );
+    assertEquals(
+      parsedBody.actions.length,
+      3,
+      "Actions array should have 3 items"
+    );
+  } finally {
+    restoreFetch();
+  }
+});
+
+Deno.test("getQuoteWithActions - uses MULTICALL_HANDLER as recipient", async () => {
+  let capturedUrl = "";
+  const mockResponse = createMockQuoteResponse();
+
+  const restoreFetch = stubFetch((url: string) => {
+    capturedUrl = url;
+    return Promise.resolve(
+      new Response(JSON.stringify(mockResponse), {
+        status: 200,
+        headers: { "Content-Type": "application/json" },
+      })
+    );
+  });
+
+  try {
+    const service = new AcrossService({
+      walletService: createMockWalletService() as never,
+    });
+
+    const signatureData = createMockSignatureData();
+    const actions = service.buildSubscriptionActions(signatureData);
+
+    await service.getQuoteWithActions(
+      {
+        originChainId: 1,
+        inputToken: "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+        inputAmount: "100000000",
+        depositor: "0x742d35Cc6634C0532925a3b844Bc454e4438f44e",
+        recipient: "0x742d35Cc6634C0532925a3b844Bc454e4438f44e",
+      },
+      actions
+    );
+
+    assertEquals(
+      capturedUrl.includes(`recipient=${MULTICALL_HANDLER_ADDRESS}`),
+      true,
+      "Recipient should be MulticallHandler address"
+    );
+  } finally {
+    restoreFetch();
+  }
+});
+
+Deno.test("getQuoteWithActions - returns valid quote structure", async () => {
+  const mockResponse = createMockQuoteResponse();
+
+  const restoreFetch = stubFetch(() =>
+    Promise.resolve(
+      new Response(JSON.stringify(mockResponse), {
+        status: 200,
+        headers: { "Content-Type": "application/json" },
+      })
+    )
+  );
+
+  try {
+    const service = new AcrossService({
+      walletService: createMockWalletService() as never,
+    });
+
+    const signatureData = createMockSignatureData();
+    const actions = service.buildSubscriptionActions(signatureData);
+
+    const quote = await service.getQuoteWithActions(
+      {
+        originChainId: 1,
+        inputToken: "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+        inputAmount: "100000000",
+        depositor: "0x742d35Cc6634C0532925a3b844Bc454e4438f44e",
+        recipient: "0x742d35Cc6634C0532925a3b844Bc454e4438f44e",
+      },
+      actions
+    );
+
+    assertEquals(quote.expectedOutputAmount, "99500000", "Should have expectedOutputAmount");
+    assertEquals(quote.destinationChainId, 137, "Destination should be Polygon");
+    assertEquals(quote.swapTx.to !== "", true, "Should have swapTx");
+  } finally {
+    restoreFetch();
+  }
+});
+
+Deno.test("getQuoteWithActions - throws error for empty actions array", async () => {
+  const service = new AcrossService({
+    walletService: createMockWalletService() as never,
+  });
+
+  let errorThrown = false;
+  let errorMessage = "";
+
+  try {
+    await service.getQuoteWithActions(
+      {
+        originChainId: 1,
+        inputToken: "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+        inputAmount: "100000000",
+        depositor: "0x742d35Cc6634C0532925a3b844Bc454e4438f44e",
+        recipient: "0x742d35Cc6634C0532925a3b844Bc454e4438f44e",
+      },
+      []
+    );
+  } catch (error) {
+    errorThrown = true;
+    errorMessage = error instanceof Error ? error.message : String(error);
+  }
+
+  assertEquals(errorThrown, true, "Should throw error for empty actions");
+  assertEquals(errorMessage, "error.invalidParams", "Error should be invalidParams");
+});
+
+Deno.test("getQuoteWithActions - throws error for invalid inputAmount", async () => {
+  const service = new AcrossService({
+    walletService: createMockWalletService() as never,
+  });
+
+  const signatureData = createMockSignatureData();
+  const actions = service.buildSubscriptionActions(signatureData);
+
+  let errorThrown = false;
+  let errorMessage = "";
+
+  try {
+    await service.getQuoteWithActions(
+      {
+        originChainId: 1,
+        inputToken: "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+        inputAmount: "0",
+        depositor: "0x742d35Cc6634C0532925a3b844Bc454e4438f44e",
+        recipient: "0x742d35Cc6634C0532925a3b844Bc454e4438f44e",
+      },
+      actions
+    );
+  } catch (error) {
+    errorThrown = true;
+    errorMessage = error instanceof Error ? error.message : String(error);
+  }
+
+  assertEquals(errorThrown, true, "Should throw error for zero amount");
+  assertEquals(errorMessage, "error.invalidParams", "Error should be invalidParams");
+});
+
+Deno.test("getQuoteWithActions - handles API error responses", async () => {
+  const restoreFetch = stubFetch(() =>
+    Promise.resolve(
+      new Response(
+        JSON.stringify({ message: "Internal server error" }),
+        {
+          status: 500,
+          headers: { "Content-Type": "application/json" },
+        }
+      )
+    )
+  );
+
+  try {
+    const service = new AcrossService({
+      walletService: createMockWalletService() as never,
+    });
+
+    const signatureData = createMockSignatureData();
+    const actions = service.buildSubscriptionActions(signatureData);
+
+    let errorThrown = false;
+    let errorMessage = "";
+
+    try {
+      await service.getQuoteWithActions(
+        {
+          originChainId: 1,
+          inputToken: "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+          inputAmount: "100000000",
+          depositor: "0x742d35Cc6634C0532925a3b844Bc454e4438f44e",
+          recipient: "0x742d35Cc6634C0532925a3b844Bc454e4438f44e",
+        },
+        actions
+      );
+    } catch (error) {
+      errorThrown = true;
+      errorMessage = error instanceof Error ? error.message : String(error);
+    }
+
+    assertEquals(errorThrown, true, "Should throw error for 500 response");
+    assertEquals(errorMessage, "error.serverUnavailable", "Error should be serverUnavailable");
+  } finally {
+    restoreFetch();
+  }
+});

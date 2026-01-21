@@ -21,7 +21,9 @@ import { t } from "../services/index.ts";
  * @attr {string} donate-again-text - Custom text for donate again button (optional, default: "Donate Again")
  * @attr {boolean} confetti-enabled - Whether confetti animation is enabled (optional, default: true)
  * @attr {string} confetti-colors - Comma-separated list of hex colors for confetti (optional)
- * 
+ * @attr {boolean} is-subscription - Whether this is a subscription success (optional, default: false)
+ * @attr {string} monthly-amount - Monthly subscription amount in USD (optional)
+ *
  * @fires donate-again - Fired when user clicks the "donate again" button
  * 
  * @example
@@ -77,6 +79,26 @@ export class SuccessState extends LitElement {
   /** Comma-separated list of hex colors for confetti (optional) */
   @property({ type: String, attribute: "confetti-colors" })
   accessor confettiColors: string = "";
+
+  /** Whether this is a subscription success (optional, default: false) */
+  @property({ type: Boolean, attribute: "is-subscription" })
+  accessor isSubscription: boolean = false;
+
+  /** Monthly subscription amount in USD (optional) */
+  @property({ type: String, attribute: "monthly-amount" })
+  accessor monthlyAmount: string = "";
+
+  /** Wallet address of the subscriber (optional, for Papaya management link) */
+  @property({ type: String, attribute: "wallet-address" })
+  accessor walletAddress: string = "";
+
+  /**
+   * Get Papaya Finance management URL for subscription
+   */
+  private get papayaManagementUrl(): string {
+    if (!this.walletAddress) return "";
+    return `https://app.papaya.finance/wallet/${this.walletAddress}#Subscriptions`;
+  }
 
   static override styles = css`
     :host {
@@ -195,6 +217,55 @@ export class SuccessState extends LitElement {
       outline-offset: 2px;
     }
 
+    /* Subscription Management Section */
+    .management-section {
+      margin-top: 1rem;
+      padding: 1rem;
+      background: oklch(from var(--color-accent) l c h / 0.1);
+      border-radius: calc(var(--radius) - 2px);
+      text-align: center;
+    }
+
+    .management-text {
+      font-size: 0.875rem;
+      color: var(--color-muted-foreground);
+      margin: 0 0 0.75rem 0;
+    }
+
+    .management-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.375rem;
+      padding: 0.5rem 1rem;
+      background: var(--color-accent);
+      color: var(--color-background);
+      border-radius: calc(var(--radius) - 4px);
+      text-decoration: none;
+      font-size: 0.875rem;
+      font-weight: 500;
+      transition: all 0.2s ease;
+    }
+
+    .management-link:hover {
+      opacity: 0.9;
+    }
+
+    .management-link:focus {
+      outline: 2px solid var(--color-accent);
+      outline-offset: 2px;
+    }
+
+    .management-link svg {
+      width: 1rem;
+      height: 1rem;
+    }
+
+    .cancel-hint {
+      font-size: 0.75rem;
+      color: var(--color-muted-foreground);
+      margin: 0.75rem 0 0 0;
+    }
+
     /* Mobile responsive styles */
     @container donation-widget (max-width: 400px) {
       :host {
@@ -233,6 +304,26 @@ export class SuccessState extends LitElement {
         padding: 0.625rem 1.5rem;
         font-size: 0.9375rem;
         min-width: 140px;
+      }
+
+      .management-section {
+        padding: 0.75rem;
+        margin-top: 0.75rem;
+      }
+
+      .management-text {
+        font-size: 0.8125rem;
+        margin-bottom: 0.5rem;
+      }
+
+      .management-link {
+        padding: 0.375rem 0.75rem;
+        font-size: 0.8125rem;
+      }
+
+      .cancel-hint {
+        font-size: 0.6875rem;
+        margin-top: 0.5rem;
       }
     }
   `;
@@ -302,6 +393,24 @@ export class SuccessState extends LitElement {
    * Render success message with amount interpolation (returns string for text content)
    */
   private renderSuccessMessage(): string {
+    // For subscriptions, use the subscription-specific message
+    if (this.isSubscription) {
+      const subscriptionMessage = this.successMessage || t("success.subscription.message");
+
+      // If monthlyAmount is provided, include it in the message
+      if (this.monthlyAmount) {
+        // Replace {amount} placeholder if present
+        if (subscriptionMessage.includes("{amount}") || subscriptionMessage.includes("{{amount}}")) {
+          return subscriptionMessage.replace(/\{?\{?amount\}?\}?/g, `$${this.monthlyAmount}`);
+        }
+        // Otherwise append the amount info
+        return `${subscriptionMessage} $${this.monthlyAmount}/month`;
+      }
+
+      return subscriptionMessage;
+    }
+
+    // Standard donation message
     let message = this.successMessage || t("success.defaultMessage");
 
     // Interpolate amount if present in message template
@@ -327,7 +436,46 @@ export class SuccessState extends LitElement {
    */
   private renderSuccessMessageHtml() {
     const message = this.renderSuccessMessage();
-    
+
+    // For subscriptions, highlight the monthly amount
+    if (this.isSubscription && this.monthlyAmount) {
+      const amountText = `$${this.monthlyAmount}/month`;
+      const parts = message.split(amountText);
+
+      if (parts.length === 1) {
+        // Try without "/month" suffix
+        const simpleAmountText = `$${this.monthlyAmount}`;
+        const simpleParts = message.split(simpleAmountText);
+
+        if (simpleParts.length === 1) {
+          return html`${message}`;
+        }
+
+        return html`
+          ${simpleParts.map((part, index) => {
+            if (index === simpleParts.length - 1) {
+              return html`${part}`;
+            }
+            return html`
+              ${part}<span class="success-message-amount">${simpleAmountText}</span>
+            `;
+          })}
+        `;
+      }
+
+      return html`
+        ${parts.map((part, index) => {
+          if (index === parts.length - 1) {
+            return html`${part}`;
+          }
+          return html`
+            ${part}<span class="success-message-amount">${amountText}</span>
+          `;
+        })}
+      `;
+    }
+
+    // Standard donation amount highlighting
     if (!this.amount) {
       return html`${message}`;
     }
@@ -338,7 +486,7 @@ export class SuccessState extends LitElement {
 
     // Split message by amount text to highlight it
     const parts = message.split(amountText);
-    
+
     if (parts.length === 1) {
       // Amount not found in message, return as-is
       return html`${message}`;
@@ -387,12 +535,14 @@ export class SuccessState extends LitElement {
           <!-- Amount and Token -->
           <div class="transaction-detail">
             <span class="transaction-detail-label" id="amount-label">${t("success.amount")}</span>
-            <span 
+            <span
               class="transaction-detail-value"
               aria-labelledby="amount-label"
-              aria-label="Donation amount: ${this.amount} ${this.tokenSymbol}"
+              aria-label="${this.isSubscription ? `Monthly subscription: $${this.monthlyAmount}/month` : `Donation amount: ${this.amount} ${this.tokenSymbol}`}"
             >
-              ${this.amount} ${this.tokenSymbol}
+              ${this.isSubscription && this.monthlyAmount
+                ? `$${this.monthlyAmount}/month`
+                : `${this.amount} ${this.tokenSymbol}`}
             </span>
           </div>
 
@@ -440,6 +590,27 @@ export class SuccessState extends LitElement {
               `
             : ""}
         </div>
+
+        <!-- Subscription Management Section -->
+        ${this.isSubscription && this.walletAddress ? html`
+          <div class="management-section">
+            <p class="management-text">${t("success.subscription.manageText")}</p>
+            <a
+              href="${this.papayaManagementUrl}"
+              target="_blank"
+              rel="noopener noreferrer"
+              class="management-link"
+            >
+              ${t("success.subscription.manageLink")}
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path>
+                <polyline points="15 3 21 3 21 9"></polyline>
+                <line x1="10" y1="14" x2="21" y2="3"></line>
+              </svg>
+            </a>
+            <p class="cancel-hint">${t("success.subscription.cancelHint")}</p>
+          </div>
+        ` : ""}
 
         <!-- Donate Again Button -->
         <button

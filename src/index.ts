@@ -10,6 +10,9 @@ import "./components/amount-input.ts";
 import "./components/donate-button.ts";
 import "./components/toast-notification.ts";
 import "./components/toast-container.ts";
+import "./components/donation-type-toggle.ts";
+import "./components/subscription-setup-screen.ts";
+import "./components/subscription-progress-screen.ts";
 
 // Export components for programmatic usage
 export {
@@ -17,6 +20,7 @@ export {
   DonateButton,
   DonationForm,
   DonationWidget,
+  DonationTypeToggle,
   ThemeToggle,
   ToastContainer,
   ToastNotification,
@@ -25,6 +29,9 @@ export {
   TokenSelector,
   WalletSection,
 } from "./components/index.ts";
+
+// Export component types
+export type { DonationType } from "./components/index.ts";
 
 // Export services for advanced usage
 export {

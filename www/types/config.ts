@@ -1,8 +1,5 @@
 export interface WidgetConfig {
   recipient: string;
-  recipientChainId: number;
-  recipientTokenAddress: string;
-  recipientTokenSymbol: string;
   reownProjectId: string;
   theme: string;
   defaultAmount?: string;

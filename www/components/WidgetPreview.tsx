@@ -60,22 +60,11 @@ export function WidgetPreview({ config }: WidgetPreviewProps) {
 
     // Set required attributes
     widget.setAttribute("recipient", config.recipient || "");
-    widget.setAttribute(
-      "recipient-chain-id",
-      config.recipientChainId?.toString() || "42161"
-    );
-    widget.setAttribute(
-      "recipient-token-address",
-      config.recipientTokenAddress || ""
-    );
     widget.setAttribute("theme", config.theme || "auto");
     widget.setAttribute("reown-project-id", config.reownProjectId || "");
     widget.setAttribute("style", "max-width: 480px;");
 
     // Set optional attributes
-    if (config.recipientTokenSymbol) {
-      widget.setAttribute("recipient-token-symbol", config.recipientTokenSymbol);
-    }
     if (config.defaultAmount) {
       widget.setAttribute("default-amount", config.defaultAmount);
     }

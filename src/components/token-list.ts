@@ -1,6 +1,7 @@
 import { css, html, LitElement } from "lit";
 import { customElement, property, state } from "lit/decorators.js";
 import type { Token, Chain } from "../services/ChainService.ts";
+import { getChainNameFromList } from "../services/ChainService.ts";
 
 // Import child component
 import "./token-item.ts";
@@ -252,24 +253,7 @@ export class TokenList extends LitElement {
   }
 
   private getChainName(chainId: number): string {
-    const chain = this.chains.find((c) => c.id === chainId);
-    if (chain?.name) {
-      return chain.name;
-    }
-
-    // Known chain names as fallback
-    const knownChains: Record<number, string> = {
-      1: "Ethereum",
-      42161: "Arbitrum",
-      137: "Polygon",
-      56: "BNB Chain",
-      10: "Optimism",
-      8453: "Base",
-      43114: "Avalanche",
-      250: "Fantom",
-    };
-
-    return knownChains[chainId] || `Network ${chainId}`;
+    return getChainNameFromList(chainId, this.chains);
   }
 
   private groupTokensByChain(): TokenGroup[] {

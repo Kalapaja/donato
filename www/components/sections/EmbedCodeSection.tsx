@@ -38,27 +38,6 @@ export function EmbedCodeSection({
       comments.push("⚠️ Replace YOUR_RECIPIENT_ADDRESS with the recipient address (0x...)");
     }
 
-    // Chain ID (required)
-    if (config.recipientChainId) {
-      widgetAttributes.push(`recipient-chain-id="${config.recipientChainId}"`);
-    } else {
-      widgetAttributes.push(`recipient-chain-id="YOUR_CHAIN_ID"`);
-      comments.push("⚠️ Replace YOUR_CHAIN_ID with the chain ID (e.g., 42161 for Arbitrum)");
-    }
-
-    // Token address (required)
-    if (config.recipientTokenAddress) {
-      widgetAttributes.push(`recipient-token-address="${config.recipientTokenAddress}"`);
-    } else {
-      widgetAttributes.push(`recipient-token-address="YOUR_TOKEN_ADDRESS"`);
-      comments.push("⚠️ Replace YOUR_TOKEN_ADDRESS with the token address (0x...)");
-    }
-
-    // Token symbol (optional, used for display in amount section)
-    if (config.recipientTokenSymbol) {
-      widgetAttributes.push(`recipient-token-symbol="${config.recipientTokenSymbol}"`);
-    }
-
     // Default amount (optional)
     if (config.defaultAmount) {
       widgetAttributes.push(`default-amount="${config.defaultAmount}"`);

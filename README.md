@@ -1,8 +1,8 @@
 # Donation Widget
 
 A modern, embeddable cryptocurrency donation widget with cross-chain support
-powered by Across Protocol. Accept donations in any token on any supported chain, and
-receive them in your preferred token on your preferred chain.
+powered by Across Protocol. Accept donations in any token on any supported chain.
+Recipients always receive USDC on Polygon.
 
 [![License: GPLv3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
 
@@ -10,7 +10,7 @@ receive them in your preferred token on your preferred chain.
 
 - 🔗 **Cross-chain support** - Accept donations from Ethereum, Arbitrum,
   Polygon, BSC, Optimism, Base, and more
-- 💱 **Any token to any token** - Automatic conversion via Across Protocol
+- 💱 **Any token to USDC** - Automatic conversion to USDC on Polygon via Across Protocol
 - 🎨 **Fully customizable themes** - Light, dark, auto, or completely custom
   color schemes
 - 📱 **Responsive design** - Works perfectly on mobile and desktop
@@ -27,7 +27,7 @@ receive them in your preferred token on your preferred chain.
 The easiest way to integrate the widget is to use the configurator:
 
 1. Visit the configurator (deployed from `www/`)
-2. Configure your widget (recipient address, chain, token, theme)
+2. Configure your widget (recipient address, theme, etc.)
 3. Select a specific version or use "latest"
 4. Copy the generated embed code with the correct integrity hash
 5. Paste it into your website
@@ -49,11 +49,9 @@ If you prefer manual integration, you can embed a specific version directly:
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
   </head>
   <body>
-    <!-- Your donation widget -->
+    <!-- Your donation widget (recipients receive USDC on Polygon) -->
     <donation-widget
       recipient="0x742d35Cc6634C0532925a3b844Bc454e4438f44e"
-      recipient-chain-id="42161"
-      recipient-token-address="0xaf88d065e77c8cC2239327C5EDb3A432268e5831"
       reown-project-id="YOUR_REOWN_PROJECT_ID"
     >
     </donation-widget>
@@ -69,6 +67,7 @@ If you prefer manual integration, you can embed a specific version directly:
 ```
 
 **Important:**
+- Recipients always receive USDC on Polygon network
 - Replace `your-cdn-domain.com` with your actual CDN domain where the widget is hosted
 - Always include the `integrity` attribute for security (get the hash from `versions.json`)
 - The `crossorigin="anonymous"` attribute is required for SRI to work
@@ -279,8 +278,6 @@ Use the script tag with the correct version and integrity hash:
     <!-- Your donation widget -->
     <donation-widget
       recipient="0x742d35Cc6634C0532925a3b844Bc454e4438f44e"
-      recipient-chain-id="42161"
-      recipient-token-address="0xaf88d065e77c8cC2239327C5EDb3A432268e5831"
       reown-project-id="YOUR_REOWN_PROJECT_ID"
     >
     </donation-widget>
@@ -458,10 +455,9 @@ See the `www/scripts/fetch-releases.ts` script for reference configuration.
 The minimal setup requires these attributes:
 
 ```html
+<!-- Recipients always receive USDC on Polygon -->
 <donation-widget
   recipient="0x742d35Cc6634C0532925a3b844Bc454e4438f44e"
-  recipient-chain-id="42161"
-  recipient-token-address="0xaf88d065e77c8cC2239327C5EDb3A432268e5831"
   reown-project-id="YOUR_REOWN_PROJECT_ID"
 >
 </donation-widget>
@@ -470,15 +466,13 @@ The minimal setup requires these attributes:
 **Important:**
 
 - Get your free Reown Project ID at [https://reown.com](https://reown.com)
+- Recipients always receive USDC on Polygon network
 
 ### With All Options
 
 ```html
 <donation-widget
   recipient="0x742d35Cc6634C0532925a3b844Bc454e4438f44e"
-  recipient-chain-id="42161"
-  recipient-token-address="0xaf88d065e77c8cC2239327C5EDb3A432268e5831"
-  recipient-token-symbol="USDC"
   reown-project-id="YOUR_REOWN_PROJECT_ID"
   theme="dark"
   locale="en"
@@ -496,28 +490,29 @@ The minimal setup requires these attributes:
 
 ### Required Attributes
 
-| Attribute                 | Type     | Description                                                                                            |
-| ------------------------- | -------- | ------------------------------------------------------------------------------------------------------ |
-| `recipient`               | `string` | Ethereum address that will receive donations (must start with 0x)                                      |
-| `recipient-chain-id`      | `number` | Chain ID where you want to receive donations (e.g., 42161 = Arbitrum)                                  |
-| `recipient-token-address` | `string` | Token address you want to receive (e.g., USDC on Arbitrum: 0xaf88d065e77c8cC2239327C5EDb3A432268e5831) |
-| `reown-project-id`        | `string` | Your Reown project ID ([Get one here](https://reown.com))                                              |
+| Attribute          | Type     | Description                                                       |
+| ------------------ | -------- | ----------------------------------------------------------------- |
+| `recipient`        | `string` | Ethereum address that will receive USDC on Polygon (must start with 0x) |
+| `reown-project-id` | `string` | Your Reown project ID ([Get one here](https://reown.com))         |
+
+**Note:** Recipients always receive USDC on Polygon network. No chain or token configuration needed.
 
 ### Optional Attributes
 
-| Attribute                 | Type      | Default                              | Description                                                                                            |
-| ------------------------- | --------- | ------------------------------------ | ------------------------------------------------------------------------------------------------------ |
-| `recipient-token-symbol`  | `string`  | Auto-detected                        | Token symbol that recipient will receive (e.g., "USDC"). If not provided, will be looked up from chain data |
-| `theme`                   | `string`  | `auto`                               | Theme mode: `light`, `dark`, `auto`, or `custom`                                                      |
-| `locale`                  | `string`  | Auto-detected                        | Language/locale for the widget (e.g., `"en"`, `"ru"`). If not set, auto-detects from browser          |
-| `default-amount`          | `string`  | `""`                                 | Default donation amount to pre-fill (e.g., `"25"`)                                                     |
-| `header-title`            | `string`  | `"Donate"`                           | Header title text displayed next to the heart icon                                                     |
-| `success-message`         | `string`  | `"Thank you for your donation!"`     | Custom success message displayed after donation                                                        |
-| `donate-again-text`       | `string`  | `"Donate Again"`                     | Custom text for the "donate again" button                                                              |
-| `confetti-enabled`        | `boolean` | `true`                               | Whether confetti animation is enabled                                                                  |
-| `confetti-colors`         | `string`  | Theme-appropriate colors             | Comma-separated list of hex colors for confetti (e.g., `"#ff0000,#00ff00,#0000ff"`)                 |
+| Attribute           | Type      | Default                              | Description                                                                       |
+| ------------------- | --------- | ------------------------------------ | --------------------------------------------------------------------------------- |
+| `theme`             | `string`  | `auto`                               | Theme mode: `light`, `dark`, `auto`, or `custom`                                 |
+| `locale`            | `string`  | Auto-detected                        | Language/locale for the widget (e.g., `"en"`, `"ru"`). If not set, auto-detects from browser |
+| `default-amount`    | `string`  | `""`                                 | Default donation amount to pre-fill (e.g., `"25"`)                               |
+| `header-title`      | `string`  | `"Donate"`                           | Header title text displayed next to the heart icon                               |
+| `success-message`   | `string`  | `"Thank you for your donation!"`     | Custom success message displayed after donation                                  |
+| `donate-again-text` | `string`  | `"Donate Again"`                     | Custom text for the "donate again" button                                        |
+| `confetti-enabled`  | `boolean` | `true`                               | Whether confetti animation is enabled                                            |
+| `confetti-colors`   | `string`  | Theme-appropriate colors             | Comma-separated list of hex colors for confetti (e.g., `"#ff0000,#00ff00,#0000ff"`) |
 
-### Supported Chain IDs
+### Supported Source Chains
+
+Donors can pay from any of these chains (donations are automatically converted to USDC on Polygon):
 
 | Chain                     | Chain ID |
 | ------------------------- | -------- |
@@ -527,20 +522,6 @@ The minimal setup requires these attributes:
 | BSC (Binance Smart Chain) | 56       |
 | Optimism                  | 10       |
 | Base                      | 8453     |
-
-### Example Configurations
-
-#### Receive USDT on BSC
-
-```html
-<donation-widget
-  recipient="0x742d35Cc6634C0532925a3b844Bc454e4438f44e"
-  recipient-chain-id="56"
-  recipient-token-address="0x55d398326f99059fF775485246999027B3197955"
-  reown-project-id="YOUR_REOWN_PROJECT_ID"
->
-</donation-widget>
-```
 
 ## 🎨 Theming
 
@@ -556,8 +537,6 @@ Automatically matches the user's system preference (light/dark mode):
 ```html
 <donation-widget
   recipient="0x742d35Cc6634C0532925a3b844Bc454e4438f44e"
-  recipient-chain-id="42161"
-  recipient-token-address="0xaf88d065e77c8cC2239327C5EDb3A432268e5831"
   reown-project-id="YOUR_REOWN_PROJECT_ID"
   theme="auto"
 >
@@ -569,8 +548,6 @@ Automatically matches the user's system preference (light/dark mode):
 ```html
 <donation-widget
   recipient="0x742d35Cc6634C0532925a3b844Bc454e4438f44e"
-  recipient-chain-id="42161"
-  recipient-token-address="0xaf88d065e77c8cC2239327C5EDb3A432268e5831"
   reown-project-id="YOUR_REOWN_PROJECT_ID"
   theme="light"
 >
@@ -582,8 +559,6 @@ Automatically matches the user's system preference (light/dark mode):
 ```html
 <donation-widget
   recipient="0x742d35Cc6634C0532925a3b844Bc454e4438f44e"
-  recipient-chain-id="42161"
-  recipient-token-address="0xaf88d065e77c8cC2239327C5EDb3A432268e5831"
   reown-project-id="YOUR_REOWN_PROJECT_ID"
   theme="dark"
 >
@@ -614,8 +589,6 @@ Set `theme="custom"` and use CSS variables to create your own color scheme.
 ```html
 <donation-widget
   recipient="0x742d35Cc6634C0532925a3b844Bc454e4438f44e"
-  recipient-chain-id="42161"
-  recipient-token-address="0xaf88d065e77c8cC2239327C5EDb3A432268e5831"
   reown-project-id="YOUR_REOWN_PROJECT_ID"
   theme="custom"
   style="--color-background: oklch(15% 0.05 280); --color-foreground: oklch(95% 0.15 320); --color-primary: oklch(75% 0.25 320); --color-secondary: oklch(70% 0.25 190); --color-accent: oklch(80% 0.25 340); --color-border: oklch(45% 0.15 280); --color-muted: oklch(25% 0.08 280); --color-muted-foreground: oklch(65% 0.12 190); --radius: 0.25rem"
@@ -628,8 +601,6 @@ Set `theme="custom"` and use CSS variables to create your own color scheme.
 ```html
 <donation-widget
   recipient="0x742d35Cc6634C0532925a3b844Bc454e4438f44e"
-  recipient-chain-id="42161"
-  recipient-token-address="0xaf88d065e77c8cC2239327C5EDb3A432268e5831"
   reown-project-id="YOUR_REOWN_PROJECT_ID"
   theme="custom"
   style="--color-background: oklch(18% 0.08 230); --color-foreground: oklch(95% 0.08 200); --color-primary: oklch(65% 0.18 220); --color-secondary: oklch(35% 0.12 230); --color-accent: oklch(75% 0.2 200); --color-border: oklch(35% 0.1 230); --color-muted: oklch(25% 0.08 230); --color-muted-foreground: oklch(70% 0.1 210); --radius: 0.75rem"
@@ -642,8 +613,6 @@ Set `theme="custom"` and use CSS variables to create your own color scheme.
 ```html
 <donation-widget
   recipient="0x742d35Cc6634C0532925a3b844Bc454e4438f44e"
-  recipient-chain-id="42161"
-  recipient-token-address="0xaf88d065e77c8cC2239327C5EDb3A432268e5831"
   reown-project-id="YOUR_REOWN_PROJECT_ID"
   theme="custom"
   style="--color-background: oklch(98% 0.02 150); --color-foreground: oklch(25% 0.08 145); --color-primary: oklch(50% 0.15 145); --color-secondary: oklch(88% 0.05 150); --color-accent: oklch(45% 0.18 140); --color-border: oklch(80% 0.04 150); --color-muted: oklch(93% 0.03 150); --color-muted-foreground: oklch(45% 0.08 145); --radius: 1rem"
@@ -656,8 +625,6 @@ Set `theme="custom"` and use CSS variables to create your own color scheme.
 ```html
 <donation-widget
   recipient="0x742d35Cc6634C0532925a3b844Bc454e4438f44e"
-  recipient-chain-id="42161"
-  recipient-token-address="0xaf88d065e77c8cC2239327C5EDb3A432268e5831"
   reown-project-id="YOUR_REOWN_PROJECT_ID"
   theme="custom"
   style="--color-background: oklch(100% 0 0); --color-foreground: oklch(0% 0 0); --color-primary: oklch(20% 0 0); --color-secondary: oklch(95% 0 0); --color-accent: oklch(40% 0 0); --color-border: oklch(85% 0 0); --color-muted: oklch(97% 0 0); --color-muted-foreground: oklch(50% 0 0); --radius: 0rem"
@@ -674,8 +641,6 @@ You can pre-fill the donation amount using the `default-amount` attribute. This 
 ```html
 <donation-widget
   recipient="0x742d35Cc6634C0532925a3b844Bc454e4438f44e"
-  recipient-chain-id="42161"
-  recipient-token-address="0xaf88d065e77c8cC2239327C5EDb3A432268e5831"
   reown-project-id="YOUR_REOWN_PROJECT_ID"
   default-amount="25"
 >
@@ -690,8 +655,6 @@ Create different pages with different suggested amounts:
 <!-- Small donation page -->
 <donation-widget
   recipient="0x742d35Cc6634C0532925a3b844Bc454e4438f44e"
-  recipient-chain-id="42161"
-  recipient-token-address="0xaf88d065e77c8cC2239327C5EDb3A432268e5831"
   reown-project-id="YOUR_REOWN_PROJECT_ID"
   default-amount="10"
   header-title="Buy us a coffee ☕"
@@ -701,8 +664,6 @@ Create different pages with different suggested amounts:
 <!-- Large donation page -->
 <donation-widget
   recipient="0x742d35Cc6634C0532925a3b844Bc454e4438f44e"
-  recipient-chain-id="42161"
-  recipient-token-address="0xaf88d065e77c8cC2239327C5EDb3A432268e5831"
   reown-project-id="YOUR_REOWN_PROJECT_ID"
   default-amount="100"
   header-title="Become a Sponsor 🌟"
@@ -728,8 +689,6 @@ By default, the widget automatically detects the user's preferred language from 
 ```html
 <donation-widget
   recipient="0x742d35Cc6634C0532925a3b844Bc454e4438f44e"
-  recipient-chain-id="42161"
-  recipient-token-address="0xaf88d065e77c8cC2239327C5EDb3A432268e5831"
   reown-project-id="YOUR_REOWN_PROJECT_ID"
 >
 </donation-widget>
@@ -742,8 +701,6 @@ Force a specific language regardless of browser settings:
 ```html
 <donation-widget
   recipient="0x742d35Cc6634C0532925a3b844Bc454e4438f44e"
-  recipient-chain-id="42161"
-  recipient-token-address="0xaf88d065e77c8cC2239327C5EDb3A432268e5831"
   reown-project-id="YOUR_REOWN_PROJECT_ID"
   locale="ru"
 >
@@ -757,8 +714,6 @@ You can customize the header title using the `header-title` attribute:
 ```html
 <donation-widget
   recipient="0x742d35Cc6634C0532925a3b844Bc454e4438f44e"
-  recipient-chain-id="42161"
-  recipient-token-address="0xaf88d065e77c8cC2239327C5EDb3A432268e5831"
   reown-project-id="YOUR_REOWN_PROJECT_ID"
   header-title="Support Our Project"
 >
@@ -782,8 +737,6 @@ By default, the widget automatically shows a success state after a successful do
 ```html
 <donation-widget
   recipient="0x742d35Cc6634C0532925a3b844Bc454e4438f44e"
-  recipient-chain-id="42161"
-  recipient-token-address="0xaf88d065e77c8cC2239327C5EDb3A432268e5831"
   reown-project-id="YOUR_REOWN_PROJECT_ID"
 >
 </donation-widget>
@@ -802,8 +755,6 @@ Customize the success message to match your brand voice:
 ```html
 <donation-widget
   recipient="0x742d35Cc6634C0532925a3b844Bc454e4438f44e"
-  recipient-chain-id="42161"
-  recipient-token-address="0xaf88d065e77c8cC2239327C5EDb3A432268e5831"
   reown-project-id="YOUR_REOWN_PROJECT_ID"
   success-message="Thank you for your generous support! 🙏"
 >
@@ -817,8 +768,6 @@ Change the button text to encourage repeat donations:
 ```html
 <donation-widget
   recipient="0x742d35Cc6634C0532925a3b844Bc454e4438f44e"
-  recipient-chain-id="42161"
-  recipient-token-address="0xaf88d065e77c8cC2239327C5EDb3A432268e5831"
   reown-project-id="YOUR_REOWN_PROJECT_ID"
   donate-again-text="Make Another Donation"
 >
@@ -834,8 +783,6 @@ For a more subtle celebration, disable the confetti animation:
 ```html
 <donation-widget
   recipient="0x742d35Cc6634C0532925a3b844Bc454e4438f44e"
-  recipient-chain-id="42161"
-  recipient-token-address="0xaf88d065e77c8cC2239327C5EDb3A432268e5831"
   reown-project-id="YOUR_REOWN_PROJECT_ID"
   confetti-enabled="false"
 >
@@ -849,8 +796,6 @@ Use your brand colors for the confetti animation. Provide a comma-separated list
 ```html
 <donation-widget
   recipient="0x742d35Cc6634C0532925a3b844Bc454e4438f44e"
-  recipient-chain-id="42161"
-  recipient-token-address="0xaf88d065e77c8cC2239327C5EDb3A432268e5831"
   reown-project-id="YOUR_REOWN_PROJECT_ID"
   confetti-colors="#ff0000,#00ff00,#0000ff,#ffff00"
 >
@@ -873,8 +818,6 @@ Combine all customization options for a fully branded experience:
 ```html
 <donation-widget
   recipient="0x742d35Cc6634C0532925a3b844Bc454e4438f44e"
-  recipient-chain-id="42161"
-  recipient-token-address="0xaf88d065e77c8cC2239327C5EDb3A432268e5831"
   reown-project-id="YOUR_REOWN_PROJECT_ID"
   theme="dark"
   success-message="Thank you for supporting our mission! 🚀"
@@ -924,8 +867,6 @@ const widget = document.querySelector("donation-widget");
 <donation-widget
   id="myWidget"
   recipient="0x742d35Cc6634C0532925a3b844Bc454e4438f44e"
-  recipient-chain-id="42161"
-  recipient-token-address="0xaf88d065e77c8cC2239327C5EDb3A432268e5831"
   reown-project-id="YOUR_REOWN_PROJECT_ID"
 >
 </donation-widget>
@@ -988,8 +929,6 @@ const widget = document.querySelector("donation-widget");
     <donation-widget
       id="donationWidget"
       recipient="0x742d35Cc6634C0532925a3b844Bc454e4438f44e"
-      recipient-chain-id="42161"
-      recipient-token-address="0xaf88d065e77c8cC2239327C5EDb3A432268e5831"
       reown-project-id="YOUR_REOWN_PROJECT_ID"
     >
     </donation-widget>
@@ -1165,8 +1104,6 @@ widget.setAttribute("theme", "dark");
     <donation-widget
       id="widget"
       recipient="0x742d35Cc6634C0532925a3b844Bc454e4438f44e"
-      recipient-chain-id="42161"
-      recipient-token-address="0xaf88d065e77c8cC2239327C5EDb3A432268e5831"
       reown-project-id="YOUR_REOWN_PROJECT_ID"
     >
     </donation-widget>
@@ -1245,8 +1182,6 @@ function DonationPage() {
       <donation-widget
         ref={widgetRef}
         recipient="0x742d35Cc6634C0532925a3b844Bc454e4438f44e"
-        recipient-chain-id="42161"
-        recipient-token-address="0xaf88d065e77c8cC2239327C5EDb3A432268e5831"
         reown-project-id="YOUR_REOWN_PROJECT_ID"
         theme="dark"
       />
@@ -1320,8 +1255,6 @@ onUnmounted(() => {
 <donation-widget
   bind:this={widgetElement}
   recipient="0x742d35Cc6634C0532925a3b844Bc454e4438f44e"
-  recipient-chain-id="42161"
-  recipient-token-address="0xaf88d065e77c8cC2239327C5EDb3A432268e5831"
   reown-project-id="YOUR_REOWN_PROJECT_ID"
   theme="dark"
 />
@@ -1363,8 +1296,6 @@ export default function DonationPage() {
       <donation-widget
         ref={widgetRef}
         recipient="0x742d35Cc6634C0532925a3b844Bc454e4438f44e"
-        recipient-chain-id="42161"
-        recipient-token-address="0xaf88d065e77c8cC2239327C5EDb3A432268e5831"
         reown-project-id="YOUR_REOWN_PROJECT_ID"
         theme="dark"
       />
@@ -1384,8 +1315,6 @@ Add to your theme or use a custom HTML block:
 <!-- Add widget anywhere in your content -->
 <donation-widget
   recipient="0x742d35Cc6634C0532925a3b844Bc454e4438f44e"
-  recipient-chain-id="42161"
-  recipient-token-address="0xaf88d065e77c8cC2239327C5EDb3A432268e5831"
   reown-project-id="YOUR_REOWN_PROJECT_ID"
   theme="auto"
 >
@@ -1457,13 +1386,10 @@ The main widget component.
 **Attributes:**
 
 **Required:**
-- `recipient` - Recipient wallet address
-- `recipient-chain-id` - Chain ID for receiving
-- `recipient-token-address` - Token address to receive
+- `recipient` - Recipient wallet address (receives USDC on Polygon)
 - `reown-project-id` - Reown project ID
 
 **Optional:**
-- `recipient-token-symbol` - Token symbol that recipient will receive (e.g., "USDC"). If not provided, will be looked up from chain data
 - `theme` - Theme mode: 'light', 'dark', 'auto', or 'custom' (default: 'auto')
 - `locale` - Language/locale for the widget (e.g., "en", "ru"). If not set, auto-detects from browser
 - `default-amount` - Default donation amount to pre-fill (e.g., "25")

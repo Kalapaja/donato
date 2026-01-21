@@ -22,6 +22,9 @@ export class DonateButton extends LitElement {
   @property({ type: String })
   accessor text: string = "Pay";
 
+  @property({ type: Boolean, attribute: "is-subscription-mode" })
+  accessor isSubscriptionMode: boolean = false;
+
   static override styles = css`
     :host {
       display: block;
@@ -106,6 +109,28 @@ export class DonateButton extends LitElement {
     }
   }
 
+  private handleMouseEnter() {
+    if (this.isSubscriptionMode && !this.disabled && !this.loading && !this.calculating) {
+      this.dispatchEvent(
+        new CustomEvent("subscription-hover-start", {
+          bubbles: true,
+          composed: true,
+        }),
+      );
+    }
+  }
+
+  private handleMouseLeave() {
+    if (this.isSubscriptionMode) {
+      this.dispatchEvent(
+        new CustomEvent("subscription-hover-end", {
+          bubbles: true,
+          composed: true,
+        }),
+      );
+    }
+  }
+
   private getButtonText(): string {
     if (this.loading) {
       return t("donate.processing");
@@ -145,6 +170,8 @@ export class DonateButton extends LitElement {
       <button
         class="donate-button"
         @click="${this.handleClick}"
+        @mouseenter="${this.handleMouseEnter}"
+        @mouseleave="${this.handleMouseLeave}"
         ?disabled="${this.disabled || this.loading || this.calculating}"
         aria-label="${this.getAriaLabel()}"
         aria-busy="${this.loading || this.calculating ? "true" : "false"}"
