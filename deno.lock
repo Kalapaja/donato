@@ -25,6 +25,8 @@
     "npm:@reown/appkit@1.8.12": "1.8.12_valtio@2.1.7",
     "npm:@wagmi/core@2.16.7": "2.16.7_viem@2.38.5__ws@8.18.3___bufferutil@4.1.0___utf-8-validate@5.0.10",
     "npm:autoprefixer@10.4.21": "10.4.21_postcss@8.5.6",
+    "npm:lit-element@4.2.1": "4.2.1",
+    "npm:lit-html@3.3.1": "3.3.1",
     "npm:lit@3.3.1": "3.3.1",
     "npm:postcss@8.5.6": "8.5.6",
     "npm:terser@5.37.0": "5.37.0",
@@ -3108,16 +3110,16 @@
     "keyvaluestorage-interface@1.0.0": {
       "integrity": "sha512-8t6Q3TclQ4uZynJY9IGr2+SsIGwK9JHcO6ootkHCGA0CrQCRy+VkouYNO2xicET6b9al7QKzpebNow+gkpCL8g=="
     },
-    "lit-element@4.2.2": {
-      "integrity": "sha512-aFKhNToWxoyhkNDmWZwEva2SlQia+jfG0fjIWV//YeTaWrVnOxD89dPKfigCUspXFmjzOEUQpOkejH5Ly6sG0w==",
+    "lit-element@4.2.1": {
+      "integrity": "sha512-WGAWRGzirAgyphK2urmYOV72tlvnxw7YfyLDgQ+OZnM9vQQBQnumQ7jUJe6unEzwGU3ahFOjuz1iz1jjrpCPuw==",
       "dependencies": [
         "@lit-labs/ssr-dom-shim",
         "@lit/reactive-element",
         "lit-html"
       ]
     },
-    "lit-html@3.3.2": {
-      "integrity": "sha512-Qy9hU88zcmaxBXcc10ZpdK7cOLXvXpRoBxERdtqV9QOrfpMZZ6pSYP91LhpPtap3sFMUiL7Tw2RImbe0Al2/kw==",
+    "lit-html@3.3.1": {
+      "integrity": "sha512-S9hbyDu/vs1qNrithiNyeyv64c9yqiW9l+DBgI18fL+MTvOtWoFR0FWiyq1TxaYef5wNlpEmzlXoBlZEO+WjoA==",
       "dependencies": [
         "@types/trusted-types"
       ]
@@ -4191,6 +4193,8 @@
       "npm:@reown/appkit@1.8.12",
       "npm:@wagmi/core@2.16.7",
       "npm:autoprefixer@10.4.21",
+      "npm:lit-element@4.2.1",
+      "npm:lit-html@3.3.1",
       "npm:lit@3.3.1",
       "npm:postcss@8.5.6",
       "npm:terser@5.37.0",
