@@ -6,7 +6,7 @@
  */
 
 import { assertEquals, assertMatch } from "@std/assert";
-import { AzothPayService, SECONDS_PER_MONTH } from "./azoth-pay-service.ts";
+import { AzothPayService, SECONDS_PER_MONTH } from "./AzothPayService.ts";
 
 // ============================================================================
 // Tests for calculateSubscriptionRate

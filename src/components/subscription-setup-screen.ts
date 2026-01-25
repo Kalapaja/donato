@@ -187,7 +187,7 @@ export class SubscriptionSetupScreen extends LitElement {
       border-radius: calc(var(--radius) - 4px);
       color: var(--color-foreground);
       cursor: pointer;
-      transition: all 0.2s ease;
+      transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease;
     }
 
     .month-option:hover {
@@ -249,7 +249,7 @@ export class SubscriptionSetupScreen extends LitElement {
       border-radius: calc(var(--radius) - 2px);
       color: var(--color-foreground);
       cursor: pointer;
-      transition: all 0.2s ease;
+      transition: background-color 0.2s ease;
     }
 
     .btn-back:hover {
@@ -266,7 +266,7 @@ export class SubscriptionSetupScreen extends LitElement {
       border-radius: calc(var(--radius) - 2px);
       color: var(--color-background);
       cursor: pointer;
-      transition: all 0.2s ease;
+      transition: opacity 0.2s ease;
     }
 
     .btn-continue:hover {

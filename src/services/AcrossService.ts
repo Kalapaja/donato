@@ -1,11 +1,16 @@
-import type { Address } from "viem";
+import { type Address, isAddress, isHex } from "viem";
+import { isNativeToken } from "../constants/tokens.ts";
 import type { WalletService } from "./WalletService.ts";
 import { I18nError, type ErrorKey } from "./I18nError.ts";
-import type { SubscriptionSignatureData } from "./azoth-pay-service.ts";
+import { isUserRejectionError } from "../utils/errors.ts";
+import type { SubscriptionSignatureData } from "./AzothPayService.ts";
 import {
   AZOTH_PAY_ADDRESS,
   MULTICALL_HANDLER_ADDRESS,
   POLYGON_USDC_ADDRESS,
+  POLYGON_CHAIN_ID,
+  ACROSS_APP_FEE,
+  ACROSS_APP_FEE_RECIPIENT,
 } from "../constants/azoth-pay.ts";
 
 /**
@@ -131,16 +136,6 @@ export class AcrossService {
   private chainsCache: CacheEntry<AcrossChain[]> | null = null;
 
   /**
-   * Polygon chain ID - all donations are received on this chain
-   */
-  static readonly POLYGON_CHAIN_ID = 137;
-
-  /**
-   * USDC token address on Polygon - all donations are received in this token
-   */
-  static readonly POLYGON_USDC = "0x3c499c542cEF5E3811e1192ce70d8cC03d5c3359";
-
-  /**
    * Base URL for Across Protocol API
    */
   static readonly API_BASE_URL = "https://app.across.to/api";
@@ -162,6 +157,89 @@ export class AcrossService {
   constructor(config: AcrossConfig) {
     this.walletService = config.walletService;
     this.baseUrl = config.baseUrl || AcrossService.API_BASE_URL;
+  }
+
+  /**
+   * Validate quote parameters
+   * @throws I18nError if validation fails
+   */
+  private validateQuoteParams(params: AcrossQuoteParams): void {
+    if (!params.inputAmount || params.inputAmount === "0") {
+      throw new I18nError("error.invalidParams");
+    }
+
+    if (!/^\d+$/.test(params.inputAmount) || BigInt(params.inputAmount) <= 0n) {
+      throw new I18nError("error.invalidParams");
+    }
+
+    if (!this.isValidAddress(params.depositor)) {
+      throw new I18nError("error.invalidParams");
+    }
+
+    if (!this.isValidAddress(params.recipient)) {
+      throw new I18nError("error.invalidParams");
+    }
+
+    if (!this.isValidAddress(params.inputToken)) {
+      throw new I18nError("error.invalidParams");
+    }
+
+    if (!Number.isInteger(params.originChainId) || params.originChainId <= 0) {
+      throw new I18nError("error.invalidParams");
+    }
+  }
+
+  /**
+   * Build AcrossQuote from API response data
+   */
+  private buildQuoteFromResponse(
+    data: Record<string, unknown>,
+    params: AcrossQuoteParams
+  ): AcrossQuote {
+    return {
+      expectedOutputAmount: (data.expectedOutputAmount as string) || "0",
+      minOutputAmount: (data.minOutputAmount as string) || "0",
+      inputAmount: (data.inputAmount as string) || params.inputAmount,
+      expectedFillTime: (data.expectedFillTime as number) || 0,
+      fees: this.parseFees(data.fees),
+      swapTx: this.parseTransactionData(data.swapTx),
+      approvalTxns: this.parseApprovalTransactions(data.approvalTxns),
+      depositId: data.id as string | undefined,
+      originChainId: params.originChainId,
+      destinationChainId: POLYGON_CHAIN_ID,
+    };
+  }
+
+  /**
+   * Fetch with timeout wrapper
+   */
+  private async fetchWithTimeout(
+    url: string,
+    options?: RequestInit
+  ): Promise<Response> {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), this.FETCH_TIMEOUT);
+
+    try {
+      return await fetch(url, { ...options, signal: controller.signal });
+    } finally {
+      clearTimeout(timeoutId);
+    }
+  }
+
+  /**
+   * Parse JSON response with error handling
+   */
+  private async parseJsonResponse(
+    response: Response,
+    context: string
+  ): Promise<unknown> {
+    try {
+      return await response.json();
+    } catch (jsonError) {
+      console.error(`Failed to parse JSON response from Across API (${context}):`, jsonError);
+      throw new I18nError("error.networkConnection");
+    }
   }
 
   /**
@@ -194,32 +272,22 @@ export class AcrossService {
       return true;
     }
 
-    // Handle native token variations
-    // Native tokens can be represented as 0x0...0 or 0xEEE...EEE
-    const nativeAddresses = [
-      "0x0000000000000000000000000000000000000000",
-      "0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
-    ];
-
-    const fromIsNative = nativeAddresses.includes(normalizedFrom);
-    const toIsNative = nativeAddresses.includes(normalizedTo);
-
     // Both are native tokens on the same chain
-    return fromIsNative && toIsNative;
+    return isNativeToken(fromToken) && isNativeToken(toToken);
   }
 
   /**
    * Validate that a string is a valid hex string (0x prefixed)
    */
   private isValidHexString(value: string): boolean {
-    return /^0x[0-9a-fA-F]*$/.test(value);
+    return isHex(value);
   }
 
   /**
    * Validate Ethereum address format
    */
   private isValidAddress(address: string): boolean {
-    return /^0x[0-9a-fA-F]{40}$/.test(address);
+    return isAddress(address);
   }
 
   /**
@@ -229,91 +297,35 @@ export class AcrossService {
    * @returns Quote with swap details and transaction data
    */
   async getQuote(params: AcrossQuoteParams): Promise<AcrossQuote> {
-    // Validate input parameters
-    if (!params.inputAmount || params.inputAmount === "0") {
-      throw new I18nError("error.invalidParams");
-    }
+    this.validateQuoteParams(params);
 
-    // Validate inputAmount is a valid positive integer string
-    if (!/^\d+$/.test(params.inputAmount) || BigInt(params.inputAmount) <= 0n) {
-      throw new I18nError("error.invalidParams");
-    }
-
-    // Validate addresses
-    if (!this.isValidAddress(params.depositor)) {
-      throw new I18nError("error.invalidParams");
-    }
-
-    if (!this.isValidAddress(params.recipient)) {
-      throw new I18nError("error.invalidParams");
-    }
-
-    if (!this.isValidAddress(params.inputToken)) {
-      throw new I18nError("error.invalidParams");
-    }
-
-    // Validate chain ID is a positive number
-    if (!Number.isInteger(params.originChainId) || params.originChainId <= 0) {
-      throw new I18nError("error.invalidParams");
-    }
-
-    // Build query parameters
     const queryParams = new URLSearchParams({
       tradeType: "minOutput",
       amount: params.inputAmount,
       inputToken: params.inputToken,
-      outputToken: AcrossService.POLYGON_USDC,
+      outputToken: POLYGON_USDC_ADDRESS,
       originChainId: params.originChainId.toString(),
-      destinationChainId: AcrossService.POLYGON_CHAIN_ID.toString(),
+      destinationChainId: POLYGON_CHAIN_ID.toString(),
       depositor: params.depositor,
       recipient: params.recipient,
+      appFee: ACROSS_APP_FEE.toString(),
+      appFeeRecipient: ACROSS_APP_FEE_RECIPIENT,
     });
 
     const url = `${this.baseUrl}/swap/approval?${queryParams.toString()}`;
 
     try {
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), this.FETCH_TIMEOUT);
-
-      let response: Response;
-      try {
-        response = await fetch(url, { signal: controller.signal });
-      } finally {
-        clearTimeout(timeoutId);
-      }
+      const response = await this.fetchWithTimeout(url);
 
       if (!response.ok) {
         await this.handleApiError(response);
       }
 
-      let rawData: unknown;
-      try {
-        rawData = await response.json();
-      } catch (jsonError) {
-        console.error("Failed to parse JSON response from Across API:", jsonError);
-        throw new I18nError("error.networkConnection");
-      }
-
-      // Type cast after successful parsing
+      const rawData = await this.parseJsonResponse(response, "quote");
       const data = rawData as Record<string, unknown>;
 
-      // Parse API response into AcrossQuote object
-      const quote: AcrossQuote = {
-        expectedOutputAmount: (data.expectedOutputAmount as string) || "0",
-        minOutputAmount: (data.minOutputAmount as string) || "0",
-        inputAmount: (data.inputAmount as string) || params.inputAmount,
-        expectedFillTime: (data.expectedFillTime as number) || 0,
-        fees: this.parseFees(data.fees),
-        swapTx: this.parseTransactionData(data.swapTx),
-        approvalTxns: this.parseApprovalTransactions(data.approvalTxns),
-        depositId: data.id as string | undefined,
-        originChainId: params.originChainId,
-        destinationChainId: AcrossService.POLYGON_CHAIN_ID,
-      };
-
-      return quote;
+      return this.buildQuoteFromResponse(data, params);
     } catch (error) {
-      // Re-throw if already a handled error (including i18n keys)
       if (error instanceof Error) {
         throw error;
       }
@@ -494,7 +506,7 @@ export class AcrossService {
             // Re-throw user rejection errors with i18n key
             if (
               error instanceof Error &&
-              this.isUserRejectionError(error)
+              isUserRejectionError(error)
             ) {
               throw new I18nError("error.transactionRejected");
             }
@@ -525,7 +537,7 @@ export class AcrossService {
 
       if (error instanceof Error) {
         // Check for user rejection patterns
-        if (this.isUserRejectionError(error)) {
+        if (isUserRejectionError(error)) {
           throw new I18nError("error.transactionRejected");
         }
 
@@ -561,7 +573,6 @@ export class AcrossService {
    * @returns Array of supported chains
    */
   async getSupportedChains(): Promise<AcrossChain[]> {
-    // Check if we have a valid cached result
     if (this.chainsCache && this.isCacheValid(this.chainsCache.timestamp)) {
       return this.chainsCache.data;
     }
@@ -569,32 +580,15 @@ export class AcrossService {
     const url = `${this.baseUrl}/swap/chains`;
 
     try {
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), this.FETCH_TIMEOUT);
-
-      let response: Response;
-      try {
-        response = await fetch(url, { signal: controller.signal });
-      } finally {
-        clearTimeout(timeoutId);
-      }
+      const response = await this.fetchWithTimeout(url);
 
       if (!response.ok) {
         await this.handleApiError(response);
       }
 
-      let data: unknown;
-      try {
-        data = await response.json();
-      } catch (jsonError) {
-        console.error("Failed to parse JSON response from Across API (chains):", jsonError);
-        throw new I18nError("error.networkConnection");
-      }
-
-      // Parse API response into AcrossChain array
+      const data = await this.parseJsonResponse(response, "chains");
       const chains = this.parseChains(data);
 
-      // Cache the result
       this.chainsCache = {
         data: chains,
         timestamp: Date.now(),
@@ -602,7 +596,6 @@ export class AcrossService {
 
       return chains;
     } catch (error) {
-      // Re-throw if already a handled error (including i18n keys)
       if (error instanceof Error) {
         throw error;
       }
@@ -671,27 +664,13 @@ export class AcrossService {
     const url = `${this.baseUrl}/swap/tokens`;
 
     try {
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), this.FETCH_TIMEOUT);
-
-      let response: Response;
-      try {
-        response = await fetch(url, { signal: controller.signal });
-      } finally {
-        clearTimeout(timeoutId);
-      }
+      const response = await this.fetchWithTimeout(url);
 
       if (!response.ok) {
         await this.handleApiError(response);
       }
 
-      let data: unknown;
-      try {
-        data = await response.json();
-      } catch (jsonError) {
-        console.error("Failed to parse JSON response from Across API (tokens):", jsonError);
-        throw new I18nError("error.networkConnection");
-      }
+      const data = await this.parseJsonResponse(response, "tokens");
       return this.parseTokens(data);
     } catch (error) {
       if (error instanceof Error) {
@@ -699,19 +678,6 @@ export class AcrossService {
       }
       throw new I18nError("error.networkConnection");
     }
-  }
-
-  /**
-   * Check if an error is a user rejection error
-   */
-  private isUserRejectionError(error: Error): boolean {
-    const message = error.message.toLowerCase();
-    return (
-      message.includes("rejected") ||
-      message.includes("user denied") ||
-      message.includes("user cancelled") ||
-      message.includes("user canceled")
-    );
   }
 
   /**
@@ -816,103 +782,45 @@ export class AcrossService {
     params: AcrossQuoteParams,
     actions: AcrossAction[]
   ): Promise<AcrossQuote> {
-    // Validate input parameters
-    if (!params.inputAmount || params.inputAmount === "0") {
-      throw new I18nError("error.invalidParams");
-    }
+    this.validateQuoteParams(params);
 
-    // Validate inputAmount is a valid positive integer string
-    if (!/^\d+$/.test(params.inputAmount) || BigInt(params.inputAmount) <= 0n) {
-      throw new I18nError("error.invalidParams");
-    }
-
-    // Validate addresses
-    if (!this.isValidAddress(params.depositor)) {
-      throw new I18nError("error.invalidParams");
-    }
-
-    if (!this.isValidAddress(params.recipient)) {
-      throw new I18nError("error.invalidParams");
-    }
-
-    if (!this.isValidAddress(params.inputToken)) {
-      throw new I18nError("error.invalidParams");
-    }
-
-    // Validate chain ID is a positive number
-    if (!Number.isInteger(params.originChainId) || params.originChainId <= 0) {
-      throw new I18nError("error.invalidParams");
-    }
-
-    // Validate actions array
     if (!actions || actions.length === 0) {
       throw new I18nError("error.invalidParams");
     }
 
-    // Build query parameters - recipient is MULTICALL_HANDLER for action execution
     const queryParams = new URLSearchParams({
       tradeType: "minOutput",
       amount: params.inputAmount,
       inputToken: params.inputToken,
-      outputToken: AcrossService.POLYGON_USDC,
+      outputToken: POLYGON_USDC_ADDRESS,
       originChainId: params.originChainId.toString(),
-      destinationChainId: AcrossService.POLYGON_CHAIN_ID.toString(),
+      destinationChainId: POLYGON_CHAIN_ID.toString(),
       depositor: params.depositor,
       recipient: MULTICALL_HANDLER_ADDRESS,
+      appFee: ACROSS_APP_FEE.toString(),
+      appFeeRecipient: ACROSS_APP_FEE_RECIPIENT,
     });
 
     const url = `${this.baseUrl}/swap/approval?${queryParams.toString()}`;
 
     try {
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), this.FETCH_TIMEOUT);
-
-      let response: Response;
-      try {
-        response = await fetch(url, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({ actions }),
-          signal: controller.signal,
-        });
-      } finally {
-        clearTimeout(timeoutId);
-      }
+      const response = await this.fetchWithTimeout(url, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ actions }),
+      });
 
       if (!response.ok) {
         await this.handleApiError(response);
       }
 
-      let rawData: unknown;
-      try {
-        rawData = await response.json();
-      } catch (jsonError) {
-        console.error("Failed to parse JSON response from Across API:", jsonError);
-        throw new I18nError("error.networkConnection");
-      }
-
-      // Type cast after successful parsing
+      const rawData = await this.parseJsonResponse(response, "quote with actions");
       const data = rawData as Record<string, unknown>;
 
-      // Parse API response into AcrossQuote object
-      const quote: AcrossQuote = {
-        expectedOutputAmount: (data.expectedOutputAmount as string) || "0",
-        minOutputAmount: (data.minOutputAmount as string) || "0",
-        inputAmount: (data.inputAmount as string) || params.inputAmount,
-        expectedFillTime: (data.expectedFillTime as number) || 0,
-        fees: this.parseFees(data.fees),
-        swapTx: this.parseTransactionData(data.swapTx),
-        approvalTxns: this.parseApprovalTransactions(data.approvalTxns),
-        depositId: data.id as string | undefined,
-        originChainId: params.originChainId,
-        destinationChainId: AcrossService.POLYGON_CHAIN_ID,
-      };
-
-      return quote;
+      return this.buildQuoteFromResponse(data, params);
     } catch (error) {
-      // Re-throw if already a handled error (including i18n keys)
       if (error instanceof Error) {
         throw error;
       }

@@ -30,6 +30,18 @@ export const POLYGON_CHAIN_ID = 137;
 export const SECONDS_PER_MONTH = 30n * 24n * 60n * 60n; // 2,592,000
 
 /**
+ * Integrator fee percentage for Across Protocol swaps
+ * Expressed as a decimal (0.004 = 0.4%)
+ */
+export const ACROSS_APP_FEE = 0.004;
+
+/**
+ * Address that receives the integrator fee on the destination chain
+ */
+export const ACROSS_APP_FEE_RECIPIENT: Address =
+  "0x2c1d4e0FB7fe91247C4025A4a97694ed7c3BB8CA";
+
+/**
  * AzothPay contract ABI
  * Contains functions required for subscription management
  */

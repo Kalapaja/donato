@@ -1,17 +1,22 @@
 import {
   type Address,
   type Chain as ViemChain,
+  createPublicClient,
   createWalletClient,
   custom,
+  erc20Abi,
   formatUnits,
+  http,
+  type PublicClient,
   type TransactionRequest,
   type WalletClient,
 } from "viem";
 import { arbitrum, base, bsc, mainnet, optimism, polygon } from "viem/chains";
+import { isNativeToken } from "../constants/tokens.ts";
+import { isUserRejectionError, isInsufficientFundsError } from "../utils/errors.ts";
 import { createAppKit } from "@reown/appkit";
 import { WagmiAdapter } from "@reown/appkit-adapter-wagmi";
 import type { AppKit } from "@reown/appkit";
-import { BrowserProvider, type Eip1193Provider } from "ethers";
 import {
   switchChain as wagmiSwitchChain,
   getWalletClient as wagmiGetWalletClient,
@@ -128,9 +133,10 @@ export class WalletService {
           name: "Donation Widget",
           description:
             "Cryptocurrency donation widget with cross-chain support",
-          url: typeof globalThis !== "undefined" && "location" in globalThis
-            ? (globalThis as typeof window).location.origin
-            : "https://example.com",
+          url:
+            typeof globalThis !== "undefined" && "location" in globalThis
+              ? (globalThis as typeof window).location.origin
+              : "https://example.com",
           icons: ["https://avatars.githubusercontent.com/u/37784886"],
         },
         features: {
@@ -140,7 +146,7 @@ export class WalletService {
           swaps: false,
           onramp: false,
           history: false,
-          send: false
+          send: false,
         },
         themeVariables: {
           "--w3m-accent": "oklch(0% 0 0)",
@@ -335,7 +341,11 @@ export class WalletService {
 
     try {
       const provider = this.appKit.getWalletProvider();
-      if (!provider || typeof provider !== "object" || !("request" in provider)) {
+      if (
+        !provider ||
+        typeof provider !== "object" ||
+        !("request" in provider)
+      ) {
         return null;
       }
 
@@ -350,7 +360,11 @@ export class WalletService {
         transport: custom(provider as Parameters<typeof custom>[0]),
       });
     } catch (error) {
-      console.error("Failed to create wallet client for chain:", chainId, error);
+      console.error(
+        "Failed to create wallet client for chain:",
+        chainId,
+        error,
+      );
       return null;
     }
   }
@@ -378,7 +392,9 @@ export class WalletService {
         throw new Error(`Unsupported chain ID: ${chainId}`);
       }
 
-      console.log(`Switching from chain ${currentChainId} to ${chainId} via wagmi...`);
+      console.log(
+        `Switching from chain ${currentChainId} to ${chainId} via wagmi...`,
+      );
 
       // Use wagmi's switchChain which properly waits for the switch to complete
       // and updates the internal state
@@ -395,8 +411,13 @@ export class WalletService {
       console.error("Failed to switch chain:", error);
 
       // Check for user rejection
-      if (error && typeof error === "object" && "code" in error &&
-          ((error as { code: number }).code === 4001 || (error as { code: number }).code === -32000)) {
+      if (
+        error &&
+        typeof error === "object" &&
+        "code" in error &&
+        ((error as { code: number }).code === 4001 ||
+          (error as { code: number }).code === -32000)
+      ) {
         throw new Error("Chain switch was rejected by user");
       }
 
@@ -408,7 +429,9 @@ export class WalletService {
    * Get a wagmi wallet client for a specific chain (async version)
    * This uses wagmi's getWalletClient which properly handles chain-specific clients
    */
-  async getWalletClientForChainAsync(chainId: number): Promise<WalletClient | null> {
+  async getWalletClientForChainAsync(
+    chainId: number,
+  ): Promise<WalletClient | null> {
     if (!this.wagmiConfig) {
       console.error("wagmiConfig not available");
       return null;
@@ -423,8 +446,6 @@ export class WalletService {
     }
   }
 
-  // Multicall3 contract address (same on all EVM chains)
-  private readonly MULTICALL3_ADDRESS = "0xcA11bde05977b3631167028862bE2a173976CA11";
 
   /**
    * Get token balance for an address
@@ -437,15 +458,18 @@ export class WalletService {
     try {
       const provider = this.appKit.getWalletProvider();
       if (
-        !provider || typeof provider !== "object" || !("request" in provider)
+        !provider ||
+        typeof provider !== "object" ||
+        !("request" in provider)
       ) {
         throw new Error("Provider not available");
       }
 
       const ethProvider = provider as {
-        request: (
-          args: { method: string; params?: unknown[] },
-        ) => Promise<unknown>;
+        request: (args: {
+          method: string;
+          params?: unknown[];
+        }) => Promise<unknown>;
       };
 
       // Native token (ETH, MATIC, etc.)
@@ -477,41 +501,54 @@ export class WalletService {
   }
 
   /**
-   * Get multiple token balances in a single RPC call using Multicall3
+   * Get a public client for a specific chain
+   */
+  private getPublicClient(chainId: number): PublicClient | null {
+    const chain = this.getViemChain(chainId);
+    if (!chain) {
+      return null;
+    }
+
+    return createPublicClient({
+      chain,
+      transport: http(),
+    });
+  }
+
+  /**
+   * Get multiple token balances in a single RPC call using viem's multicall
    * @param tokens - Array of tokens to get balances for
    * @param address - Wallet address
    * @returns Map of token address (lowercase) to balance
    */
-  async getBalancesBatch(tokens: Token[], address: Address): Promise<Map<string, bigint>> {
+  async getBalancesBatch(
+    tokens: Token[],
+    address: Address,
+  ): Promise<Map<string, bigint>> {
     const results = new Map<string, bigint>();
 
-    if (!this.appKit || tokens.length === 0) {
+    if (tokens.length === 0) {
       return results;
     }
 
+    // Get chainId from the first token (all tokens should be on the same chain)
+    const chainId = tokens[0].chainId;
+    const publicClient = this.getPublicClient(chainId);
+
+    if (!publicClient) {
+      console.error("Failed to create public client for chain:", chainId);
+      return results;
+    }
+
+    // Separate native and ERC20 tokens
+    const nativeTokens = tokens.filter((t) => this.isNativeToken(t.address));
+    const erc20Tokens = tokens.filter((t) => !this.isNativeToken(t.address));
+
     try {
-      const provider = this.appKit.getWalletProvider();
-      if (!provider || typeof provider !== "object" || !("request" in provider)) {
-        throw new Error("Provider not available");
-      }
-
-      const ethProvider = provider as {
-        request: (args: { method: string; params?: unknown[] }) => Promise<unknown>;
-      };
-
-      // Separate native and ERC20 tokens
-      const nativeTokens = tokens.filter((t) => this.isNativeToken(t.address));
-      const erc20Tokens = tokens.filter((t) => !this.isNativeToken(t.address));
-
-      // Get native token balance (single call)
+      // Get native token balance
       if (nativeTokens.length > 0) {
         try {
-          const balance = await ethProvider.request({
-            method: "eth_getBalance",
-            params: [address, "latest"],
-          });
-          const nativeBalance = BigInt(balance as string);
-          // Set balance for all native token variations
+          const nativeBalance = await publicClient.getBalance({ address });
           for (const token of nativeTokens) {
             results.set(token.address.toLowerCase(), nativeBalance);
           }
@@ -523,185 +560,35 @@ export class WalletService {
         }
       }
 
-      // Get ERC20 balances via Multicall3
+      // Get ERC20 balances via viem's multicall
       if (erc20Tokens.length > 0) {
-        const erc20Balances = await this.multicallBalances(ethProvider, erc20Tokens, address);
-        for (const [tokenAddress, balance] of erc20Balances) {
-          results.set(tokenAddress, balance);
+        const contracts = erc20Tokens.map((token) => ({
+          address: token.address as Address,
+          abi: erc20Abi,
+          functionName: "balanceOf" as const,
+          args: [address],
+        }));
+
+        const balanceResults = await publicClient.multicall({
+          contracts,
+          allowFailure: true,
+        });
+
+        for (let i = 0; i < erc20Tokens.length; i++) {
+          const result = balanceResults[i];
+          const balance =
+            result.status === "success" ? (result.result as bigint) : BigInt(0);
+          results.set(erc20Tokens[i].address.toLowerCase(), balance);
         }
       }
 
       return results;
     } catch (error) {
       console.error("Failed to get balances batch:", error);
-      // Return zeros for all tokens on error
       for (const token of tokens) {
         results.set(token.address.toLowerCase(), BigInt(0));
       }
       return results;
-    }
-  }
-
-  /**
-   * Use Multicall3 to batch ERC20 balanceOf calls
-   */
-  private async multicallBalances(
-    ethProvider: { request: (args: { method: string; params?: unknown[] }) => Promise<unknown> },
-    tokens: Token[],
-    address: Address
-  ): Promise<Map<string, bigint>> {
-    const results = new Map<string, bigint>();
-
-    if (tokens.length === 0) {
-      return results;
-    }
-
-    try {
-      // Build multicall data
-      // aggregate3((address target, bool allowFailure, bytes callData)[])
-      // Function selector: 0x82ad56cb
-      const balanceOfSelector = "70a08231";
-      const paddedAddress = address.slice(2).toLowerCase().padStart(64, "0");
-
-      // Encode calls array for aggregate3
-      const calls = tokens.map((token) => ({
-        target: token.address,
-        allowFailure: true,
-        callData: `0x${balanceOfSelector}${paddedAddress}`,
-      }));
-
-      // Encode the aggregate3 call
-      const encodedCalls = this.encodeAggregate3Calls(calls);
-      const multicallData = `0x82ad56cb${encodedCalls}`;
-
-      const response = await ethProvider.request({
-        method: "eth_call",
-        params: [
-          {
-            to: this.MULTICALL3_ADDRESS,
-            data: multicallData,
-          },
-          "latest",
-        ],
-      });
-
-      // Decode response
-      const balances = this.decodeAggregate3Response(response as string, tokens.length);
-
-      for (let i = 0; i < tokens.length; i++) {
-        results.set(tokens[i].address.toLowerCase(), balances[i]);
-      }
-
-      return results;
-    } catch (error) {
-      console.error("Multicall failed, falling back to individual calls:", error);
-      // Fallback: return zeros (or could do individual calls)
-      for (const token of tokens) {
-        results.set(token.address.toLowerCase(), BigInt(0));
-      }
-      return results;
-    }
-  }
-
-  /**
-   * Encode calls for Multicall3 aggregate3 function
-   */
-  private encodeAggregate3Calls(calls: { target: string; allowFailure: boolean; callData: string }[]): string {
-    // ABI encode: (address target, bool allowFailure, bytes callData)[]
-    // Offset to array data (32 bytes)
-    let encoded = "0000000000000000000000000000000000000000000000000000000000000020";
-    // Array length
-    encoded += calls.length.toString(16).padStart(64, "0");
-
-    // Calculate offsets for each call's dynamic data
-    const headerSize = calls.length * 32; // Each call has 32 bytes offset
-    let currentOffset = headerSize;
-    const offsets: number[] = [];
-    const callsData: string[] = [];
-
-    for (const call of calls) {
-      offsets.push(currentOffset);
-
-      // Encode single call struct
-      // target (address) - 32 bytes
-      const targetEncoded = call.target.slice(2).toLowerCase().padStart(64, "0");
-      // allowFailure (bool) - 32 bytes
-      const allowFailureEncoded = call.allowFailure ? "0000000000000000000000000000000000000000000000000000000000000001" : "0000000000000000000000000000000000000000000000000000000000000000";
-      // callData offset within struct (always 96 = 0x60, as it comes after target + allowFailure + offset)
-      const callDataOffsetEncoded = "0000000000000000000000000000000000000000000000000000000000000060";
-      // callData length
-      const callDataBytes = call.callData.slice(2);
-      const callDataLength = (callDataBytes.length / 2).toString(16).padStart(64, "0");
-      // callData (padded to 32 bytes)
-      const callDataPadded = callDataBytes.padEnd(Math.ceil(callDataBytes.length / 64) * 64, "0");
-
-      const callEncoded = targetEncoded + allowFailureEncoded + callDataOffsetEncoded + callDataLength + callDataPadded;
-      callsData.push(callEncoded);
-
-      // Size of this call's data: 3 * 32 (target, allowFailure, offset) + 32 (length) + padded callData
-      currentOffset += 32 * 3 + 32 + (Math.ceil(callDataBytes.length / 64) * 32);
-    }
-
-    // Add offsets
-    for (const offset of offsets) {
-      encoded += offset.toString(16).padStart(64, "0");
-    }
-
-    // Add call data
-    for (const data of callsData) {
-      encoded += data;
-    }
-
-    return encoded;
-  }
-
-  /**
-   * Decode Multicall3 aggregate3 response
-   */
-  private decodeAggregate3Response(response: string, expectedCount: number): bigint[] {
-    const results: bigint[] = [];
-
-    try {
-      // Remove 0x prefix
-      const data = response.slice(2);
-
-      // Skip offset to array (32 bytes) and read array length
-      const arrayLength = parseInt(data.slice(64, 128), 16);
-
-      if (arrayLength !== expectedCount) {
-        console.warn(`Multicall response count mismatch: expected ${expectedCount}, got ${arrayLength}`);
-      }
-
-      // Read offsets for each result
-      const offsets: number[] = [];
-      for (let i = 0; i < arrayLength; i++) {
-        const offsetHex = data.slice(128 + i * 64, 128 + (i + 1) * 64);
-        offsets.push(parseInt(offsetHex, 16) * 2); // Convert to hex string position
-      }
-
-      // Decode each result (bool success, bytes returnData)
-      for (let i = 0; i < arrayLength; i++) {
-        const resultStart = 64 + offsets[i]; // 64 for initial offset
-        // success (bool) - 32 bytes
-        const success = data.slice(resultStart, resultStart + 64) !== "0000000000000000000000000000000000000000000000000000000000000000";
-        // returnData offset - 32 bytes (always 0x40 = 64)
-        // returnData length - 32 bytes
-        const returnDataLengthHex = data.slice(resultStart + 128, resultStart + 192);
-        const returnDataLength = parseInt(returnDataLengthHex, 16);
-
-        if (success && returnDataLength >= 32) {
-          // returnData starts after length
-          const balanceHex = data.slice(resultStart + 192, resultStart + 192 + 64);
-          results.push(BigInt("0x" + balanceHex));
-        } else {
-          results.push(BigInt(0));
-        }
-      }
-
-      return results;
-    } catch (error) {
-      console.error("Failed to decode multicall response:", error);
-      return new Array(expectedCount).fill(BigInt(0));
     }
   }
 
@@ -736,7 +623,7 @@ export class WalletService {
     } catch (error: unknown) {
       console.error("Failed to send transaction:", error);
 
-      if (error instanceof Error && error.message?.includes("User rejected")) {
+      if (error instanceof Error && isUserRejectionError(error)) {
         throw new Error("Transaction was rejected by user");
       }
 
@@ -762,7 +649,7 @@ export class WalletService {
     } catch (error: unknown) {
       console.error("Failed to sign message:", error);
 
-      if (error instanceof Error && error.message?.includes("User rejected")) {
+      if (error instanceof Error && isUserRejectionError(error)) {
         throw new Error("Message signing was rejected by user");
       }
 
@@ -780,20 +667,26 @@ export class WalletService {
    */
   async signTypedData<
     TTypes extends Record<string, Array<{ name: string; type: string }>>,
-    TPrimaryType extends keyof TTypes
-  >(params: {
-    domain: {
-      name?: string;
-      version?: string;
-      chainId?: number;
-      verifyingContract?: Address;
-      salt?: `0x${string}`;
-    };
-    types: TTypes;
-    primaryType: TPrimaryType;
-    message: Record<string, unknown>;
-  }, chainId?: number): Promise<`0x${string}`> {
-    console.log("[WalletService] signTypedData called:", { chainId, hasCurrentAccount: !!this.currentAccount });
+    TPrimaryType extends keyof TTypes,
+  >(
+    params: {
+      domain: {
+        name?: string;
+        version?: string;
+        chainId?: number;
+        verifyingContract?: Address;
+        salt?: `0x${string}`;
+      };
+      types: TTypes;
+      primaryType: TPrimaryType;
+      message: Record<string, unknown>;
+    },
+    chainId?: number,
+  ): Promise<`0x${string}`> {
+    console.log("[WalletService] signTypedData called:", {
+      chainId,
+      hasCurrentAccount: !!this.currentAccount,
+    });
 
     if (!this.currentAccount) {
       throw new Error("Wallet not connected");
@@ -808,7 +701,10 @@ export class WalletService {
       walletClient = this.walletClient;
     }
 
-    console.log("[WalletService] walletClient obtained:", { hasWalletClient: !!walletClient, chainId });
+    console.log("[WalletService] walletClient obtained:", {
+      hasWalletClient: !!walletClient,
+      chainId,
+    });
 
     if (!walletClient) {
       throw new Error("Wallet client not available");
@@ -824,20 +720,14 @@ export class WalletService {
         types: params.types,
         primaryType: params.primaryType,
         message: params.message,
-      // deno-lint-ignore no-explicit-any
+        // deno-lint-ignore no-explicit-any
       } as any);
 
       return signature;
     } catch (error: unknown) {
       console.error("Failed to sign typed data:", error);
 
-      // Check for user rejection (error code 4001)
-      if (
-        error instanceof Error &&
-        (error.message?.includes("User rejected") ||
-          error.message?.includes("user rejected") ||
-          (error as { code?: number }).code === 4001)
-      ) {
+      if (error instanceof Error && isUserRejectionError(error)) {
         const rejectionError = new Error("Signature was rejected by user");
         (rejectionError as { code?: number }).code = 4001;
         throw rejectionError;
@@ -878,13 +768,13 @@ export class WalletService {
     try {
       // ERC20 transfer function selector: transfer(address,uint256) = 0xa9059cbb
       const functionSelector = "0xa9059cbb";
-      
+
       // Encode the recipient address (32 bytes, left-padded)
       const encodedAddress = toAddress.slice(2).toLowerCase().padStart(64, "0");
-      
+
       // Encode the amount (32 bytes, left-padded)
       const encodedAmount = amount.toString(16).padStart(64, "0");
-      
+
       // Combine into calldata
       const data = `${functionSelector}${encodedAddress}${encodedAmount}`;
 
@@ -896,23 +786,32 @@ export class WalletService {
 
       // Use raw provider for better compatibility with Reown AppKit
       const provider = this.appKit?.getWalletProvider();
-      if (!provider || typeof provider !== "object" || !("request" in provider)) {
+      if (
+        !provider ||
+        typeof provider !== "object" ||
+        !("request" in provider)
+      ) {
         throw new Error("Wallet provider not available");
       }
 
       const ethProvider = provider as {
-        request: (args: { method: string; params?: unknown[] }) => Promise<unknown>;
+        request: (args: {
+          method: string;
+          params?: unknown[];
+        }) => Promise<unknown>;
       };
 
       console.log("Sending transaction via eth_sendTransaction...");
 
       const hash = await ethProvider.request({
         method: "eth_sendTransaction",
-        params: [{
-          from: this.currentAccount.address,
-          to: token.address,
-          data: data, // Already has 0x prefix from functionSelector
-        }],
+        params: [
+          {
+            from: this.currentAccount.address,
+            to: token.address,
+            data: data, // Already has 0x prefix from functionSelector
+          },
+        ],
       });
 
       console.log("Transaction sent, hash:", hash);
@@ -920,11 +819,11 @@ export class WalletService {
     } catch (error: unknown) {
       console.error("Failed to transfer token:", error);
 
-      if (error instanceof Error && error.message?.includes("User rejected")) {
+      if (error instanceof Error && isUserRejectionError(error)) {
         throw new Error("Transaction was rejected by user");
       }
 
-      if (error instanceof Error && error.message?.includes("insufficient")) {
+      if (error instanceof Error && isInsufficientFundsError(error)) {
         throw new Error("Insufficient token balance");
       }
 
@@ -951,12 +850,19 @@ export class WalletService {
     try {
       // Use raw provider for better compatibility with Reown AppKit
       const provider = this.appKit?.getWalletProvider();
-      if (!provider || typeof provider !== "object" || !("request" in provider)) {
+      if (
+        !provider ||
+        typeof provider !== "object" ||
+        !("request" in provider)
+      ) {
         throw new Error("Wallet provider not available");
       }
 
       const ethProvider = provider as {
-        request: (args: { method: string; params?: unknown[] }) => Promise<unknown>;
+        request: (args: {
+          method: string;
+          params?: unknown[];
+        }) => Promise<unknown>;
       };
 
       // Convert amount to hex
@@ -966,11 +872,13 @@ export class WalletService {
 
       const hash = await ethProvider.request({
         method: "eth_sendTransaction",
-        params: [{
-          from: this.currentAccount.address,
-          to: toAddress,
-          value: valueHex,
-        }],
+        params: [
+          {
+            from: this.currentAccount.address,
+            to: toAddress,
+            value: valueHex,
+          },
+        ],
       });
 
       console.log("Transaction sent, hash:", hash);
@@ -978,11 +886,11 @@ export class WalletService {
     } catch (error: unknown) {
       console.error("Failed to transfer native token:", error);
 
-      if (error instanceof Error && error.message?.includes("User rejected")) {
+      if (error instanceof Error && isUserRejectionError(error)) {
         throw new Error("Transaction was rejected by user");
       }
 
-      if (error instanceof Error && error.message?.includes("insufficient")) {
+      if (error instanceof Error && isInsufficientFundsError(error)) {
         throw new Error("Insufficient balance");
       }
 
@@ -994,11 +902,7 @@ export class WalletService {
    * Check if a token address represents a native token
    */
   isNativeToken(tokenAddress: string): boolean {
-    const normalizedAddress = tokenAddress.toLowerCase();
-    return (
-      normalizedAddress === "0x0000000000000000000000000000000000000000" ||
-      normalizedAddress === "0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee"
-    );
+    return isNativeToken(tokenAddress);
   }
 
   /**
@@ -1072,31 +976,6 @@ export class WalletService {
    */
   getWalletClient(): WalletClient | null {
     return this.walletClient;
-  }
-
-  /**
-   * Get ethers signer (for external integrations)
-   */
-  getSigner(): unknown {
-    if (!this.appKit) {
-      return null;
-    }
-
-    try {
-      const provider = this.appKit.getWalletProvider();
-      if (!provider) {
-        return null;
-      }
-
-      // Create ethers provider from EIP-1193 provider
-      const ethersProvider = new BrowserProvider(provider as Eip1193Provider);
-
-      // Return signer asynchronously
-      return ethersProvider.getSigner();
-    } catch (error) {
-      console.error("Failed to get signer:", error);
-      return null;
-    }
   }
 
   /**

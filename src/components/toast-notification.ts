@@ -144,6 +144,16 @@ export class ToastNotification extends LitElement {
         max-width: calc(100vw - 2rem);
       }
     }
+
+    @media (prefers-reduced-motion: reduce) {
+      .toast {
+        transition: none;
+      }
+
+      .toast-close {
+        transition: none;
+      }
+    }
   `;
 
   override connectedCallback() {

@@ -7,6 +7,7 @@
 
 import { assertEquals } from "@std/assert";
 import { AcrossService } from "./AcrossService.ts";
+import { POLYGON_USDC_ADDRESS } from "../constants/azoth-pay.ts";
 
 // ============================================================================
 // Tests for isSameTokenTransfer
@@ -341,7 +342,7 @@ Deno.test("getQuote - destination is always Polygon (chainId 137) with USDC", as
     // Verify output token is always Polygon USDC
     assertEquals(
       capturedUrl.includes(
-        `outputToken=${AcrossService.POLYGON_USDC}`
+        `outputToken=${POLYGON_USDC_ADDRESS}`
       ),
       true,
       "Request should always include outputToken set to Polygon USDC"
@@ -1516,11 +1517,10 @@ Deno.test("cache - independent cache per service instance", async () => {
 // Tests for buildSubscriptionActions
 // ============================================================================
 
-import type { SubscriptionSignatureData } from "./azoth-pay-service.ts";
+import type { SubscriptionSignatureData } from "./AzothPayService.ts";
 import {
   AZOTH_PAY_ADDRESS,
   MULTICALL_HANDLER_ADDRESS,
-  POLYGON_USDC_ADDRESS,
 } from "../constants/azoth-pay.ts";
 
 /**

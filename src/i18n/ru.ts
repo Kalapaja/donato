@@ -96,6 +96,9 @@ export const ru: Translations = {
   "error.subscriptionFailed": "Не удалось создать подписку. Попробуйте снова.",
   "error.walletNotConnected": "Сначала подключите кошелёк.",
   "error.switchToPolygon": "Пожалуйста, переключитесь на сеть Polygon в кошельке для подписи подписки.",
+  "error.uniswapNoPool": "Пул ликвидности для этой пары токенов не найден",
+  "error.uniswapSlippage": "Цена изменилась слишком сильно. Попробуйте снова",
+  "error.uniswapSwapFailed": "Обмен не удался. Попробуйте снова",
 
   // Subscription overlay
   "subscription.overlay.title": "Настройка подписки",

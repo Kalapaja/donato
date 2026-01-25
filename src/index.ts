@@ -1,12 +1,6 @@
 // Import and register all components
 import "./components/donation-widget.ts";
-import "./components/wallet-section.ts";
-import "./components/donation-form.ts";
 import "./components/theme-toggle.ts";
-import "./components/token-selector.ts";
-import "./components/token-list.ts";
-import "./components/token-item.ts";
-import "./components/amount-input.ts";
 import "./components/donate-button.ts";
 import "./components/toast-notification.ts";
 import "./components/toast-container.ts";
@@ -16,18 +10,12 @@ import "./components/subscription-progress-screen.ts";
 
 // Export components for programmatic usage
 export {
-  AmountInput,
   DonateButton,
-  DonationForm,
   DonationWidget,
   DonationTypeToggle,
   ThemeToggle,
   ToastContainer,
   ToastNotification,
-  TokenItem,
-  TokenList,
-  TokenSelector,
-  WalletSection,
 } from "./components/index.ts";
 
 // Export component types

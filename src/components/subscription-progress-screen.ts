@@ -110,12 +110,40 @@ export class SubscriptionProgressScreen extends LitElement {
   @property({ type: String, attribute: "error-message" })
   accessor errorMessage: string = "";
 
+  /** Whether this is a direct transfer (Polygon USDC - no Across needed) */
+  @property({ type: Boolean, attribute: "is-direct-transfer" })
+  accessor isDirectTransfer: boolean = false;
+
+  /**
+   * Steps that are skipped for direct transfers (Polygon USDC)
+   * These steps are only needed for cross-chain transfers via Across
+   */
+  private static readonly DIRECT_TRANSFER_SKIP_STEPS: SubscriptionStep[] = [
+    "building",
+    "returning",
+    "quoting",
+  ];
+
+  /**
+   * Get the steps to display based on whether this is a direct transfer
+   * @returns Filtered array of step configurations
+   */
+  private getDisplaySteps(): StepConfig[] {
+    if (this.isDirectTransfer) {
+      return STEPS.filter(
+        (s) => !SubscriptionProgressScreen.DIRECT_TRANSFER_SKIP_STEPS.includes(s.key)
+      );
+    }
+    return STEPS;
+  }
+
   /**
    * Determines the state of a step based on current progress
    * @param stepKey - The step to check
+   * @param displaySteps - The filtered steps being displayed
    * @returns The current state of the step
    */
-  private getStepState(stepKey: SubscriptionStep): StepState {
+  private getStepState(stepKey: SubscriptionStep, displaySteps: StepConfig[]): StepState {
     // If there's an error and this is the current step, it's in error state
     if (this.errorMessage && this.currentStep === stepKey) {
       return "error";
@@ -126,8 +154,21 @@ export class SubscriptionProgressScreen extends LitElement {
       return "pending";
     }
 
-    const stepIndex = STEPS.findIndex((s) => s.key === stepKey);
-    const currentIndex = STEPS.findIndex((s) => s.key === this.currentStep);
+    const stepIndex = displaySteps.findIndex((s) => s.key === stepKey);
+    const currentIndex = displaySteps.findIndex((s) => s.key === this.currentStep);
+
+    // If current step is not in display steps (e.g., a skipped step),
+    // find the next visible step that should be active
+    if (currentIndex === -1) {
+      // Find which display step should be active based on STEPS order
+      const currentStepFullIndex = STEPS.findIndex((s) => s.key === this.currentStep);
+      const stepFullIndex = STEPS.findIndex((s) => s.key === stepKey);
+
+      if (stepFullIndex < currentStepFullIndex) {
+        return "completed";
+      }
+      return "pending";
+    }
 
     // Steps before current are completed
     if (stepIndex < currentIndex) {
@@ -381,6 +422,8 @@ export class SubscriptionProgressScreen extends LitElement {
   `;
 
   override render() {
+    const displaySteps = this.getDisplaySteps();
+
     return html`
       <div class="progress-container">
         <!-- Header -->
@@ -407,8 +450,8 @@ export class SubscriptionProgressScreen extends LitElement {
 
         <!-- Steps -->
         <div class="steps-container">
-          ${STEPS.map((step, index) => {
-            const state = this.getStepState(step.key);
+          ${displaySteps.map((step, index) => {
+            const state = this.getStepState(step.key, displaySteps);
             return html`
               <div class="step ${state}">
                 <div class="step-icon">${this.renderStepIcon(state, index)}</div>
@@ -444,6 +487,3 @@ declare global {
     "subscription-progress-screen": SubscriptionProgressScreen;
   }
 }
-
-// Re-export STEPS for potential use by other components
-export { STEPS };
