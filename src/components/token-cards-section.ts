@@ -118,7 +118,7 @@ export class TokenCardsSection extends LitElement {
       border: 1px solid var(--color-border);
       border-radius: 16px;
       cursor: pointer;
-      transition: all 0.2s ease;
+      transition: background-color 0.2s ease, border-color 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
       box-sizing: border-box;
       position: relative;
     }
@@ -431,7 +431,7 @@ export class TokenCardsSection extends LitElement {
     if (this.isLoadingBalances) {
       return [];
     }
-    
+
     return this.filteredTokens.filter((token) => {
       const balance = this.getTokenBalance(token);
       const num = parseFloat(balance);
@@ -481,7 +481,6 @@ export class TokenCardsSection extends LitElement {
         for (const token of tokensToLoad) {
           const key = this.getTokenKey(token);
           const balanceBigInt = balancesMap.get(token.address.toLowerCase()) || BigInt(0);
-          // Format balance
           const balance = this.formatBalance(balanceBigInt, token.decimals);
           newBalances.set(key, balance);
         }
@@ -704,6 +703,8 @@ export class TokenCardsSection extends LitElement {
                       class="token-icon"
                       src="${token.logoURI}"
                       alt="${token.symbol}"
+                      width="40"
+                      height="40"
                       @error="${(e: Event) => {
                         const img = e.target as HTMLImageElement;
                         img.style.display = "none";

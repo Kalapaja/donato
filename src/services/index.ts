@@ -27,16 +27,37 @@ export type { Locale, TranslationKey, Translations } from "./I18nService.ts";
 export { I18nError } from "./I18nError.ts";
 export type { ErrorKey } from "./I18nError.ts";
 
-export { AzothPayService } from "./azoth-pay-service.ts";
+export { AzothPayService } from "./AzothPayService.ts";
 export type {
   Eip712Domain,
   SubscriptionSignatureData,
-  SubscriptionParams,
-} from "./azoth-pay-service.ts";
+  AzothPaySubscriptionParams,
+} from "./AzothPayService.ts";
 export {
   AZOTH_PAY_ADDRESS,
   MULTICALL_HANDLER_ADDRESS,
   POLYGON_USDC_ADDRESS,
   POLYGON_CHAIN_ID,
   SECONDS_PER_MONTH,
-} from "./azoth-pay-service.ts";
+} from "./AzothPayService.ts";
+
+export { UniswapService } from "./UniswapService.ts";
+export type {
+  UniswapQuoteParams,
+  UniswapQuote,
+} from "./UniswapService.ts";
+
+export { QuoteService } from "./QuoteService.ts";
+export type {
+  DonationPath,
+  QuoteParams,
+  QuoteResult,
+} from "./QuoteService.ts";
+
+export { DonationService } from "./DonationService.ts";
+export type {
+  DonationParams,
+  DonationResult,
+  SubscriptionParams,
+  SubscriptionResult,
+} from "./DonationService.ts";

@@ -102,7 +102,7 @@ export class AmountSection extends LitElement {
       opacity: 0.5;
     }
 
-    .amount-input:focus {
+    .amount-input:focus-visible {
       outline: none;
     }
 
@@ -344,6 +344,8 @@ export class AmountSection extends LitElement {
               type="text"
               inputmode="decimal"
               placeholder="0"
+              name="recipient-amount"
+              autocomplete="off"
               .value="${displayValue}"
               @input="${this.handleInput}"
               aria-label="${t("amount.ariaLabel")}"

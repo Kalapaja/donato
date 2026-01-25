@@ -23,7 +23,7 @@ export class ThemeToggle extends LitElement {
       border: 1px solid var(--color-border);
       border-radius: calc(var(--radius) - 2px);
       cursor: pointer;
-      transition: all 0.2s;
+      transition: background-color 0.2s, border-color 0.2s;
       color: var(--color-foreground);
     }
 
@@ -32,9 +32,9 @@ export class ThemeToggle extends LitElement {
       border-color: var(--color-foreground);
     }
 
-    .toggle-button:focus {
-      outline: none;
-      border-color: var(--color-foreground);
+    .toggle-button:focus-visible {
+      outline: 2px solid var(--color-foreground);
+      outline-offset: 2px;
     }
 
     .icon {
@@ -66,6 +66,17 @@ export class ThemeToggle extends LitElement {
       }
       50% {
         transform: translateY(-2px);
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .toggle-button {
+        transition: none;
+      }
+
+      .icon-sun,
+      .icon-moon {
+        animation: none;
       }
     }
   `;

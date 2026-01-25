@@ -83,6 +83,9 @@ export type TranslationKey =
   | "error.subscriptionFailed"
   | "error.walletNotConnected"
   | "error.switchToPolygon"
+  | "error.uniswapNoPool"
+  | "error.uniswapSlippage"
+  | "error.uniswapSwapFailed"
   // Subscription overlay
   | "subscription.overlay.title"
   | "subscription.overlay.description"

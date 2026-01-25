@@ -3,8 +3,10 @@ import { polygon } from "viem/chains";
 import {
   AZOTH_PAY_ADDRESS,
   AZOTH_ABI,
+  ERC20_ABI,
   SECONDS_PER_MONTH,
   POLYGON_CHAIN_ID,
+  POLYGON_USDC_ADDRESS,
 } from "../constants/azoth-pay.ts";
 import { WalletService } from "./WalletService.ts";
 import { I18nError } from "./I18nError.ts";
@@ -58,7 +60,7 @@ export interface ExistingSubscriptionInfo {
 /**
  * Parameters required to create a subscription signature
  */
-export interface SubscriptionParams {
+export interface AzothPaySubscriptionParams {
   /** Address of the user creating the subscription */
   userAddress: Address;
   /** Address of the subscription recipient (author/creator) */
@@ -274,6 +276,85 @@ export class AzothPayService {
   }
 
   /**
+   * Encode approve call for USDC token
+   *
+   * Creates the calldata for the ERC20 approve() function.
+   * Used to approve AzothPay contract to spend user's USDC.
+   *
+   * @param spender - Address to approve (typically AZOTH_PAY_ADDRESS)
+   * @param amount - Amount to approve in smallest unit
+   * @returns Encoded function call data as hex string
+   */
+  encodeApproveCall(spender: Address, amount: bigint): `0x${string}` {
+    return encodeFunctionData({
+      abi: ERC20_ABI,
+      functionName: "approve",
+      args: [spender, amount],
+    });
+  }
+
+  /**
+   * Encode depositFor call for AzothPay contract
+   *
+   * Creates the calldata for the depositFor() function which deposits USDC
+   * into the AzothPay contract for a user.
+   *
+   * @param amount - Amount to deposit in smallest unit
+   * @param to - Address to deposit for
+   * @returns Encoded function call data as hex string
+   */
+  encodeDepositForCall(amount: bigint, to: Address): `0x${string}` {
+    return encodeFunctionData({
+      abi: AZOTH_ABI,
+      functionName: "depositFor",
+      args: [amount, to, false], // isPermit2 = false
+    });
+  }
+
+  /**
+   * Encode bySig call for AzothPay contract
+   *
+   * Creates the calldata for the bySig() function which executes
+   * a meta-transaction using an EIP-712 signature.
+   *
+   * @param signer - Address that signed the message
+   * @param traits - Encoded traits (nonce type, deadline, nonce)
+   * @param data - Encoded function call data (e.g., subscribe call)
+   * @param signature - EIP-712 signature from the signer
+   * @returns Encoded function call data as hex string
+   */
+  encodeBySigCall(
+    signer: Address,
+    traits: bigint,
+    data: `0x${string}`,
+    signature: `0x${string}`
+  ): `0x${string}` {
+    return encodeFunctionData({
+      abi: AZOTH_ABI,
+      functionName: "bySig",
+      args: [signer, { traits, data }, signature],
+    });
+  }
+
+  /**
+   * Get USDC allowance for AzothPay contract
+   *
+   * Reads the current allowance that the owner has granted to AzothPay.
+   *
+   * @param owner - Address of the token owner
+   * @returns The current allowance as bigint
+   */
+  async getUsdcAllowance(owner: Address): Promise<bigint> {
+    const result = await this.publicClient.readContract({
+      address: POLYGON_USDC_ADDRESS,
+      abi: ERC20_ABI,
+      functionName: "allowance",
+      args: [owner, AZOTH_PAY_ADDRESS],
+    });
+    return result as bigint;
+  }
+
+  /**
    * Build traits for bySig meta-transaction call
    *
    * Traits is a 256-bit value encoding metadata for the bySig operation:
@@ -316,7 +397,7 @@ export class AzothPayService {
    * @throws I18nError with key 'error.subscriptionFailed' for other errors
    */
   async getSubscriptionSignature(
-    params: SubscriptionParams,
+    params: AzothPaySubscriptionParams,
     walletService: WalletService
   ): Promise<SubscriptionSignatureData> {
     try {

@@ -62,7 +62,7 @@ export class DonationTypeToggle extends LitElement {
       font-size: 0.875rem;
       font-weight: 500;
       cursor: pointer;
-      transition: all 0.2s ease;
+      transition: background-color 0.2s ease, color 0.2s ease, box-shadow 0.2s ease;
       font-family: inherit;
     }
 

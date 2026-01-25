@@ -51,7 +51,7 @@ export class ChainService {
   private initialized = false;
 
   // Supported networks configuration
-  private readonly SUPPORTED_CHAINS = [
+  private readonly SUPPORTED_CHAINS: Chain[] = [
     {
       id: 1,
       name: "Ethereum",
@@ -171,7 +171,20 @@ export class ChainService {
   }
 
   /**
-   * Fetch tokens from AcrossService for all supported chains
+   * Polygon USDC address - needed for direct transfers
+   */
+  private readonly POLYGON_USDC = {
+    address: "0x3c499c542cEF5E3811e1192ce70d8cC03d5c3359",
+    chainId: 137,
+    symbol: "USDC",
+    name: "USD Coin",
+    decimals: 6,
+    logoURI: "https://raw.githubusercontent.com/trustwallet/assets/master/blockchains/ethereum/assets/0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48/logo.png",
+  };
+
+  /**
+   * Fetch tokens from AcrossService for all supported chains.
+   * Also adds native tokens and Polygon USDC for same-chain operations.
    */
   private async fetchTokensFromAcross(): Promise<void> {
     if (!this.acrossService) {
@@ -181,7 +194,8 @@ export class ChainService {
     const supportedChainIds = new Set(this.SUPPORTED_CHAINS.map((chain) => chain.id));
     const allAcrossTokens = await this.acrossService.getAllSupportedTokens();
 
-    this.tokens = allAcrossTokens
+    // Start with tokens from Across API
+    const tokensFromAcross = allAcrossTokens
       .filter((token) => supportedChainIds.has(token.chainId))
       .map((token) => ({
         chainId: token.chainId,
@@ -191,6 +205,38 @@ export class ChainService {
         decimals: token.decimals,
         logoURI: token.logoURI,
       }));
+
+    // Create a set of existing token keys for deduplication
+    const existingTokenKeys = new Set(
+      tokensFromAcross.map((t) => `${t.chainId}-${t.address.toLowerCase()}`)
+    );
+
+    // Add native tokens from supported chains if not already present
+    const nativeTokens: Token[] = [];
+    for (const chain of this.SUPPORTED_CHAINS) {
+      const key = `${chain.id}-${chain.nativeToken.address.toLowerCase()}`;
+      if (!existingTokenKeys.has(key)) {
+        nativeTokens.push({
+          chainId: chain.id,
+          address: chain.nativeToken.address,
+          symbol: chain.nativeToken.symbol,
+          name: chain.nativeToken.name,
+          decimals: chain.nativeToken.decimals,
+          logoURI: chain.nativeToken.logoURI,
+        });
+        existingTokenKeys.add(key);
+      }
+    }
+
+    // Add Polygon USDC for direct transfers if not already present
+    const usdcKey = `${this.POLYGON_USDC.chainId}-${this.POLYGON_USDC.address.toLowerCase()}`;
+    const additionalTokens: Token[] = [];
+    if (!existingTokenKeys.has(usdcKey)) {
+      additionalTokens.push(this.POLYGON_USDC);
+    }
+
+    // Combine all tokens
+    this.tokens = [...tokensFromAcross, ...nativeTokens, ...additionalTokens];
   }
 
   /**

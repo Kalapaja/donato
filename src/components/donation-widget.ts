@@ -8,12 +8,16 @@ import {
   i18nService,
   t,
   I18nError,
+  QuoteService,
+  DonationService,
+  type QuoteResult,
 } from "../services/index.ts";
 import { AcrossService, type AcrossQuote } from "../services/AcrossService.ts";
+import { POLYGON_CHAIN_ID, POLYGON_USDC_ADDRESS } from "../constants/azoth-pay.ts";
 import {
   AzothPayService,
   type ExistingSubscriptionInfo,
-} from "../services/azoth-pay-service.ts";
+} from "../services/AzothPayService.ts";
 import type { Token } from "../services/WalletService.ts";
 import type { Theme, ThemeMode } from "../services/ThemeService.ts";
 import type { Address } from "viem";
@@ -26,7 +30,6 @@ import "./amount-section.ts";
 import "./wallet-connect-card.ts";
 import "./token-cards-section.ts";
 import "./donate-button.ts";
-import "./donation-form.ts";
 import "./success-state.ts";
 import "./theme-toggle.ts";
 import "./toast-container.ts";
@@ -223,6 +226,16 @@ export class DonationWidget extends LitElement {
   @state()
   private accessor subscriptionError: string = "";
 
+  @state()
+  private accessor subscriptionIsDirectTransfer: boolean = false;
+
+  @state()
+  private accessor isSameChainSwap: boolean = false;
+
+  /** Cached quote result from QuoteService */
+  @state()
+  private accessor quoteResult: QuoteResult | null = null;
+
   // Existing subscription state
   @state()
   private accessor existingSubscription: ExistingSubscriptionInfo | null = null;
@@ -257,6 +270,12 @@ export class DonationWidget extends LitElement {
   private chainService: ChainService;
   private themeService: ThemeService;
   private azothPayService: AzothPayService;
+  private quoteService: QuoteService | null = null;
+  private donationService: DonationService | null = null;
+
+  // Quote debounce timer
+  private quoteDebounceTimer: number | null = null;
+  private readonly QUOTE_DEBOUNCE_MS = 500;
 
   // Cleanup functions
   private cleanupFunctions: Array<() => void> = [];
@@ -794,12 +813,115 @@ export class DonationWidget extends LitElement {
   }
 
   private cleanup() {
+    // Clear debounce timer
+    if (this.quoteDebounceTimer !== null) {
+      clearTimeout(this.quoteDebounceTimer);
+      this.quoteDebounceTimer = null;
+    }
+
     // Call all cleanup functions
     this.cleanupFunctions.forEach((fn) => fn());
     this.cleanupFunctions = [];
 
     // Destroy theme service
     this.themeService.destroy();
+  }
+
+  /**
+   * Get or create QuoteService instance
+   */
+  private getQuoteService(): QuoteService {
+    if (!this.quoteService) {
+      this.quoteService = QuoteService.getInstance(this.walletService, this.acrossService);
+    }
+    return this.quoteService;
+  }
+
+  /**
+   * Get or create DonationService instance
+   */
+  private getDonationService(): DonationService {
+    if (!this.donationService) {
+      this.donationService = DonationService.getInstance(
+        this.walletService,
+        this.acrossService,
+        this.azothPayService
+      );
+    }
+    return this.donationService;
+  }
+
+  /**
+   * Debounced quote calculation
+   */
+  private debouncedQuoteCalculation() {
+    if (this.quoteDebounceTimer !== null) {
+      clearTimeout(this.quoteDebounceTimer);
+    }
+
+    this.quoteDebounceTimer = globalThis.setTimeout(() => {
+      this.calculateQuote();
+    }, this.QUOTE_DEBOUNCE_MS);
+  }
+
+  /**
+   * Calculate quote using QuoteService
+   */
+  private async calculateQuote() {
+    // Reset quote state
+    this.quote = null;
+    this.quoteResult = null;
+    this.isDirectTransfer = false;
+    this.isSameChainSwap = false;
+
+    // Validate inputs
+    if (!this.recipientAmount || parseFloat(this.recipientAmount) <= 0) {
+      return;
+    }
+
+    if (!this.selectedToken) {
+      return;
+    }
+
+    if (!this.recipientTokenInfo) {
+      return;
+    }
+
+    const account = this.walletService.getAccount();
+    if (!account.address) {
+      return;
+    }
+
+    this.isQuoteLoading = true;
+    this.error = null;
+
+    try {
+      const quoteService = this.getQuoteService();
+
+      const result = await quoteService.calculateQuote({
+        sourceToken: this.selectedToken,
+        recipientAmount: this.recipientAmount,
+        recipientToken: this.recipientTokenInfo,
+        depositorAddress: account.address,
+        recipientAddress: this.recipient as Address,
+      });
+
+      // Store the full quote result
+      this.quoteResult = result;
+      this.quote = result.quote;
+      this.isDirectTransfer = result.isDirectTransfer;
+      this.isSameChainSwap = result.isSameChainSwap;
+    } catch (error) {
+      console.error("Failed to calculate quote:", error);
+
+      if (error instanceof I18nError) {
+        this.error = error;
+      } else {
+        this.error = error instanceof Error ? error.message : "Failed to calculate quote";
+      }
+    } finally {
+      this.isQuoteLoading = false;
+    }
   }
 
   /**
@@ -875,8 +997,8 @@ export class DonationWidget extends LitElement {
       // Load recipient token info - always Polygon USDC
       this.recipientTokenInfo =
         this.chainService.getToken(
-          AcrossService.POLYGON_CHAIN_ID,
-          AcrossService.POLYGON_USDC,
+          POLYGON_CHAIN_ID,
+          POLYGON_USDC_ADDRESS,
         ) || null;
     } catch (error) {
       console.error("Failed to load tokens:", error);
@@ -1180,12 +1302,20 @@ export class DonationWidget extends LitElement {
       typeof event.detail === "string" ? event.detail : event.detail.value;
 
     this.recipientAmount = newAmount;
-    // donation-form will automatically sync via recipient-amount property binding
+
+    // Debounce quote calculation
+    if (this.selectedToken) {
+      this.debouncedQuoteCalculation();
+    }
   }
 
   private handleTokenChange(event: CustomEvent<Token>) {
     this.selectedToken = event.detail;
-    // donation-form will automatically recalculate quote when selectedToken changes
+
+    // Recalculate quote when token changes
+    if (this.recipientAmount) {
+      this.calculateQuote();
+    }
   }
 
   /**
@@ -1194,21 +1324,6 @@ export class DonationWidget extends LitElement {
   private handleDonationTypeChange(event: CustomEvent<{ type: DonationType }>) {
     this.donationType = event.detail.type;
     this.isSubscriptionFlow = event.detail.type === "monthly";
-  }
-
-  /**
-   * Handle subscription progress update
-   * Updates the progress screen when subscription process advances
-   */
-  private handleSubscriptionProgress(
-    event: CustomEvent<{ step: SubscriptionStep }>,
-  ) {
-    this.subscriptionProgressStep = event.detail.step;
-
-    // Ensure we're showing progress screen during active subscription flow
-    if (event.detail.step !== "idle" && this.donationType === "monthly") {
-      this.currentStep = FlowStep.SUBSCRIPTION_PROGRESS;
-    }
   }
 
   private handleWalletConnectClick() {
@@ -1269,11 +1384,11 @@ export class DonationWidget extends LitElement {
   }
 
   /**
-   * Handle donate button click - trigger transaction via donation-form
+   * Handle donate button click - execute donation directly via DonationService
    * For subscriptions, shows setup screen first instead of starting transaction
    */
-  private handleDonateClick() {
-    if (!this.quote || this.isDonating) {
+  private async handleDonateClick() {
+    if (!this.quote || !this.quoteResult || this.isDonating) {
       return;
     }
 
@@ -1284,11 +1399,92 @@ export class DonationWidget extends LitElement {
     }
 
     // For one-time donations, proceed directly with donation
-    const donationForm = this.shadowRoot?.querySelector(
-      "donation-form",
-    ) as HTMLElement & { handleDonate?: () => void };
-    if (donationForm?.handleDonate) {
-      donationForm.handleDonate();
+    await this.executeDonation();
+  }
+
+  /**
+   * Execute one-time donation via DonationService
+   */
+  private async executeDonation() {
+    if (!this.quoteResult || !this.selectedToken) {
+      return;
+    }
+
+    this.isDonating = true;
+    this.error = null;
+
+    try {
+      const donationService = this.getDonationService();
+
+      await donationService.executeDonation({
+        quoteResult: this.quoteResult,
+        sourceToken: this.selectedToken,
+        recipientAddress: this.recipient as Address,
+      });
+
+      const tokenSymbol = this.recipientTokenInfo?.symbol || "tokens";
+      toastService.success(`Successfully donated ${this.recipientAmount} ${tokenSymbol}!`);
+
+      // Get chain name for success data - always Polygon for recipient
+      const chainName = this.chainService.getChainName(POLYGON_CHAIN_ID);
+
+      // Set success data
+      this.successData = {
+        amount: this.recipientAmount,
+        tokenSymbol,
+        chainName,
+        timestamp: Date.now(),
+      };
+
+      // Show success state
+      this.showSuccessState = true;
+
+      // Dispatch success event
+      this.dispatchEvent(
+        new CustomEvent("donation-completed", {
+          detail: {
+            amount: this.recipientAmount,
+            token: this.selectedToken,
+            recipient: this.recipient,
+            isDirectTransfer: this.isDirectTransfer,
+            isSameChainSwap: this.isSameChainSwap,
+          },
+          bubbles: true,
+          composed: true,
+        }),
+      );
+
+      // Reset form state
+      this.quote = null;
+      this.quoteResult = null;
+      this.isDirectTransfer = false;
+      this.isSameChainSwap = false;
+    } catch (error) {
+      console.error("Donation failed:", error);
+
+      const errorMessage =
+        error instanceof I18nError
+          ? t(error.i18nKey)
+          : error instanceof Error
+            ? error.message
+            : t("error.networkConnection");
+
+      this.error = errorMessage;
+      toastService.error(errorMessage);
+
+      this.dispatchEvent(
+        new CustomEvent("donation-failed", {
+          detail: {
+            error: errorMessage,
+            isDirectTransfer: this.isDirectTransfer,
+            isSameChainSwap: this.isSameChainSwap,
+          },
+          bubbles: true,
+          composed: true,
+        }),
+      );
+    } finally {
+      this.isDonating = false;
     }
   }
 
@@ -1302,12 +1498,124 @@ export class DonationWidget extends LitElement {
     this.subscriptionError = "";
     this.currentStep = FlowStep.SUBSCRIPTION_PROGRESS;
 
-    // Start the actual subscription flow via donation-form
-    const donationForm = this.shadowRoot?.querySelector(
-      "donation-form",
-    ) as HTMLElement & { handleDonate?: () => void };
-    if (donationForm?.handleDonate) {
-      donationForm.handleDonate();
+    // Start the actual subscription flow
+    this.executeSubscription();
+  }
+
+  /**
+   * Execute subscription via DonationService
+   */
+  private async executeSubscription() {
+    if (!this.quoteResult || !this.selectedToken || !this.recipientTokenInfo) {
+      return;
+    }
+
+    this.isDonating = true;
+    this.error = null;
+
+    try {
+      const donationService = this.getDonationService();
+
+      const result = await donationService.executeSubscription({
+        quoteResult: this.quoteResult,
+        sourceToken: this.selectedToken,
+        recipientToken: this.recipientTokenInfo,
+        monthlyAmountUsd: this.recipientAmount,
+        subscriptionTarget: this.effectiveSubscriptionTarget,
+        projectId: this.projectId,
+        onProgress: (step, isDirectTransfer) => {
+          this.subscriptionProgressStep = step;
+          this.subscriptionIsDirectTransfer = isDirectTransfer;
+
+          // Ensure we're showing progress screen during active subscription flow
+          if (step !== "idle") {
+            this.currentStep = FlowStep.SUBSCRIPTION_PROGRESS;
+          }
+        },
+      });
+
+      toastService.success(t("success.subscription.message"));
+
+      // Reset subscription progress state
+      this.subscriptionProgressStep = "idle";
+      this.subscriptionSetupData = null;
+      this.subscriptionError = "";
+      this.subscriptionIsDirectTransfer = false;
+
+      // Get chain name for Polygon (destination chain for subscriptions)
+      const chainName = this.chainService.getChainName(POLYGON_CHAIN_ID);
+
+      // Get wallet address for Papaya management link
+      const walletAddress = this.walletService.getAccount()?.address || "";
+
+      // Set success data with subscription information
+      this.successData = {
+        amount: result.monthlyAmountUsd,
+        tokenSymbol: "USDC",
+        chainName,
+        timestamp: Date.now(),
+        isSubscription: true,
+        monthlyAmount: result.monthlyAmountUsd,
+        walletAddress,
+      };
+
+      // Store subscription monthly amount for state tracking
+      this.subscriptionMonthlyAmount = result.monthlyAmountUsd;
+
+      // Show success state
+      this.showSuccessState = true;
+
+      // Dispatch success event
+      this.dispatchEvent(
+        new CustomEvent("subscription-created", {
+          detail: {
+            transactionHash: result.transactionHash,
+            monthlyAmountUsd: result.monthlyAmountUsd,
+            subscriptionTarget: result.subscriptionTarget,
+            projectId: result.projectId,
+            originChainId: result.originChainId,
+            originToken: result.originToken,
+            isDirectTransfer: result.isDirectTransfer,
+            isSameChainSwap: result.isSameChainSwap,
+          },
+          bubbles: true,
+          composed: true,
+        }),
+      );
+
+      // Reset form state
+      this.quote = null;
+      this.quoteResult = null;
+      this.isDirectTransfer = false;
+      this.isSameChainSwap = false;
+    } catch (error) {
+      console.error("Subscription failed:", error);
+
+      const errorMessage =
+        error instanceof I18nError
+          ? t(error.i18nKey)
+          : error instanceof Error
+            ? error.message
+            : t("error.networkConnection");
+
+      this.error = errorMessage;
+      this.subscriptionError = errorMessage;
+      toastService.error(errorMessage);
+
+      this.dispatchEvent(
+        new CustomEvent("donation-failed", {
+          detail: {
+            error: errorMessage,
+            isDirectTransfer: this.isDirectTransfer,
+            isSameChainSwap: this.isSameChainSwap,
+            isSubscription: true,
+          },
+          bubbles: true,
+          composed: true,
+        }),
+      );
+    } finally {
+      this.isDonating = false;
     }
   }
 
@@ -1346,161 +1654,7 @@ export class DonationWidget extends LitElement {
     }
   }
 
-  private handleQuoteUpdate(
-    event: CustomEvent<{
-      quote: AcrossQuote | null;
-      loading: boolean;
-      error: string | I18nError | null;
-      isDirectTransfer?: boolean;
-    }>,
-  ) {
-    this.quote = event.detail.quote;
-    this.isQuoteLoading = event.detail.loading;
-    this.isDirectTransfer = event.detail.isDirectTransfer || false;
-    // Set error for quote errors - all errors are displayed in donation-widget
-    if (event.detail.error) {
-      this.error = event.detail.error;
-    } else {
-      // Clear error when quote is successfully calculated
-      this.error = null;
-    }
-  }
-
-  private handleRouteUpdate(_event: CustomEvent<{ quote: AcrossQuote }>) {
-    // Reserved for future use
-  }
-
-  /**
-   * Handle donation initiated event from donation-form
-   */
-  private handleDonationInitiated() {
-    this.isDonating = true;
-    this.error = null;
-  }
-
-  /**
-   * Handle donation failed event from donation-form
-   */
-  private handleDonationFailed(event: CustomEvent<{ error: string }>) {
-    this.isDonating = false;
-    this.error = event.detail.error;
-
-    // For subscriptions in progress screen, save error and keep showing progress
-    if (
-      this.donationType === "monthly" &&
-      this.currentStep === FlowStep.SUBSCRIPTION_PROGRESS
-    ) {
-      this.subscriptionError = event.detail.error;
-      // Don't reset subscription progress step - let the progress screen show error state
-    } else {
-      // For one-time donations, reset subscription state
-      this.subscriptionProgressStep = "idle";
-    }
-  }
-
-  /**
-   * Handle donation completed event from donation-form
-   */
-  private handleDonationCompleted(
-    event: CustomEvent<{
-      amount: string;
-      token: Token | null;
-      recipient: string;
-    }>,
-  ) {
-    const { amount, token, recipient } = event.detail;
-
-    // Reset donating state
-    this.isDonating = false;
-
-    if (!token) {
-      console.warn("Donation completed but no token information available");
-      return;
-    }
-
-    // Get chain name - always Polygon for recipient
-    const chainName = this.chainService.getChainName(AcrossService.POLYGON_CHAIN_ID);
-
-    // Get token symbol (use recipient token if available, otherwise use selected token)
-    const tokenSymbol = token.symbol || "tokens";
-
-    // Set success data
-    this.successData = {
-      amount,
-      tokenSymbol,
-      chainName,
-      timestamp: Date.now(),
-    };
-
-    // Show success state
-    this.showSuccessState = true;
-
-    // Dispatch success event (for external listeners)
-    this.dispatchEvent(
-      new CustomEvent("donation-completed", {
-        detail: {
-          amount,
-          token,
-          recipient,
-        },
-        bubbles: true,
-        composed: true,
-      }),
-    );
-  }
-
-  /**
-   * Handle subscription created event from donation-form
-   */
-  private handleSubscriptionCreated(
-    event: CustomEvent<{
-      transactionHash: string;
-      monthlyAmountUsd: string;
-      subscriptionTarget: string;
-      projectId: number;
-      originChainId: number;
-      originToken: Token | null;
-    }>,
-  ) {
-    const { monthlyAmountUsd } = event.detail;
-
-    // Reset donating state
-    this.isDonating = false;
-
-    // Reset subscription progress state
-    this.subscriptionProgressStep = "idle";
-    this.subscriptionSetupData = null;
-    this.subscriptionError = "";
-
-    // Get chain name for Polygon (destination chain for subscriptions)
-    const chainName = this.chainService.getChainName(
-      AcrossService.POLYGON_CHAIN_ID,
-    );
-
-    // Get wallet address for Papaya management link
-    const walletAddress = this.walletService.getAccount()?.address || "";
-
-    // Set success data with subscription information
-    this.successData = {
-      amount: monthlyAmountUsd,
-      tokenSymbol: "USDC",
-      chainName,
-      timestamp: Date.now(),
-      isSubscription: true,
-      monthlyAmount: monthlyAmountUsd,
-      walletAddress,
-    };
-
-    // Store subscription monthly amount for state tracking
-    this.subscriptionMonthlyAmount = monthlyAmountUsd;
-
-    // Show success state
-    this.showSuccessState = true;
-
-    // Re-dispatch subscription-created event for external listeners (already bubbles from donation-form)
-    // The event from donation-form already bubbles with composed: true, so external listeners will receive it
-  }
-
+  
   /**
    * Handle donate again button click
    */
@@ -1525,475 +1679,351 @@ export class DonationWidget extends LitElement {
     this.subscriptionProgressStep = "idle";
     this.subscriptionSetupData = null;
     this.subscriptionError = "";
+    this.subscriptionIsDirectTransfer = false;
     this.existingSubscription = null;
 
     // Reset flow step to initial state
     this.currentStep = FlowStep.AMOUNT;
   }
 
-  private async handleDonate(event: CustomEvent<AcrossQuote>) {
-    this.isDonating = true;
-    this.error = null;
+  // ============================================================================
+  // Render helper methods
+  // ============================================================================
 
-    try {
-      const quote = event.detail;
+  /**
+   * Render the widget header with title and theme toggle
+   */
+  private renderHeader() {
+    return html`
+      <div class="widget-header">
+        <div class="widget-header-text">
+          <span class="widget-header-heart">♡</span>
+          <span>${this.headerTitle || t("widget.header.title")}</span>
+        </div>
+        <div class="widget-header-actions">
+          ${this.canToggleTheme
+            ? html`
+                <theme-toggle
+                  .theme="${this.currentTheme}"
+                  @theme-changed="${this.handleThemeChange}"
+                ></theme-toggle>
+              `
+            : ""}
+        </div>
+      </div>
+    `;
+  }
 
-      if (this.isDirectTransfer && this.selectedToken) {
-        // Execute direct token transfer (same token, same chain)
-        const amount = BigInt(quote.inputAmount);
-        const toAddress = this.recipient as Address;
+  /**
+   * Render the loading state shown during initialization
+   */
+  private renderLoadingState() {
+    return html`
+      <div class="widget-container">
+        ${this.renderHeader()}
+        <div class="loading">${t("widget.loading")}</div>
+      </div>
+    `;
+  }
 
-        await this.walletService.transferToken(
-          this.selectedToken,
-          toAddress,
-          amount,
-        );
-      } else {
-        // Execute Across swap for cross-chain transfer
-        await this.acrossService.executeSwap(quote);
-      }
+  /**
+   * Render the error message if an error exists
+   */
+  private renderErrorMessage() {
+    if (!this.error) return "";
+    return html`
+      <div class="error-message" role="alert">
+        ${this.error instanceof I18nError ? t(this.error.i18nKey) : this.error}
+      </div>
+    `;
+  }
 
-      toastService.success(t("message.donationSuccess"));
+  /**
+   * Render the success state screen after a successful donation/subscription
+   */
+  private renderSuccessState() {
+    if (!this.successData) return "";
+    return html`
+      <success-state
+        amount="${this.successData.amount}"
+        token-symbol="${this.successData.tokenSymbol}"
+        chain-name="${this.successData.chainName}"
+        timestamp="${this.successData.timestamp}"
+        recipient-address="${this.recipient}"
+        success-message="${this.successData.isSubscription
+          ? this.successMessage || t("success.subscription.message")
+          : this.successMessage || t("success.defaultMessage")}"
+        donate-again-text="${this.donateAgainText || t("success.donateAgain")}"
+        ?confetti-enabled="${this.confettiEnabled}"
+        confetti-colors="${this.confettiColors}"
+        ?is-subscription="${this.successData.isSubscription || false}"
+        monthly-amount="${this.successData.monthlyAmount || ""}"
+        wallet-address="${this.successData.walletAddress || ""}"
+        @donate-again="${this.handleDonateAgain}"
+      ></success-state>
+    `;
+  }
 
-      // Get chain name for success data - always Polygon for recipient
-      const chainName = this.chainService.getChainName(AcrossService.POLYGON_CHAIN_ID);
+  /**
+   * Render the subscription setup screen
+   */
+  private renderSubscriptionSetup() {
+    return html`
+      <subscription-setup-screen
+        monthly-amount="${this.recipientAmount}"
+        @subscription-continue="${this.handleSubscriptionContinue}"
+        @subscription-back="${this.handleSubscriptionBack}"
+      ></subscription-setup-screen>
+    `;
+  }
 
-      // Get recipient token symbol - always USDC
-      const recipientTokenSymbol = this.getRecipientTokenSymbol();
+  /**
+   * Render the subscription progress screen
+   */
+  private renderSubscriptionProgress() {
+    return html`
+      <subscription-progress-screen
+        current-step="${this.subscriptionProgressStep}"
+        monthly-amount="${this.subscriptionSetupData?.monthlyAmount ||
+        this.recipientAmount}"
+        total-deposit="${this.subscriptionSetupData?.totalDeposit || ""}"
+        error-message="${this.subscriptionError}"
+        ?is-direct-transfer="${this.subscriptionIsDirectTransfer}"
+        @subscription-retry="${this.handleSubscriptionRetry}"
+      ></subscription-progress-screen>
+    `;
+  }
 
-      // Set success data for success screen
-      this.successData = {
-        amount: this.recipientAmount,
-        tokenSymbol: recipientTokenSymbol,
-        chainName,
-        timestamp: Date.now(),
-      };
-
-      // Show success state with confetti
-      this.showSuccessState = true;
-
-      // Dispatch success event
-      this.dispatchEvent(
-        new CustomEvent("donation-completed", {
-          detail: {
-            quote,
-            amount: this.recipientAmount,
-            token: this.selectedToken,
-            recipient: this.recipient,
-          },
-          bubbles: true,
-          composed: true,
-        }),
-      );
-
-      // Reset form state (but keep success screen showing)
-      this.quote = null;
-      this.isDirectTransfer = false;
-    } catch (error) {
-      console.error("Donation failed:", error);
-
-      // Preserve I18nError for type-safe translation, or extract message
-      if (error instanceof I18nError) {
-        this.error = error;
-        const translatedMessage = t(error.i18nKey);
-        toastService.error(translatedMessage);
-
-        // Dispatch error event with translated message
-        this.dispatchEvent(
-          new CustomEvent("donation-failed", {
-            detail: { error: translatedMessage },
-            bubbles: true,
-            composed: true,
-          }),
-        );
-      } else {
-        const errorMessage =
-          error instanceof Error ? error.message : "Donation failed";
-        this.error = errorMessage;
-        toastService.error(errorMessage);
-
-        // Dispatch error event
-        this.dispatchEvent(
-          new CustomEvent("donation-failed", {
-            detail: { error: errorMessage },
-            bubbles: true,
-            composed: true,
-          }),
-        );
-      }
-    } finally {
-      this.isDonating = false;
+  /**
+   * Render the existing subscription indicator
+   */
+  private renderExistingSubscriptionIndicator() {
+    if (
+      this.donationType !== "monthly" ||
+      !this.existingSubscription?.exists ||
+      !this.isWalletConnected()
+    ) {
+      return "";
     }
+    return html`
+      <div class="existing-subscription-indicator">
+        <span class="message">
+          ${t("subscription.existing.message").replace(
+            "${amount}",
+            `$${this.existingSubscription.monthlyAmount}`,
+          )}
+        </span>
+        <span class="separator">·</span>
+        <a
+          href="${this.papayaManagementUrl}"
+          target="_blank"
+          rel="noopener noreferrer"
+          class="manage-link"
+        >
+          ${t("subscription.existing.manage")}
+        </a>
+      </div>
+    `;
+  }
+
+  /**
+   * Render the wallet info card when connected
+   */
+  private renderWalletInfoCard() {
+    return html`
+      <div class="step-section step-enter">
+        <div class="wallet-info-card">
+          <div class="wallet-info-left">
+            <div class="wallet-avatar">
+              <svg
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <path d="M21 12V7H5a2 2 0 0 1 0-4h14v4"></path>
+                <path d="M3 5v14a2 2 0 0 0 2 2h16v-5"></path>
+                <path d="M18 12a2 2 0 0 0 0 4h4v-4Z"></path>
+              </svg>
+            </div>
+            <div class="wallet-details">
+              <span class="wallet-address">
+                ${this.formatAddress(
+                  this.walletService.getAccount()?.address || "",
+                )}
+              </span>
+              <button
+                class="network-badge"
+                @click="${this.handleOpenNetworkModal}"
+                aria-label="${t("wallet.switchNetworkAriaLabel")}"
+                title="${t("wallet.switchNetworkAriaLabel")}"
+              >
+                <span class="network-dot"></span>
+                ${this.getNetworkName(this.getConnectedChainId() || 1)}
+                <svg
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2.5"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                >
+                  <path d="m6 9 6 6 6-6"></path>
+                </svg>
+              </button>
+            </div>
+          </div>
+          <div class="wallet-actions">
+            <button
+              class="disconnect-btn"
+              @click="${this.handleDisconnect}"
+              aria-label="${t("wallet.disconnectAriaLabel")}"
+              title="${t("wallet.disconnectAriaLabel")}"
+            >
+              <svg
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+                <polyline points="16,17 21,12 16,7"></polyline>
+                <line x1="21" y1="12" x2="9" y2="12"></line>
+              </svg>
+            </button>
+          </div>
+        </div>
+      </div>
+    `;
+  }
+
+  /**
+   * Render the main donation form content
+   */
+  private renderMainContent(isFullyConfigured: boolean) {
+    return html`
+      <!-- AmountSection: Always visible -->
+      <amount-section
+        value="${this.recipientAmount}"
+        currency-symbol="${this.getRecipientTokenSymbol()}"
+        donation-type="${this.donationType}"
+        @amount-change="${this.handleAmountChange}"
+      ></amount-section>
+
+      <!-- DonationTypeToggle: Toggle between one-time and monthly donations -->
+      <donation-type-toggle
+        .value="${this.donationType}"
+        ?disabled="${this.subscriptionDisabled}"
+        @donation-type-changed="${this.handleDonationTypeChange}"
+      ></donation-type-toggle>
+
+      <!-- Existing subscription indicator -->
+      ${this.renderExistingSubscriptionIndicator()}
+
+      <!-- WalletConnectCard: Show when wallet not connected -->
+      ${!this.isWalletConnected()
+        ? html`
+            <div class="step-section step-enter">
+              <wallet-connect-card
+                .walletService="${this.walletService}"
+                ?is-connecting="${false}"
+                ?is-connected="${false}"
+                @wallet-connect-click="${this.handleWalletConnectClick}"
+                @wallet-error="${(e: CustomEvent) => {
+                  this.error = e.detail.error;
+                }}"
+              ></wallet-connect-card>
+            </div>
+          `
+        : ""}
+
+      <!-- WalletInfoSection: Show when wallet connected -->
+      ${this.isWalletConnected() ? this.renderWalletInfoCard() : ""}
+
+      <!-- TokenCardsSection: Show when wallet connected -->
+      ${this.isWalletConnected()
+        ? html`
+            <div class="step-section step-enter">
+              <token-cards-section
+                .tokens="${this.availableTokens}"
+                .selectedToken="${this.selectedToken}"
+                .walletService="${this.walletService}"
+                .walletAddress="${this.walletService.getAccount()?.address ||
+                null}"
+                current-chain-id="${this.getConnectedChainId() || ""}"
+                required-amount="${this.recipientAmount}"
+                @token-selected="${this.handleTokenChange}"
+              ></token-cards-section>
+            </div>
+          `
+        : ""}
+
+      <!-- DonateButton: Show when token selected -->
+      ${this.selectedToken
+        ? html`
+            <div class="step-section step-enter">
+              <donate-button
+                .amount="${this.getEquivalentAmount().split(" ")[0] || ""}"
+                .tokenSymbol="${this.selectedToken.symbol}"
+                ?disabled="${!isFullyConfigured ||
+                this.isDonating ||
+                this.isQuoteLoading ||
+                !this.quote}"
+                ?loading="${this.isDonating}"
+                ?calculating="${this.isQuoteLoading}"
+                @donate-click="${this.handleDonateClick}"
+              ></donate-button>
+            </div>
+          `
+        : ""}
+    `;
+  }
+
+  /**
+   * Render the widget footer
+   */
+  private renderFooter() {
+    return html`
+      <div class="footer">
+        <a href="mailto:support@donations.kalatori.org" class="support-link">
+          ${t("widget.footer.contact")}
+        </a>
+      </div>
+    `;
   }
 
   override render() {
+    // Show loading state during initialization
     if (!this.isInitialized) {
-      return html`
-        <div class="widget-container">
-          <div class="widget-header">
-            <div class="widget-header-text">
-              <span class="widget-header-heart">♡</span>
-              <span>${this.headerTitle || t("widget.header.title")}</span>
-            </div>
-            <div class="widget-header-actions">
-              ${this.canToggleTheme
-                ? html`
-                    <theme-toggle
-                      .theme="${this.currentTheme}"
-                      @theme-changed="${this.handleThemeChange}"
-                    ></theme-toggle>
-                  `
-                : ""}
-            </div>
-          </div>
-          <div class="loading">${t("widget.loading")}</div>
-        </div>
-      `;
+      return this.renderLoadingState();
     }
 
     const configStatus = this.validateRequiredAttributes();
     const isFullyConfigured = configStatus.isValid;
 
+    // Determine which content to show based on current state
+    let content;
+    if (this.showSuccessState && this.successData) {
+      content = this.renderSuccessState();
+    } else if (this.currentStep === FlowStep.SUBSCRIPTION_SETUP) {
+      content = this.renderSubscriptionSetup();
+    } else if (this.currentStep === FlowStep.SUBSCRIPTION_PROGRESS) {
+      content = this.renderSubscriptionProgress();
+    } else {
+      content = this.renderMainContent(isFullyConfigured);
+    }
+
     return html`
       <div class="widget-container">
-        <div class="widget-header">
-          <div class="widget-header-text">
-            <span class="widget-header-heart">♡</span>
-            <span>${this.headerTitle || t("widget.header.title")}</span>
-          </div>
-          <div class="widget-header-actions">
-            ${this.canToggleTheme
-              ? html`
-                  <theme-toggle
-                    .theme="${this.currentTheme}"
-                    @theme-changed="${this.handleThemeChange}"
-                  ></theme-toggle>
-                `
-              : ""}
-          </div>
-        </div>
-
-        ${this.error
-          ? html`
-              <div class="error-message" role="alert">
-                ${this.error instanceof I18nError
-                  ? t(this.error.i18nKey)
-                  : this.error}
-              </div>
-            `
-          : ""}
-        ${this.showSuccessState && this.successData
-          ? html`
-              <success-state
-                amount="${this.successData.amount}"
-                token-symbol="${this.successData.tokenSymbol}"
-                chain-name="${this.successData.chainName}"
-                timestamp="${this.successData.timestamp}"
-                recipient-address="${this.recipient}"
-                success-message="${this.successData.isSubscription
-                  ? this.successMessage || t("success.subscription.message")
-                  : this.successMessage || t("success.defaultMessage")}"
-                donate-again-text="${this.donateAgainText ||
-                t("success.donateAgain")}"
-                ?confetti-enabled="${this.confettiEnabled}"
-                confetti-colors="${this.confettiColors}"
-                ?is-subscription="${this.successData.isSubscription || false}"
-                monthly-amount="${this.successData.monthlyAmount || ""}"
-                wallet-address="${this.successData.walletAddress || ""}"
-                @donate-again="${this.handleDonateAgain}"
-              ></success-state>
-            `
-          : this.currentStep === FlowStep.SUBSCRIPTION_SETUP
-            ? html`
-                <!-- Subscription Setup Screen -->
-                <subscription-setup-screen
-                  monthly-amount="${this.recipientAmount}"
-                  @subscription-continue="${this.handleSubscriptionContinue}"
-                  @subscription-back="${this.handleSubscriptionBack}"
-                ></subscription-setup-screen>
-
-                <!-- Hidden donation-form for quote calculation -->
-                <donation-form
-                  style="position: absolute; opacity: 0; pointer-events: none; height: 0; overflow: hidden;"
-                  .recipient="${this.recipient}"
-                  .recipientTokenInfo="${this.recipientTokenInfo}"
-                  .walletService="${this.walletService}"
-                  .acrossService="${this.acrossService}"
-                  .chainService="${this.chainService}"
-                  .toastService="${toastService}"
-                  .selectedToken="${this.selectedToken}"
-                  .isDonating="${this.isDonating}"
-                  .disabled="${!isFullyConfigured}"
-                  donation-type="${this.donationType}"
-                  subscription-target="${this.effectiveSubscriptionTarget}"
-                  project-id="${this.projectId}"
-                  recipient-amount="${this.recipientAmount}"
-                  @amount-changed="${this.handleAmountChange}"
-                  @quote-updated="${this.handleQuoteUpdate}"
-                  @route-update="${this.handleRouteUpdate}"
-                  @donation-initiated="${this.handleDonationInitiated}"
-                  @donation-completed="${this.handleDonationCompleted}"
-                  @donation-failed="${this.handleDonationFailed}"
-                  @subscription-created="${this.handleSubscriptionCreated}"
-                  @subscription-progress="${this.handleSubscriptionProgress}"
-                ></donation-form>
-              `
-            : this.currentStep === FlowStep.SUBSCRIPTION_PROGRESS
-              ? html`
-                  <!-- Subscription Progress Screen -->
-                  <subscription-progress-screen
-                    current-step="${this.subscriptionProgressStep}"
-                    monthly-amount="${this.subscriptionSetupData
-                      ?.monthlyAmount || this.recipientAmount}"
-                    total-deposit="${this.subscriptionSetupData?.totalDeposit ||
-                    ""}"
-                    error-message="${this.subscriptionError}"
-                    @subscription-retry="${this.handleSubscriptionRetry}"
-                  ></subscription-progress-screen>
-
-                  <!-- Hidden donation-form for quote calculation -->
-                  <donation-form
-                    style="position: absolute; opacity: 0; pointer-events: none; height: 0; overflow: hidden;"
-                    .recipient="${this.recipient}"
-                    .recipientTokenInfo="${this.recipientTokenInfo}"
-                    .walletService="${this.walletService}"
-                    .acrossService="${this.acrossService}"
-                    .chainService="${this.chainService}"
-                    .toastService="${toastService}"
-                    .selectedToken="${this.selectedToken}"
-                    .isDonating="${this.isDonating}"
-                    .disabled="${!isFullyConfigured}"
-                    donation-type="${this.donationType}"
-                    subscription-target="${this.effectiveSubscriptionTarget}"
-                    project-id="${this.projectId}"
-                    recipient-amount="${this.recipientAmount}"
-                    @amount-changed="${this.handleAmountChange}"
-                    @quote-updated="${this.handleQuoteUpdate}"
-                    @route-update="${this.handleRouteUpdate}"
-                    @donation-initiated="${this.handleDonationInitiated}"
-                    @donation-completed="${this.handleDonationCompleted}"
-                    @donation-failed="${this.handleDonationFailed}"
-                    @subscription-created="${this.handleSubscriptionCreated}"
-                    @subscription-progress="${this.handleSubscriptionProgress}"
-                  ></donation-form>
-                `
-              : html`
-                  <!-- AmountSection: Always visible -->
-                  <amount-section
-                    value="${this.recipientAmount}"
-                    currency-symbol="${this.getRecipientTokenSymbol()}"
-                    donation-type="${this.donationType}"
-                    @amount-change="${this.handleAmountChange}"
-                  ></amount-section>
-
-                  <!-- DonationTypeToggle: Toggle between one-time and monthly donations -->
-                  <donation-type-toggle
-                    .value="${this.donationType}"
-                    ?disabled="${this.subscriptionDisabled}"
-                    @donation-type-changed="${this.handleDonationTypeChange}"
-                  ></donation-type-toggle>
-
-                  <!-- Existing subscription indicator -->
-                  ${this.donationType === "monthly" &&
-                  this.existingSubscription?.exists &&
-                  this.isWalletConnected()
-                    ? html`
-                        <div class="existing-subscription-indicator">
-                          <span class="message">
-                            ${t("subscription.existing.message").replace(
-                              "${amount}",
-                              `$${this.existingSubscription.monthlyAmount}`,
-                            )}
-                          </span>
-                          <span class="separator">·</span>
-                          <a
-                            href="${this.papayaManagementUrl}"
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            class="manage-link"
-                          >
-                            ${t("subscription.existing.manage")}
-                          </a>
-                        </div>
-                      `
-                    : ""}
-
-                  <!-- WalletConnectCard: Show when wallet not connected (always visible) -->
-                  ${!this.isWalletConnected()
-                    ? html`
-                        <div class="step-section step-enter">
-                          <wallet-connect-card
-                            .walletService="${this.walletService}"
-                            ?is-connecting="${false}"
-                            ?is-connected="${false}"
-                            @wallet-connect-click="${this
-                              .handleWalletConnectClick}"
-                            @wallet-error="${(e: CustomEvent) => {
-                              this.error = e.detail.error;
-                            }}"
-                          ></wallet-connect-card>
-                        </div>
-                      `
-                    : ""}
-
-                  <!-- WalletInfoSection: Show when wallet connected -->
-                  ${this.isWalletConnected()
-                    ? html`
-                        <div class="step-section step-enter">
-                          <div class="wallet-info-card">
-                            <div class="wallet-info-left">
-                              <div class="wallet-avatar">
-                                <svg
-                                  viewBox="0 0 24 24"
-                                  fill="none"
-                                  stroke="currentColor"
-                                  stroke-width="2"
-                                  stroke-linecap="round"
-                                  stroke-linejoin="round"
-                                >
-                                  <path
-                                    d="M21 12V7H5a2 2 0 0 1 0-4h14v4"
-                                  ></path>
-                                  <path d="M3 5v14a2 2 0 0 0 2 2h16v-5"></path>
-                                  <path d="M18 12a2 2 0 0 0 0 4h4v-4Z"></path>
-                                </svg>
-                              </div>
-                              <div class="wallet-details">
-                                <span class="wallet-address">
-                                  ${this.formatAddress(
-                                    this.walletService.getAccount()?.address ||
-                                      "",
-                                  )}
-                                </span>
-                                <button
-                                  class="network-badge"
-                                  @click="${this.handleOpenNetworkModal}"
-                                  aria-label="${t(
-                                    "wallet.switchNetworkAriaLabel",
-                                  )}"
-                                  title="${t("wallet.switchNetworkAriaLabel")}"
-                                >
-                                  <span class="network-dot"></span>
-                                  ${this.getNetworkName(
-                                    this.getConnectedChainId() || 1,
-                                  )}
-                                  <svg
-                                    viewBox="0 0 24 24"
-                                    fill="none"
-                                    stroke="currentColor"
-                                    stroke-width="2.5"
-                                    stroke-linecap="round"
-                                    stroke-linejoin="round"
-                                  >
-                                    <path d="m6 9 6 6 6-6"></path>
-                                  </svg>
-                                </button>
-                              </div>
-                            </div>
-                            <div class="wallet-actions">
-                              <button
-                                class="disconnect-btn"
-                                @click="${this.handleDisconnect}"
-                                aria-label="${t("wallet.disconnectAriaLabel")}"
-                                title="${t("wallet.disconnectAriaLabel")}"
-                              >
-                                <svg
-                                  viewBox="0 0 24 24"
-                                  fill="none"
-                                  stroke="currentColor"
-                                  stroke-width="2"
-                                  stroke-linecap="round"
-                                  stroke-linejoin="round"
-                                >
-                                  <path
-                                    d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"
-                                  ></path>
-                                  <polyline
-                                    points="16,17 21,12 16,7"
-                                  ></polyline>
-                                  <line x1="21" y1="12" x2="9" y2="12"></line>
-                                </svg>
-                              </button>
-                            </div>
-                          </div>
-                        </div>
-                      `
-                    : ""}
-
-                  <!-- TokenCardsSection: Show when wallet connected -->
-                  ${this.isWalletConnected()
-                    ? html`
-                        <div class="step-section step-enter">
-                          <token-cards-section
-                            .tokens="${this.availableTokens}"
-                            .selectedToken="${this.selectedToken}"
-                            .walletService="${this.walletService}"
-                            .walletAddress="${this.walletService.getAccount()
-                              ?.address || null}"
-                            current-chain-id="${this.getConnectedChainId() ||
-                            ""}"
-                            required-amount="${this.recipientAmount}"
-                            @token-selected="${this.handleTokenChange}"
-                          ></token-cards-section>
-                        </div>
-                      `
-                    : ""}
-
-                  <!-- DonateButton: Show when token selected -->
-                  ${this.selectedToken
-                    ? html`
-                        <div class="step-section step-enter">
-                          <donate-button
-                            .amount="${this.getEquivalentAmount().split(
-                              " ",
-                            )[0] || ""}"
-                            .tokenSymbol="${this.selectedToken.symbol}"
-                            ?disabled="${!isFullyConfigured ||
-                            this.isDonating ||
-                            this.isQuoteLoading ||
-                            !this.quote}"
-                            ?loading="${this.isDonating}"
-                            ?calculating="${this.isQuoteLoading}"
-                            @donate-click="${this.handleDonateClick}"
-                          ></donate-button>
-                        </div>
-                      `
-                    : ""}
-
-                  <!-- Hidden donation-form for quote calculation -->
-                  <donation-form
-                    style="position: absolute; opacity: 0; pointer-events: none; height: 0; overflow: hidden;"
-                    .recipient="${this.recipient}"
-                    .recipientTokenInfo="${this.recipientTokenInfo}"
-                    .walletService="${this.walletService}"
-                    .acrossService="${this.acrossService}"
-                    .chainService="${this.chainService}"
-                    .toastService="${toastService}"
-                    .selectedToken="${this.selectedToken}"
-                    .isDonating="${this.isDonating}"
-                    .disabled="${!isFullyConfigured}"
-                    donation-type="${this.donationType}"
-                    subscription-target="${this.effectiveSubscriptionTarget}"
-                    project-id="${this.projectId}"
-                    recipient-amount="${this.recipientAmount}"
-                    @amount-changed="${this.handleAmountChange}"
-                    @quote-updated="${this.handleQuoteUpdate}"
-                    @route-update="${this.handleRouteUpdate}"
-                    @donation-initiated="${this.handleDonationInitiated}"
-                    @donation-completed="${this.handleDonationCompleted}"
-                    @donation-failed="${this.handleDonationFailed}"
-                    @subscription-created="${this.handleSubscriptionCreated}"
-                    @subscription-progress="${this.handleSubscriptionProgress}"
-                  ></donation-form>
-                `}
-
-        <div class="footer">
-          <a href="mailto:support@donations.kalatori.org" class="support-link">
-            ${t("widget.footer.contact")}
-          </a>
-        </div>
+        ${this.renderHeader()}
+        ${this.renderErrorMessage()}
+        ${content}
+        ${this.renderFooter()}
       </div>
-
       <toast-container></toast-container>
     `;
   }
@@ -2058,6 +2088,7 @@ export class DonationWidget extends LitElement {
     this.donationType = "one-time";
     this.isSubscriptionFlow = false;
     this.subscriptionMonthlyAmount = "";
+    this.subscriptionIsDirectTransfer = false;
   }
 }
 

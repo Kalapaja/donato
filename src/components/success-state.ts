@@ -198,7 +198,7 @@ export class SuccessState extends LitElement {
       border: none;
       border-radius: calc(var(--radius) - 2px);
       cursor: pointer;
-      transition: all 0.2s ease;
+      transition: opacity 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
       min-width: 160px;
     }
 
@@ -243,7 +243,7 @@ export class SuccessState extends LitElement {
       text-decoration: none;
       font-size: 0.875rem;
       font-weight: 500;
-      transition: all 0.2s ease;
+      transition: opacity 0.2s ease;
     }
 
     .management-link:hover {

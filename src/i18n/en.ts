@@ -96,6 +96,9 @@ export const en: Translations = {
   "error.subscriptionFailed": "Failed to create subscription. Please try again.",
   "error.walletNotConnected": "Please connect your wallet first.",
   "error.switchToPolygon": "Please switch to Polygon network in your wallet to sign the subscription.",
+  "error.uniswapNoPool": "No liquidity pool found for this token pair",
+  "error.uniswapSlippage": "Price moved too much. Please try again",
+  "error.uniswapSwapFailed": "Swap failed. Please try again",
 
   // Subscription overlay
   "subscription.overlay.title": "Setting Up Subscription",
