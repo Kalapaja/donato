@@ -51,6 +51,13 @@ export class SubscriptionSetupScreen extends LitElement {
     return (monthly * this.selectedMonths).toFixed(2);
   }
 
+  /** Calculate per-second amount for streaming visualization */
+  private get perSecondAmount(): string {
+    const monthly = parseFloat(this.monthlyAmount) || 0;
+    const perSecond = monthly / (30 * 24 * 60 * 60); // seconds in a month
+    return perSecond.toFixed(6);
+  }
+
   /**
    * Handle month selection
    */
@@ -272,6 +279,66 @@ export class SubscriptionSetupScreen extends LitElement {
     .btn-continue:hover {
       opacity: 0.9;
     }
+
+    .streaming-visualization {
+      padding: 1rem;
+      background: linear-gradient(135deg, var(--color-muted) 0%, var(--color-secondary) 100%);
+      border-radius: calc(var(--radius) - 4px);
+      margin-bottom: 1rem;
+    }
+
+    .streaming-rate {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+      margin-bottom: 0.75rem;
+    }
+
+    .rate-monthly {
+      font-size: 1rem;
+      font-weight: 600;
+      color: var(--color-foreground);
+    }
+
+    .rate-separator {
+      color: var(--color-muted-foreground);
+    }
+
+    .rate-persecond {
+      font-size: 0.875rem;
+      font-weight: 500;
+      color: var(--color-accent);
+      font-family: ui-monospace, monospace;
+    }
+
+    .streaming-bar {
+      height: 8px;
+      background: var(--color-border);
+      border-radius: 4px;
+      overflow: hidden;
+      margin-bottom: 0.5rem;
+    }
+
+    .streaming-progress {
+      height: 100%;
+      width: 60%;
+      background: linear-gradient(90deg, var(--color-accent) 0%, oklch(60% 0.15 250) 100%);
+      border-radius: 4px;
+      animation: streamingPulse 2s ease-in-out infinite;
+    }
+
+    @keyframes streamingPulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.7; }
+    }
+
+    .streaming-labels {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.6875rem;
+      color: var(--color-muted-foreground);
+    }
   `;
 
   override render() {
@@ -281,6 +348,22 @@ export class SubscriptionSetupScreen extends LitElement {
         <div class="setup-header">
           <h2 class="setup-title">${t("subscription.setup.title")}</h2>
           <p class="setup-subtitle">${t("subscription.setup.subtitle")}</p>
+        </div>
+
+        <!-- Streaming Visualization -->
+        <div class="streaming-visualization">
+          <div class="streaming-rate">
+            <span class="rate-monthly">$${this.monthlyAmount}/mo</span>
+            <span class="rate-separator">=</span>
+            <span class="rate-persecond">$${this.perSecondAmount}/sec</span>
+          </div>
+          <div class="streaming-bar">
+            <div class="streaming-progress"></div>
+          </div>
+          <div class="streaming-labels">
+            <span>${t("subscription.setup.yourDeposit")}</span>
+            <span>${t("subscription.setup.recipient")}</span>
+          </div>
         </div>
 
         <!-- Explanation Section -->
