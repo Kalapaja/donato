@@ -11,7 +11,7 @@ export const ru: Translations = {
 
   // Donation type toggle
   "donation.type.oneTime": "Разовый",
-  "donation.type.monthly": "Ежемесячный",
+  "donation.type.monthly": "Стриминг",
 
   // Amount section
   "amount.tooltip": "Любой токен, любая сеть — автоконвертация",
@@ -24,10 +24,16 @@ export const ru: Translations = {
   // Wallet connection
   "wallet.connecting": "Подключение...",
   "wallet.connect": "Подключить кошелёк",
-  "wallet.connectSubtext": "Для завершения пожертвования",
+  "wallet.connectSubtext": "Безопасно. Средства переводятся только с вашего подтверждения",
   "wallet.connectAriaLabel": "Подключить кошелёк",
   "wallet.disconnectAriaLabel": "Отключить кошелёк",
   "wallet.switchNetworkAriaLabel": "Сменить сеть",
+
+  // Wallet security tooltip
+  "wallet.security.title": "Это безопасно?",
+  "wallet.security.viewOnly": "Подключение только показывает ваш баланс",
+  "wallet.security.noAutoDebit": "Автоматических списаний нет",
+  "wallet.security.confirmRequired": "Каждая транзакция требует вашего подтверждения",
 
   // Donate button
   "donate.processing": "Обработка...",
@@ -55,12 +61,26 @@ export const ru: Translations = {
   "success.time": "Время",
   "success.transactionDetails": "Детали транзакции",
 
+  // Recipient info
+  "recipient.label": "Кому:",
+  "recipient.copyTooltip": "Скопировать адрес",
+  "recipient.copied": "Адрес скопирован!",
+  "recipient.viewOnExplorer": "Открыть в PolygonScan",
+
+  // Info tooltips
+  "info.whyPolygon.title": "Почему USDC на Polygon?",
+  "info.whyPolygon.stablecoin": "USDC привязан к доллару — 1 USDC всегда = $1",
+  "info.whyPolygon.lowFees": "Polygon имеет минимальные комиссии — больше дойдёт до получателя",
+  "info.whyPolygon.fast": "Средства поступают за секунды",
+
   // Token selection
   "token.choosePayment": "Выберите токен для оплаты",
   "token.insufficientBalance": "недостаточный баланс",
   "token.selectionAriaLabel": "Выбор токена",
   "token.noTokensWithBalance": "Нет токенов с балансом",
   "token.noTokensWithBalanceHint": "Пополните кошелёк для пожертвования",
+  "token.supportedTokensIntro": "Поддерживаемые токены для доната:",
+  "token.supportedNetworks": "Сети: Ethereum, Polygon, Arbitrum, BSC, Optimism, Base",
 
   // Toast notifications
   "toast.successAriaLabel": "Уведомление об успехе",
@@ -124,14 +144,16 @@ export const ru: Translations = {
   "subscription.step.confirming.desc": "Транзакция отправлена, ожидание подтверждения",
 
   // Subscription setup screen
-  "subscription.setup.title": "Как работает подписка",
-  "subscription.setup.subtitle": "Подписка использует потоковые платежи на Polygon",
-  "subscription.setup.step1.title": "Подпись разрешения",
-  "subscription.setup.step1.description": "Вы подпишете сообщение, авторизующее подписку. Это не отправляет транзакцию.",
-  "subscription.setup.step2.title": "Внесение депозита",
-  "subscription.setup.step2.description": "Средства вносятся на ваш баланс AzothPay. Вы контролируете эти средства.",
-  "subscription.setup.step3.title": "Начало стриминга",
-  "subscription.setup.step3.description": "Платежи автоматически списываются каждую секунду с вашего баланса.",
+  "subscription.setup.title": "Как работает стриминг",
+  "subscription.setup.subtitle": "Ваша поддержка поступает непрерывно — каждую секунду",
+  "subscription.setup.yourDeposit": "Ваш депозит",
+  "subscription.setup.recipient": "Получатель",
+  "subscription.setup.step1.title": "Подпишите разрешение",
+  "subscription.setup.step1.description": "Бесплатно и безопасно — транзакция не отправляется",
+  "subscription.setup.step2.title": "Внесите депозит",
+  "subscription.setup.step2.description": "Вы контролируете эти средства",
+  "subscription.setup.step3.title": "Стриминг начинается",
+  "subscription.setup.step3.description": "Средства поступают каждую секунду с вашего баланса",
   "subscription.setup.depositLabel": "На сколько месяцев внести депозит?",
   "subscription.setup.month": "месяц",
   "subscription.setup.months": "месяцев",

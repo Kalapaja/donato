@@ -36,6 +36,7 @@ import "./toast-container.ts";
 import "./donation-type-toggle.ts";
 import "./subscription-setup-screen.ts";
 import "./subscription-progress-screen.ts";
+import "./info-tooltip.ts";
 import type { ToastContainer } from "./toast-container.ts";
 import type { SubscriptionSetupData } from "./subscription-setup-screen.ts";
 import type { SubscriptionStep } from "./subscription-progress-screen.ts";

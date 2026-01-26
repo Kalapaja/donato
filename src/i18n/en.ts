@@ -11,7 +11,7 @@ export const en: Translations = {
 
   // Donation type toggle
   "donation.type.oneTime": "One-time",
-  "donation.type.monthly": "Monthly",
+  "donation.type.monthly": "Streaming",
 
   // Amount section
   "amount.tooltip": "Any token, any chain — auto-converted",
@@ -24,10 +24,16 @@ export const en: Translations = {
   // Wallet connection
   "wallet.connecting": "Connecting...",
   "wallet.connect": "Connect Wallet",
-  "wallet.connectSubtext": "To complete your donation",
+  "wallet.connectSubtext": "Secure. Funds only move with your approval",
   "wallet.connectAriaLabel": "Connect wallet",
   "wallet.disconnectAriaLabel": "Disconnect wallet",
   "wallet.switchNetworkAriaLabel": "Switch network",
+
+  // Wallet security tooltip
+  "wallet.security.title": "Is it safe?",
+  "wallet.security.viewOnly": "Connection only shows your balance",
+  "wallet.security.noAutoDebit": "No automatic withdrawals",
+  "wallet.security.confirmRequired": "Every transaction requires your approval",
 
   // Donate button
   "donate.processing": "Processing...",
@@ -55,12 +61,26 @@ export const en: Translations = {
   "success.time": "Time",
   "success.transactionDetails": "Transaction details",
 
+  // Recipient info
+  "recipient.label": "To:",
+  "recipient.copyTooltip": "Copy address",
+  "recipient.copied": "Address copied!",
+  "recipient.viewOnExplorer": "View on PolygonScan",
+
+  // Info tooltips
+  "info.whyPolygon.title": "Why USDC on Polygon?",
+  "info.whyPolygon.stablecoin": "USDC is pegged to USD — 1 USDC always = $1",
+  "info.whyPolygon.lowFees": "Polygon has lowest fees — more goes to the creator",
+  "info.whyPolygon.fast": "Funds arrive in seconds",
+
   // Token selection
   "token.choosePayment": "Choose payment token",
   "token.insufficientBalance": "insufficient balance",
   "token.selectionAriaLabel": "Token selection",
   "token.noTokensWithBalance": "No tokens with balance",
   "token.noTokensWithBalanceHint": "Top up your wallet to donate",
+  "token.supportedTokensIntro": "Supported tokens for donation:",
+  "token.supportedNetworks": "Networks: Ethereum, Polygon, Arbitrum, BSC, Optimism, Base",
 
   // Toast notifications
   "toast.successAriaLabel": "Success notification",
@@ -124,14 +144,16 @@ export const en: Translations = {
   "subscription.step.confirming.desc": "Transaction submitted, waiting for confirmation",
 
   // Subscription setup screen
-  "subscription.setup.title": "How Subscriptions Work",
-  "subscription.setup.subtitle": "Your subscription uses streaming payments on Polygon",
+  "subscription.setup.title": "How Streaming Works",
+  "subscription.setup.subtitle": "Your support flows continuously — every second",
+  "subscription.setup.yourDeposit": "Your deposit",
+  "subscription.setup.recipient": "Recipient",
   "subscription.setup.step1.title": "Sign Permission",
-  "subscription.setup.step1.description": "You'll sign a message authorizing the subscription. This doesn't send any transaction.",
+  "subscription.setup.step1.description": "Free and safe — no transaction sent",
   "subscription.setup.step2.title": "Make Deposit",
-  "subscription.setup.step2.description": "Funds are deposited to your AzothPay balance. You control these funds.",
-  "subscription.setup.step3.title": "Start Streaming",
-  "subscription.setup.step3.description": "Payments stream automatically each second from your balance.",
+  "subscription.setup.step2.description": "You control these funds",
+  "subscription.setup.step3.title": "Streaming Begins",
+  "subscription.setup.step3.description": "Funds flow every second from your balance",
   "subscription.setup.depositLabel": "How many months to deposit?",
   "subscription.setup.month": "month",
   "subscription.setup.months": "months",
