@@ -1464,7 +1464,7 @@ export class DonationWidget extends LitElement {
 
       const errorMessage =
         error instanceof I18nError
-          ? t(error.i18nKey)
+          ? t(error.i18nKey, error.params)
           : error instanceof Error
             ? error.message
             : t("error.networkConnection");
@@ -1593,7 +1593,7 @@ export class DonationWidget extends LitElement {
 
       const errorMessage =
         error instanceof I18nError
-          ? t(error.i18nKey)
+          ? t(error.i18nKey, error.params)
           : error instanceof Error
             ? error.message
             : t("error.networkConnection");
@@ -1733,7 +1733,7 @@ export class DonationWidget extends LitElement {
     if (!this.error) return "";
     return html`
       <div class="error-message" role="alert">
-        ${this.error instanceof I18nError ? t(this.error.i18nKey) : this.error}
+        ${this.error instanceof I18nError ? t(this.error.i18nKey, this.error.params) : this.error}
       </div>
     `;
   }

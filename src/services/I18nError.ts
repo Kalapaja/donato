@@ -14,25 +14,36 @@ export type ErrorKey = Extract<TranslationKey, `error.${string}`>;
  * using the i18nKey property.
  *
  * @example
- * // Throwing an I18nError
+ * // Throwing an I18nError without parameters
  * throw new I18nError("error.networkConnection");
+ *
+ * // Throwing an I18nError with parameters
+ * throw new I18nError("error.networkSwitchFailed", { network: "Polygon" });
  *
  * // Handling in components
  * if (error instanceof I18nError) {
- *   displayError(t(error.i18nKey));
+ *   displayError(t(error.i18nKey, error.params));
  * } else {
  *   displayError(error.message);
  * }
  */
 export class I18nError extends Error {
   public readonly i18nKey: ErrorKey;
+  public readonly params?: Record<string, string | number>;
 
-  constructor(key: ErrorKey, originalError?: Error) {
+  constructor(key: ErrorKey, paramsOrError?: Record<string, string | number> | Error, originalError?: Error) {
     super(key);
     this.name = "I18nError";
     this.i18nKey = key;
-    if (originalError) {
-      this.cause = originalError;
+
+    // Handle both old signature (key, Error) and new signature (key, params, Error)
+    if (paramsOrError instanceof Error) {
+      this.cause = paramsOrError;
+    } else if (paramsOrError) {
+      this.params = paramsOrError;
+      if (originalError) {
+        this.cause = originalError;
+      }
     }
   }
 }
