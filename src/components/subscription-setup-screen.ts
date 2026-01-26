@@ -55,7 +55,9 @@ export class SubscriptionSetupScreen extends LitElement {
   private get perSecondAmount(): string {
     const monthly = parseFloat(this.monthlyAmount) || 0;
     const perSecond = monthly / (30 * 24 * 60 * 60); // seconds in a month
-    return perSecond.toFixed(6);
+    // Use enough decimal places to show meaningful digits for small amounts
+    // $1/mo ≈ $0.00000039/sec, so we need at least 8 decimals
+    return perSecond.toFixed(8);
   }
 
   /**
@@ -194,7 +196,10 @@ export class SubscriptionSetupScreen extends LitElement {
       border-radius: calc(var(--radius) - 4px);
       color: var(--color-foreground);
       cursor: pointer;
-      transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+      transition:
+        background-color 0.2s ease,
+        border-color 0.2s ease,
+        color 0.2s ease;
     }
 
     .month-option:hover {
@@ -282,7 +287,11 @@ export class SubscriptionSetupScreen extends LitElement {
 
     .streaming-visualization {
       padding: 1rem;
-      background: linear-gradient(135deg, var(--color-muted) 0%, var(--color-secondary) 100%);
+      background: linear-gradient(
+        135deg,
+        var(--color-muted) 0%,
+        var(--color-secondary) 100%
+      );
       border-radius: calc(var(--radius) - 4px);
       margin-bottom: 1rem;
     }
@@ -323,14 +332,23 @@ export class SubscriptionSetupScreen extends LitElement {
     .streaming-progress {
       height: 100%;
       width: 60%;
-      background: linear-gradient(90deg, var(--color-accent) 0%, oklch(60% 0.15 250) 100%);
+      background: linear-gradient(
+        90deg,
+        var(--color-accent) 0%,
+        oklch(60% 0.15 250) 100%
+      );
       border-radius: 4px;
       animation: streamingPulse 2s ease-in-out infinite;
     }
 
     @keyframes streamingPulse {
-      0%, 100% { opacity: 1; }
-      50% { opacity: 0.7; }
+      0%,
+      100% {
+        opacity: 1;
+      }
+      50% {
+        opacity: 0.7;
+      }
     }
 
     .streaming-labels {

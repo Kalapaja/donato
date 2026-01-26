@@ -106,23 +106,11 @@ describe("i18n translations", () => {
       "wallet.security.noAutoDebit",
       "wallet.security.confirmRequired",
 
-      // Info tooltips (Phase 2)
-      "info.whyPolygon.title",
-      "info.whyPolygon.stablecoin",
-      "info.whyPolygon.lowFees",
-      "info.whyPolygon.fast",
-
       // Token empty state (Phase 4)
       "token.noTokensWithBalance",
       "token.noTokensWithBalanceHint",
       "token.supportedTokensIntro",
       "token.supportedNetworks",
-
-      // Recipient info (Phase 6)
-      "recipient.label",
-      "recipient.copyTooltip",
-      "recipient.copied",
-      "recipient.viewOnExplorer",
 
       // Wallet connect subtext (Phase 3)
       "wallet.connectSubtext",
