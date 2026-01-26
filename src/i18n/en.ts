@@ -61,18 +61,6 @@ export const en: Translations = {
   "success.time": "Time",
   "success.transactionDetails": "Transaction details",
 
-  // Recipient info
-  "recipient.label": "To:",
-  "recipient.copyTooltip": "Copy address",
-  "recipient.copied": "Address copied!",
-  "recipient.viewOnExplorer": "View on PolygonScan",
-
-  // Info tooltips
-  "info.whyPolygon.title": "Why USDC on Polygon?",
-  "info.whyPolygon.stablecoin": "USDC is pegged to USD — 1 USDC always = $1",
-  "info.whyPolygon.lowFees": "Polygon has lowest fees — more goes to the creator",
-  "info.whyPolygon.fast": "Funds arrive in seconds",
-
   // Token selection
   "token.choosePayment": "Choose payment token",
   "token.insufficientBalance": "insufficient balance",
@@ -80,7 +68,8 @@ export const en: Translations = {
   "token.noTokensWithBalance": "No tokens with balance",
   "token.noTokensWithBalanceHint": "Top up your wallet to donate",
   "token.supportedTokensIntro": "Supported tokens for donation:",
-  "token.supportedNetworks": "Networks: Ethereum, Polygon, Arbitrum, BSC, Optimism, Base",
+  "token.supportedNetworks":
+    "Networks: Ethereum, Polygon, Arbitrum, BSC, Optimism, Base",
 
   // Toast notifications
   "toast.successAriaLabel": "Success notification",
@@ -90,7 +79,8 @@ export const en: Translations = {
   "toast.closeAriaLabel": "Close notification",
 
   // Messages
-  "message.donationSuccess": "Donation successful! Thank you for your contribution.",
+  "message.donationSuccess":
+    "Donation successful! Thank you for your contribution.",
   "message.invalidRecipient": "Invalid recipient address format",
   "message.initFailed": "Failed to initialize widget",
   "message.walletConnectionFailed": "Failed to open wallet connection",
@@ -106,16 +96,16 @@ export const en: Translations = {
     "Server is temporarily unavailable. Please try again later.",
   "error.unsupportedNetwork": "Network is not supported.",
   "error.unsupportedToken": "Token is not supported.",
-  "error.insufficientLiquidity":
-    "Insufficient liquidity for this swap.",
-  "error.insufficientFunds":
-    "Insufficient funds in your wallet.",
+  "error.insufficientLiquidity": "Insufficient liquidity for this swap.",
+  "error.insufficientFunds": "Insufficient funds in your wallet.",
   "error.slippageTooHigh": "Slippage is too high for this swap.",
   "error.transactionRejected": "Transaction was rejected by user.",
   "error.signatureRejected": "Signature was rejected by user.",
-  "error.subscriptionFailed": "Failed to create subscription. Please try again.",
+  "error.subscriptionFailed":
+    "Failed to create subscription. Please try again.",
   "error.walletNotConnected": "Please connect your wallet first.",
-  "error.switchToPolygon": "Please switch to Polygon network in your wallet to sign the subscription.",
+  "error.switchToPolygon":
+    "Please switch to Polygon network in your wallet to sign the subscription.",
   "error.uniswapNoPool": "No liquidity pool found for this token pair",
   "error.uniswapSlippage": "Price moved too much. Please try again",
   "error.uniswapSwapFailed": "Swap failed. Please try again",
@@ -141,25 +131,30 @@ export const en: Translations = {
   "subscription.step.subscribing": "Confirming Subscription",
   "subscription.step.subscribing.desc": "Please confirm the transaction",
   "subscription.step.confirming": "Waiting for Confirmation",
-  "subscription.step.confirming.desc": "Transaction submitted, waiting for confirmation",
+  "subscription.step.confirming.desc":
+    "Transaction submitted, waiting for confirmation",
 
   // Subscription setup screen
   "subscription.setup.title": "How Streaming Works",
-  "subscription.setup.subtitle": "Your support flows continuously — every second",
+  "subscription.setup.subtitle":
+    "Your support flows continuously — every second",
   "subscription.setup.yourDeposit": "Your deposit",
   "subscription.setup.recipient": "Recipient",
   "subscription.setup.step1.title": "Sign Permission",
   "subscription.setup.step1.description": "Free and safe — no transaction sent",
   "subscription.setup.step2.title": "Make Deposit",
-  "subscription.setup.step2.description": "You control these funds",
+  "subscription.setup.step2.description":
+    "Your deposit, your control — withdraw anytime",
   "subscription.setup.step3.title": "Streaming Begins",
-  "subscription.setup.step3.description": "Funds flow every second from your balance",
+  "subscription.setup.step3.description":
+    "Funds flow every second from your balance",
   "subscription.setup.depositLabel": "How many months to deposit?",
   "subscription.setup.month": "month",
   "subscription.setup.months": "months",
   "subscription.setup.monthlyPayment": "Monthly payment",
   "subscription.setup.totalDeposit": "Total deposit",
-  "subscription.setup.refundNotice": "Unused funds can be withdrawn anytime through Papaya Finance.",
+  "subscription.setup.refundNotice":
+    "Unused funds can be withdrawn anytime through Papaya Finance.",
   "subscription.setup.back": "Back",
   "subscription.setup.continue": "Continue",
 
@@ -170,29 +165,36 @@ export const en: Translations = {
   "subscription.progress.depositAmount": "Deposit",
   "subscription.progress.retry": "Try Again",
   "subscription.progress.switching": "Switching to Polygon",
-  "subscription.progress.switching.desc": "Subscriptions work on the Polygon network",
+  "subscription.progress.switching.desc":
+    "Subscriptions work on the Polygon network",
   "subscription.progress.signing": "Signing Permission",
-  "subscription.progress.signing.desc": "This signature authorizes the subscription without sending a transaction",
+  "subscription.progress.signing.desc":
+    "This signature authorizes the subscription without sending a transaction",
   "subscription.progress.building": "Preparing Transaction",
-  "subscription.progress.building.desc": "Building the cross-chain transfer data",
+  "subscription.progress.building.desc":
+    "Building the cross-chain transfer data",
   "subscription.progress.returning": "Switching Back",
-  "subscription.progress.returning.desc": "Returning to your original network to pay",
+  "subscription.progress.returning.desc":
+    "Returning to your original network to pay",
   "subscription.progress.quoting": "Getting Quote",
   "subscription.progress.quoting.desc": "Calculating the best conversion rate",
   "subscription.progress.approving": "Approving Token",
-  "subscription.progress.approving.desc": "Allow the protocol to use your tokens for the swap",
+  "subscription.progress.approving.desc":
+    "Allow the protocol to use your tokens for the swap",
   "subscription.progress.subscribing": "Confirming Transaction",
-  "subscription.progress.subscribing.desc": "This transaction will create your subscription",
+  "subscription.progress.subscribing.desc":
+    "This transaction will create your subscription",
   "subscription.progress.confirming": "Waiting for Confirmation",
-  "subscription.progress.confirming.desc": "Transaction submitted, waiting for blockchain confirmation",
+  "subscription.progress.confirming.desc":
+    "Transaction submitted, waiting for blockchain confirmation",
 
   // Success screen - subscription management
   "success.subscription.manageText": "Manage your subscription anytime",
   "success.subscription.manageLink": "Open Papaya Finance",
-  "success.subscription.cancelHint": "You can cancel and withdraw remaining funds at any time",
+  "success.subscription.cancelHint":
+    "You can cancel and withdraw remaining funds at any time",
 
   // Existing subscription indicator
   "subscription.existing.message": "Already subscribed (${amount}/mo)",
   "subscription.existing.manage": "Manage on Papaya Finance",
 };
-
