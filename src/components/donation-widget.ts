@@ -671,6 +671,58 @@ export class DonationWidget extends LitElement {
       color: oklch(75% 0.18 250);
     }
 
+    /* Recipient display styles */
+    .recipient-display {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.5rem 0.75rem;
+      background: var(--color-muted);
+      border-radius: calc(var(--radius) - 4px);
+      margin-bottom: 1rem;
+      font-size: 0.8125rem;
+    }
+
+    .recipient-display .recipient-label {
+      color: var(--color-muted-foreground);
+      flex-shrink: 0;
+    }
+
+    .recipient-display .recipient-address {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.25rem;
+      font-family: ui-monospace, monospace;
+      color: var(--color-foreground);
+      background: none;
+      border: none;
+      cursor: pointer;
+      padding: 0.25rem 0.5rem;
+      border-radius: 4px;
+      transition: background-color 0.2s ease;
+    }
+
+    .recipient-display .recipient-address:hover {
+      background: var(--color-secondary);
+    }
+
+    .copy-icon,
+    .external-icon {
+      width: 0.875rem;
+      height: 0.875rem;
+      color: var(--color-muted-foreground);
+    }
+
+    .recipient-link {
+      display: inline-flex;
+      color: var(--color-muted-foreground);
+      transition: color 0.2s ease;
+    }
+
+    .recipient-link:hover {
+      color: var(--color-accent);
+    }
+
     /* Mobile responsive styles */
     @container donation-widget (max-width: 400px) {
       .widget-container {
@@ -1716,6 +1768,77 @@ export class DonationWidget extends LitElement {
   }
 
   /**
+   * Render the recipient info display with address, copy button, explorer link, and tooltip
+   */
+  private renderRecipientInfo() {
+    if (!this.recipient) return "";
+
+    return html`
+      <div class="recipient-display">
+        <span class="recipient-label">${t("recipient.label")}</span>
+        <button
+          class="recipient-address"
+          @click=${this.copyRecipientAddress}
+          title="${t("recipient.copyTooltip")}"
+        >
+          ${this.formatAddress(this.recipient)}
+          <svg class="copy-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+            <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+          </svg>
+        </button>
+        <a
+          href="https://polygonscan.com/address/${this.recipient}"
+          target="_blank"
+          rel="noopener noreferrer"
+          class="recipient-link"
+          title="${t("recipient.viewOnExplorer")}"
+        >
+          <svg class="external-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path>
+            <polyline points="15 3 21 3 21 9"></polyline>
+            <line x1="10" y1="14" x2="21" y2="3"></line>
+          </svg>
+        </a>
+        <info-tooltip .title="${t("info.whyPolygon.title")}">
+          <ul>
+            <li>${t("info.whyPolygon.stablecoin")}</li>
+            <li>${t("info.whyPolygon.lowFees")}</li>
+            <li>${t("info.whyPolygon.fast")}</li>
+          </ul>
+        </info-tooltip>
+      </div>
+    `;
+  }
+
+  /**
+   * Copy recipient address to clipboard
+   */
+  private async copyRecipientAddress() {
+    try {
+      await navigator.clipboard.writeText(this.recipient);
+      toastService.success(t("recipient.copied"));
+    } catch {
+      // Fallback for older browsers
+      const textArea = document.createElement("textarea");
+      textArea.value = this.recipient;
+      textArea.style.position = "fixed";
+      textArea.style.left = "-999999px";
+      textArea.style.top = "-999999px";
+      document.body.appendChild(textArea);
+      textArea.focus();
+      textArea.select();
+      try {
+        document.execCommand("copy");
+        toastService.success(t("recipient.copied"));
+      } catch {
+        console.error("Failed to copy address");
+      }
+      document.body.removeChild(textArea);
+    }
+  }
+
+  /**
    * Render the loading state shown during initialization
    */
   private renderLoadingState() {
@@ -2018,9 +2141,16 @@ export class DonationWidget extends LitElement {
       content = this.renderMainContent(isFullyConfigured);
     }
 
+    // Show recipient info only in main content flow (not in success, setup, or progress screens)
+    const showRecipientInfo =
+      !this.showSuccessState &&
+      this.currentStep !== FlowStep.SUBSCRIPTION_SETUP &&
+      this.currentStep !== FlowStep.SUBSCRIPTION_PROGRESS;
+
     return html`
       <div class="widget-container">
         ${this.renderHeader()}
+        ${showRecipientInfo ? this.renderRecipientInfo() : ""}
         ${this.renderErrorMessage()}
         ${content}
         ${this.renderFooter()}
