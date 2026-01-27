@@ -69,7 +69,7 @@ export enum FlowStep {
  * @attr {boolean} confetti-enabled - Whether confetti animation is enabled (default: true)
  * @attr {string} confetti-colors - Comma-separated list of hex colors for confetti (e.g., "#ff0000,#00ff00,#0000ff")
  * @attr {string} default-amount - Default donation amount to pre-fill (e.g., "25")
- * @attr {boolean} subscription-disabled - When true, hides the donation type toggle and disables subscriptions (default: false)
+ * @attr {boolean} continuous-enabled - When true, shows the donation type toggle and enables continuous payments (default: false)
  * @attr {string} subscription-target - Target address for subscriptions. If not set, uses recipient address
  * @attr {number} project-id - Project ID for AzothPay subscription (default: 0)
  *
@@ -137,9 +137,9 @@ export class DonationWidget extends LitElement {
   accessor locale: string = "";
 
   // Subscription properties
-  /** When true, hides the donation type toggle and disables subscriptions */
-  @property({ type: Boolean, attribute: "subscription-disabled" })
-  accessor subscriptionDisabled: boolean = false;
+  /** When true, shows the donation type toggle and enables continuous payments */
+  @property({ type: Boolean, attribute: "continuous-enabled" })
+  accessor continuousEnabled: boolean = false;
 
   /** Target address for subscriptions. If not set, uses recipient address */
   @property({ type: String, attribute: "subscription-target" })
@@ -413,17 +413,6 @@ export class DonationWidget extends LitElement {
       background: var(--color-muted);
       border-radius: calc(var(--radius) - 2px);
       font-size: 0.875rem;
-    }
-
-    .recipient-label {
-      color: var(--color-muted-foreground);
-      margin-bottom: 0.25rem;
-    }
-
-    .recipient-address {
-      font-family: "Courier New", monospace;
-      color: var(--color-foreground);
-      word-break: break-all;
     }
 
     .footer {
@@ -1464,7 +1453,7 @@ export class DonationWidget extends LitElement {
 
       const errorMessage =
         error instanceof I18nError
-          ? t(error.i18nKey)
+          ? t(error.i18nKey, error.params)
           : error instanceof Error
             ? error.message
             : t("error.networkConnection");
@@ -1593,7 +1582,7 @@ export class DonationWidget extends LitElement {
 
       const errorMessage =
         error instanceof I18nError
-          ? t(error.i18nKey)
+          ? t(error.i18nKey, error.params)
           : error instanceof Error
             ? error.message
             : t("error.networkConnection");
@@ -1733,7 +1722,7 @@ export class DonationWidget extends LitElement {
     if (!this.error) return "";
     return html`
       <div class="error-message" role="alert">
-        ${this.error instanceof I18nError ? t(this.error.i18nKey) : this.error}
+        ${this.error instanceof I18nError ? t(this.error.i18nKey, this.error.params) : this.error}
       </div>
     `;
   }
@@ -1917,7 +1906,7 @@ export class DonationWidget extends LitElement {
       <!-- DonationTypeToggle: Toggle between one-time and monthly donations -->
       <donation-type-toggle
         .value="${this.donationType}"
-        ?disabled="${this.subscriptionDisabled}"
+        ?disabled="${!this.continuousEnabled}"
         @donation-type-changed="${this.handleDonationTypeChange}"
       ></donation-type-toggle>
 
@@ -2066,7 +2055,7 @@ export class DonationWidget extends LitElement {
       // Subscription state
       donationType: this.donationType,
       isSubscriptionFlow: this.isSubscriptionFlow,
-      subscriptionDisabled: this.subscriptionDisabled,
+      continuousEnabled: this.continuousEnabled,
       subscriptionTarget: this.subscriptionTarget,
       effectiveSubscriptionTarget: this.effectiveSubscriptionTarget,
       projectId: this.projectId,

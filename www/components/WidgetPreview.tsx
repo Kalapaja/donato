@@ -74,6 +74,9 @@ export function WidgetPreview({ config }: WidgetPreviewProps) {
     if (config.locale) {
       widget.setAttribute("locale", config.locale);
     }
+    if (config.enableContinuous === true) {
+      widget.setAttribute("continuous-enabled", "true");
+    }
 
     // Handle custom theme styles
     const existingStyle = document.getElementById(

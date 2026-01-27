@@ -39,6 +39,17 @@ export function RecipientSection(
         All donations are received as USDC on Polygon network
       </p>
 
+      <details className="text-sm mb-4" style={{ color: "var(--color-muted-foreground)" }}>
+        <summary style={{ cursor: "pointer", color: "var(--color-accent)" }}>
+          Why USDC on Polygon?
+        </summary>
+        <ul className="mt-2 ml-4 space-y-1 list-disc">
+          <li>USDC is pegged to USD — 1 USDC always = $1</li>
+          <li>Polygon has lowest fees — more goes to you</li>
+          <li>Funds arrive in seconds</li>
+        </ul>
+      </details>
+
       <div className="space-y-2">
         <input
           type="text"

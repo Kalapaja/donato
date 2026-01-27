@@ -2,7 +2,7 @@
  * Integration tests for subscription flow in donation widget
  *
  * This file contains integration tests for the subscription functionality:
- * - Toggle visibility with subscription-disabled attribute
+ * - Toggle visibility with continuous-enabled attribute
  * - effectiveSubscriptionTarget fallback to recipient
  * - Subscription flow emits correct events
  * - Error handling shows localized messages
@@ -53,7 +53,7 @@ interface WidgetConfig {
   recipientTokenAddress: string;
   reownProjectId?: string;
   // Subscription configuration
-  subscriptionDisabled?: boolean;
+  continuousEnabled?: boolean;
   subscriptionTarget?: string;
   projectId?: number;
   // Other configuration
@@ -152,8 +152,8 @@ function getEffectiveSubscriptionTarget(config: WidgetConfig): string {
  * Check if toggle should be visible based on configuration
  */
 function isToggleVisible(config: WidgetConfig): boolean {
-  // Toggle is visible when subscriptionDisabled is false or undefined
-  return config.subscriptionDisabled !== true;
+  // Toggle is visible when continuousEnabled is true
+  return config.continuousEnabled === true;
 }
 
 /**
@@ -344,7 +344,7 @@ function renderWidget(state: WidgetState): string {
     if (isToggleVisible(state.config)) {
       content += `<donation-type-toggle`;
       content += ` value="${state.donationType}"`;
-      content += ` disabled="${state.config.subscriptionDisabled || false}"`;
+      content += ` disabled="${!state.config.continuousEnabled}"`;
       content += `></donation-type-toggle>`;
     }
 
@@ -389,40 +389,33 @@ function determineCurrentStep(state: WidgetState): FlowStep {
 }
 
 describe("donation-widget-subscription", () => {
-  describe("Toggle visibility with subscription-disabled attribute", () => {
-    it("should show toggle when subscription is enabled (default)", () => {
+  describe("Toggle visibility with continuous-enabled attribute", () => {
+    it("should hide toggle when continuous is disabled (default)", () => {
       const config: WidgetConfig = {
         recipient: "0x742d35Cc6634C0532925a3b844Bc454e4438f44e",
         recipientChainId: 137,
         recipientTokenAddress: "0x3c499c542cEF5E3811e1192ce70d8cC03d5c3359",
         reownProjectId: "test-project-id",
-      };
-
-      const state = createInitialWidgetState(config);
-      const rendered = renderWidget(state);
-
-      assert(
-        rendered.includes("donation-type-toggle"),
-        "Toggle should be rendered when subscription is not disabled"
-      );
-      assert(
-        isToggleVisible(config),
-        "isToggleVisible should return true when subscriptionDisabled is not set"
-      );
-    });
-
-    it("should hide toggle when subscription-disabled is true", () => {
-      const config: WidgetConfig = {
-        recipient: "0x742d35Cc6634C0532925a3b844Bc454e4438f44e",
-        recipientChainId: 137,
-        recipientTokenAddress: "0x3c499c542cEF5E3811e1192ce70d8cC03d5c3359",
-        reownProjectId: "test-project-id",
-        subscriptionDisabled: true,
       };
 
       assert(
         !isToggleVisible(config),
-        "isToggleVisible should return false when subscriptionDisabled is true"
+        "isToggleVisible should return false when continuousEnabled is not set"
+      );
+    });
+
+    it("should hide toggle when continuous-enabled is false", () => {
+      const config: WidgetConfig = {
+        recipient: "0x742d35Cc6634C0532925a3b844Bc454e4438f44e",
+        recipientChainId: 137,
+        recipientTokenAddress: "0x3c499c542cEF5E3811e1192ce70d8cC03d5c3359",
+        reownProjectId: "test-project-id",
+        continuousEnabled: false,
+      };
+
+      assert(
+        !isToggleVisible(config),
+        "isToggleVisible should return false when continuousEnabled is false"
       );
 
       // The toggle would render with disabled=true, which makes it render nothing
@@ -430,18 +423,18 @@ describe("donation-widget-subscription", () => {
       // In actual component, disabled=true causes empty template
     });
 
-    it("should show toggle when subscription-disabled is explicitly false", () => {
+    it("should show toggle when continuous-enabled is true", () => {
       const config: WidgetConfig = {
         recipient: "0x742d35Cc6634C0532925a3b844Bc454e4438f44e",
         recipientChainId: 137,
         recipientTokenAddress: "0x3c499c542cEF5E3811e1192ce70d8cC03d5c3359",
         reownProjectId: "test-project-id",
-        subscriptionDisabled: false,
+        continuousEnabled: true,
       };
 
       assert(
         isToggleVisible(config),
-        "isToggleVisible should return true when subscriptionDisabled is false"
+        "isToggleVisible should return true when continuousEnabled is true"
       );
 
       const state = createInitialWidgetState(config);
@@ -449,7 +442,7 @@ describe("donation-widget-subscription", () => {
 
       assert(
         rendered.includes("donation-type-toggle"),
-        "Toggle should be rendered when subscriptionDisabled is false"
+        "Toggle should be rendered when continuousEnabled is true"
       );
     });
   });
@@ -1251,8 +1244,8 @@ describe("donation-widget-subscription", () => {
         "isSubscriptionFlow should be false by default"
       );
       assert(
-        isToggleVisible(config),
-        "Toggle should be visible by default"
+        !isToggleVisible(config),
+        "Toggle should be hidden by default (continuous disabled)"
       );
       assertEquals(
         getEffectiveSubscriptionTarget(config),

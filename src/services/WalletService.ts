@@ -22,6 +22,7 @@ import {
   getWalletClient as wagmiGetWalletClient,
   type Config as WagmiConfig,
 } from "@wagmi/core";
+import { I18nError } from "./I18nError.ts";
 
 export interface WalletAccount {
   address: Address;
@@ -410,6 +411,9 @@ export class WalletService {
     } catch (error: unknown) {
       console.error("Failed to switch chain:", error);
 
+      // Get chain name for error message
+      const chainName = this.getViemChain(chainId)?.name ?? `Chain ${chainId}`;
+
       // Check for user rejection
       if (
         error &&
@@ -418,10 +422,10 @@ export class WalletService {
         ((error as { code: number }).code === 4001 ||
           (error as { code: number }).code === -32000)
       ) {
-        throw new Error("Chain switch was rejected by user");
+        throw new I18nError("error.transactionRejected");
       }
 
-      throw new Error(`Failed to switch to network ${chainId}`);
+      throw new I18nError("error.networkSwitchFailed", { network: chainName });
     }
   }
 

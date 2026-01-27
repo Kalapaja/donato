@@ -2,6 +2,7 @@ import { css, html, LitElement } from "lit";
 import { customElement, property, state } from "lit/decorators.js";
 import type { WalletService } from "../services/WalletService.ts";
 import { t } from "../services/index.ts";
+import "./info-tooltip.ts";
 
 /**
  * WalletConnectCard - Component for displaying wallet connection card
@@ -162,6 +163,22 @@ export class WalletConnectCard extends LitElement {
         transform: rotate(360deg);
       }
     }
+
+    /* Security list styles inside info-tooltip */
+    .security-list {
+      margin: 0;
+      padding-left: 1rem;
+      list-style: disc;
+    }
+
+    .security-list li {
+      margin-bottom: 0.25rem;
+      color: var(--color-muted-foreground);
+    }
+
+    .security-list li:last-child {
+      margin-bottom: 0;
+    }
   `;
 
   /**
@@ -276,6 +293,13 @@ export class WalletConnectCard extends LitElement {
             </div>
           </div>
         </div>
+        <info-tooltip title="${t("wallet.security.title")}">
+          <ul class="security-list">
+            <li>${t("wallet.security.viewOnly")}</li>
+            <li>${t("wallet.security.noAutoDebit")}</li>
+            <li>${t("wallet.security.confirmRequired")}</li>
+          </ul>
+        </info-tooltip>
         ${!isConnectingState
           ? html`<div class="wallet-indicator">${this.getChevronIcon()}</div>`
           : null}

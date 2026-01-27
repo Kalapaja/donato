@@ -53,6 +53,11 @@ export function EmbedCodeSection({
       widgetAttributes.push(`locale="${config.locale}"`);
     }
 
+    // Continuous payments (disabled by default, only enabled when explicitly true)
+    if (config.enableContinuous === true) {
+      widgetAttributes.push(`continuous-enabled="true"`);
+    }
+
     // Theme (required)
     if (config.theme) {
       widgetAttributes.push(`theme="${config.theme}"`);
