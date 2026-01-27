@@ -7,6 +7,7 @@ import { RecipientSection } from "./sections/RecipientSection";
 import { ReOwnSection } from "./sections/ReOwnSection";
 import { ThemeSection } from "./sections/ThemeSection";
 import { LocaleSection } from "./sections/LocaleSection";
+import { ContinuousSection } from "./sections/ContinuousSection";
 import { EmbedCodeSection } from "./sections/EmbedCodeSection";
 import { VersionSelector } from "./VersionSelector";
 
@@ -177,6 +178,15 @@ export function WidgetConfigurator({
         <LocaleSection
           locale={config.locale || ""}
           onLocaleChange={(locale) => onConfigChange({ locale })}
+        />
+      </div>
+
+      <div style={SECTION_SEPARATOR_STYLE}>
+        <ContinuousSection
+          enableContinuous={config.enableContinuous === true}
+          onEnableContinuousChange={(enabled) =>
+            onConfigChange({ enableContinuous: enabled })
+          }
         />
       </div>
 

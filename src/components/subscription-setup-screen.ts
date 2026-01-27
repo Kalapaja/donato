@@ -357,6 +357,13 @@ export class SubscriptionSetupScreen extends LitElement {
       font-size: 0.6875rem;
       color: var(--color-muted-foreground);
     }
+
+    .month-definition {
+      text-align: center;
+      font-size: 0.6875rem;
+      color: var(--color-muted-foreground);
+      margin-top: 0.5rem;
+    }
   `;
 
   override render() {
@@ -381,6 +388,9 @@ export class SubscriptionSetupScreen extends LitElement {
           <div class="streaming-labels">
             <span>${t("subscription.setup.yourDeposit")}</span>
             <span>${t("subscription.setup.recipient")}</span>
+          </div>
+          <div class="month-definition">
+            ${t("subscription.setup.monthDefinition")}
           </div>
         </div>
 

@@ -5,6 +5,7 @@ export interface WidgetConfig {
   defaultAmount?: string;
   headerTitle?: string;
   locale?: string;
+  enableContinuous?: boolean;
   themeCustom?: {
     background: string;
     foreground: string;

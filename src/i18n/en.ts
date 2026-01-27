@@ -11,7 +11,7 @@ export const en: Translations = {
 
   // Donation type toggle
   "donation.type.oneTime": "One-time",
-  "donation.type.monthly": "Streaming",
+  "donation.type.monthly": "Continuous",
 
   // Amount section
   "amount.tooltip": "Any token, any chain — auto-converted",
@@ -135,7 +135,7 @@ export const en: Translations = {
     "Transaction submitted, waiting for confirmation",
 
   // Subscription setup screen
-  "subscription.setup.title": "How Streaming Works",
+  "subscription.setup.title": "How Continuous Payments Work",
   "subscription.setup.subtitle":
     "Your support flows continuously — every second",
   "subscription.setup.yourDeposit": "Your deposit",
@@ -145,7 +145,7 @@ export const en: Translations = {
   "subscription.setup.step2.title": "Make Deposit",
   "subscription.setup.step2.description":
     "Your deposit, your control — withdraw anytime",
-  "subscription.setup.step3.title": "Streaming Begins",
+  "subscription.setup.step3.title": "Payments Begin",
   "subscription.setup.step3.description":
     "Funds flow every second from your balance",
   "subscription.setup.depositLabel": "How many months to deposit?",
@@ -157,6 +157,7 @@ export const en: Translations = {
     "Unused funds can be withdrawn anytime through Papaya Finance.",
   "subscription.setup.back": "Back",
   "subscription.setup.continue": "Continue",
+  "subscription.setup.monthDefinition": "1 month = 30 days",
 
   // Subscription progress screen
   "subscription.progress.title": "Creating Subscription",

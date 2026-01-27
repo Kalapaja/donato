@@ -11,7 +11,7 @@ export const ru: Translations = {
 
   // Donation type toggle
   "donation.type.oneTime": "Разовый",
-  "donation.type.monthly": "Стриминг",
+  "donation.type.monthly": "Непрерывный",
 
   // Amount section
   "amount.tooltip": "Любой токен, любая сеть — автоконвертация",
@@ -137,7 +137,7 @@ export const ru: Translations = {
     "Транзакция отправлена, ожидание подтверждения",
 
   // Subscription setup screen
-  "subscription.setup.title": "Как работает стриминг",
+  "subscription.setup.title": "Как работают непрерывные платежи",
   "subscription.setup.subtitle":
     "Ваша поддержка поступает непрерывно — каждую секунду",
   "subscription.setup.yourDeposit": "Ваш депозит",
@@ -148,7 +148,7 @@ export const ru: Translations = {
   "subscription.setup.step2.title": "Внесите депозит",
   "subscription.setup.step2.description":
     "Ваш депозит — ваш контроль. Выводите когда угодно",
-  "subscription.setup.step3.title": "Стриминг начинается",
+  "subscription.setup.step3.title": "Платежи начинаются",
   "subscription.setup.step3.description":
     "Средства поступают каждую секунду с вашего баланса",
   "subscription.setup.depositLabel": "На сколько месяцев внести депозит?",
@@ -160,6 +160,7 @@ export const ru: Translations = {
     "Неиспользованные средства можно вывести в любое время через Papaya Finance.",
   "subscription.setup.back": "Назад",
   "subscription.setup.continue": "Продолжить",
+  "subscription.setup.monthDefinition": "1 месяц = 30 дней",
 
   // Subscription progress screen
   "subscription.progress.title": "Создание подписки",
