@@ -14,6 +14,7 @@ import { VersionSelector } from "./VersionSelector";
 interface WidgetConfiguratorProps {
   config: Partial<WidgetConfig>;
   onConfigChange: (updates: Partial<WidgetConfig>) => void;
+  chainCount: number;
 }
 
 const SECTION_SEPARATOR_STYLE = {
@@ -26,6 +27,7 @@ const AMOUNT_PRESETS = [10, 25, 50, 100] as const;
 export function WidgetConfigurator({
   config,
   onConfigChange,
+  chainCount,
 }: WidgetConfiguratorProps) {
   const [selectedVersion, setSelectedVersion] = useState<string | null>(null);
   const [versionEntry, setVersionEntry] = useState<VersionEntry | null>(null);
@@ -155,6 +157,7 @@ export function WidgetConfigurator({
       <RecipientSection
         recipient={config.recipient || ""}
         onRecipientChange={(recipient) => onConfigChange({ recipient })}
+        chainCount={chainCount}
       />
 
       <div style={SECTION_SEPARATOR_STYLE}>

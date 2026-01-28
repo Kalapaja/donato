@@ -4,6 +4,7 @@ import { useEffect } from "react";
 import { WidgetConfigurator } from "./WidgetConfigurator";
 import { WidgetPreview } from "./WidgetPreview";
 import type { WidgetConfig } from "../types/config";
+import type { AcrossStats } from "../lib/across-stats";
 import { useLocalStorageConfig } from "../lib/useLocalStorageConfig";
 
 const DEFAULT_CONFIG: Partial<WidgetConfig> = {
@@ -12,7 +13,11 @@ const DEFAULT_CONFIG: Partial<WidgetConfig> = {
   theme: "auto",
 };
 
-export function ClientPage() {
+interface ClientPageProps {
+  acrossStats: AcrossStats;
+}
+
+export function ClientPage({ acrossStats }: ClientPageProps) {
   const [config, handleConfigChange] = useLocalStorageConfig(DEFAULT_CONFIG);
 
   // Sync widget theme with landing page theme
@@ -76,7 +81,7 @@ export function ClientPage() {
             className="text-lg"
             style={{ color: "var(--color-muted-foreground)" }}
           >
-            Set up your widget live, add your wallet, upload the code to website, and start accepting donations immediately
+            Accept {acrossStats.tokenCount}+ tokens across {acrossStats.chainCount} chains — donors pay with any crypto, you receive USDC on Polygon
           </p>
         </header>
 
@@ -96,6 +101,7 @@ export function ClientPage() {
               <WidgetConfigurator
                 config={config}
                 onConfigChange={handleConfigChange}
+                chainCount={acrossStats.chainCount}
               />
             </div>
           </div>

@@ -5,10 +5,11 @@ import { useState } from "react";
 interface RecipientSectionProps {
   recipient: string;
   onRecipientChange: (recipient: string) => void;
+  chainCount: number;
 }
 
 export function RecipientSection(
-  { recipient, onRecipientChange }: RecipientSectionProps,
+  { recipient, onRecipientChange, chainCount }: RecipientSectionProps,
 ) {
   const [error, setError] = useState<string | null>(null);
 
@@ -36,7 +37,7 @@ export function RecipientSection(
         className="text-sm mb-4"
         style={{ color: "var(--color-muted-foreground)" }}
       >
-        All donations are received as USDC on Polygon network
+        Donors pay with any token on {chainCount} chains — auto-converted to USDC on Polygon
       </p>
 
       <details className="text-sm mb-4" style={{ color: "var(--color-muted-foreground)" }}>
